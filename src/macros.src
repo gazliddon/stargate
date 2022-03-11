@@ -1,0 +1,118 @@
+
+
+    macro write_rom(id,size) {
+		writebin "$(OUT_DIR)/defend.|id|"  ,defend_|id| ,|size|
+    }
+
+	;; Set a byte in physical memeory 
+	macro poke(a,b) {
+		org 0
+		put |a|
+		fcb |b|
+	}
+
+	macro section(a) {
+		org 0
+		put |a|
+	}
+
+	macro MAKP(addr) {
+		JSR	MAKEP
+		fdb |addr|
+	}
+
+macro NAP(time,wakeup) {
+        LDA    #|time|              ;TIME
+        LDX    #|wakeup|              ;WAKEUP ADDR
+        JMP    SLEEP
+}
+
+*
+*M A C R O S
+*
+macro SHL     (a,b,c) {
+        JSR    GETSHL
+        FDB    |a|, |b|, |c|
+        }
+
+macro KILP (a,b) {
+        JSR    KILPOS
+        FDB    |a|
+        FDB    |b|
+	}
+
+macro KILO(a,b) {
+        JSR    KILOS
+        FDB    |a|, |b|
+        }
+
+; *INIT OBJECT
+; OBI     MACRO  \1,\2,\3
+;         JSR    OBINIT
+;         FDB    \1,\2,\3
+;         ENDM 
+
+macro OBI(a,b,c) {
+        JSR    OBINIT
+        FDB    |a|,|b|,|c|
+}
+
+; CLRD    MACRO
+;         CLRA 
+;         CLRB 
+;         ENDM 
+
+macro CLRD() {
+	CLRA 
+	CLRB 
+}
+
+; DIE     MACRO
+;         JMP    SUCIDE           ;DIE!
+;         ENDM 
+macro 	DIE()  {
+        JMP    SUCIDE           ;DIE!
+        }
+
+
+; *
+; NAP     MACRO  \1,\2
+;         LDA    #\1              ;TIME
+;         LDX    #\2              ;WAKEUP ADDR
+;         JMP    SLEEP
+;         ENDM 
+
+; *
+; *MAKE A NEW PROCESS
+; *
+; NEWP    MACRO  \1,\2
+;         LDX    #\1              ;ADDR
+;         LDA    #\2              ;TYPE
+;         JSR    MKPROC
+;         ENDM 
+
+macro NEWP(addr, type) {
+        LDX    #|addr|  ;ADDR
+        LDA    #|type|  ;TYPE
+        JSR    MKPROC
+}
+
+; *
+; *OBJECT OFF MACRO
+; *
+; OBJOFF  MACRO  \1
+;         IFEQ   NARG-1
+;         LDY    #\1
+;         ENDC 
+;         JSR    COFF
+;         ENDM 
+; *
+; *OBJECT  ON MACRO
+; *
+; OBJON   MACRO  \1
+;         IFEQ   NARG-1
+;         LDY    #\1
+;         ENDC 
+;         JSR    CWRIT
+;         ENDM 
+;         PAGE 

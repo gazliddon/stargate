@@ -1,0 +1,6 @@
+	include "macros.src"
+	include "memory.src"
+
+	include "TEST12.SRC"
+
+
