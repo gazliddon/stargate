@@ -80,8 +80,8 @@ PLIN      EQU    YMIN-1
 SCANH     EQU    8
 SCANER    EQU    P1ORG+(37*$100)+SCANH
 DIGLTH    EQU    $400
-MESSUL    EQU    (YMIN-5)+(SCANER!.$FF00)
-MESSLR    EQU    (YMIN)+((P2DISP-$200)!.$FF00)
+MESSUL    EQU    (YMIN-5)+(SCANER&$FF00)
+MESSLR    EQU    (YMIN)+((P2DISP-$200)&$FF00)
 
 *
 *MAIN PROGRAM VECTORS
@@ -401,17 +401,16 @@ RAM    EQU    *
     SETDP    RAM>>8
 BGSAV rmb 16
 TEXCOL    
-TXTSAV rmb 16
 TXFLAV    equ * + 1    
 TXLEAD    equ * + 2
 TXFONT    equ * + 3
+TXTSAV rmb 16
 
 BGL       RMB    2   ; TERRAIN LEFT POINTER
 BGLX      RMB    2   ; OLD TERRAIN LEFT
 GTIME     RMB    1   ; GAME TIMER
 PDFLG     RMB    1   ; SPACE HOLDER PLAYER DIED
 PCRAM     RMB    16  ; PSEUDO COLOR RAM
-
 CREDIT    RMB    1
 CUNITS    RMB    1
 BUNITS    RMB    1
@@ -697,7 +696,7 @@ SMAP    EQU    *
 SNUM    EQU    16
 
 SLGTH    EQU   smap.size
-         RMB   (SNUM-1)*SLGTH  ; RESERVE SPACE
+         RMB   SNUM*SLGTH  ; RESERVE SPACE
 SMEND    EQU   *
 
 *OFFSET CONSTANTS
@@ -753,7 +752,7 @@ struct player_data {
 
 PLDATA    EQU    *
 .P1SCR    RMB    4    SCORE MSB 1ST
-.P1RP    RMB    4    NEXT REPLAY LEVEL
+.P1RP     RMB    4    NEXT REPLAY LEVEL
 .P1LAS    RMB    1    #OF LASERS
 .P1WAV    RMB    1    WAVE # IN HEX
 .P1SBC    RMB    1    SMART BOMBS
@@ -761,8 +760,9 @@ PLDATA    EQU    *
 .P1TRG    RMB    1    ASTRONAUTS
 .P1ENM    RMB    50    ENEMY STATE
 .P1END    EQU    *
+
 .P2SCR    RMB    4
-.P2RP    RMB    4
+.P2RP     RMB    4
 .P2LAS    RMB    1
 .P2WAV    RMB    1
 .P2SBC    RMB    1

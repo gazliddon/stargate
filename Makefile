@@ -10,6 +10,7 @@ DEPS := $(SRCS:%.src=$(DEPS_DIR)/%.d)
 
 GAZM_DIR = ../gazm/target/debug
 ASM := @$(GAZM_DIR)/gazm --star-comments --max-errors 50 --mem-size 94208 --trailing-comments\
+	   -vvvv \
 		--set OUT_DIR $(OUT_DIR) \
 		--set TMP_DIR $(TMP_DIR) \
 		--set REF_ROMS_DIR $(REF_ROMS_DIR)

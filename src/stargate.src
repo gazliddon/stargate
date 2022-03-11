@@ -1,6 +1,22 @@
 	include "macros.src"
 	include "memory.src"
 
-	include "TEST12.SRC"
+
+	include    "SPHR56.SRC"
+
+	scope ddd.lo
+		include   "EQ4.SRC"
+
+		; ATTR9      ($DA00-$DEBC)
+		; LOG11      ($D000-$D931)
+		; TESTB12    ($E000-$E933)
+		; TESTC8     ($E940-$EF14;$F400-$F4XX)
+		; TEST12     ($F480-$FFFF)
+
+		include   "ATTR9.SRC"      
+		include   "LOG11.SRC"      
+		include   "TESTB12.SRC"
+		include   "TESTC8.SRC"
+		include   "TEST12.SRC"     
 
 
