@@ -1,22 +1,40 @@
 	include "macros.src"
 	include "memory.src"
 
+	include "SPHR56.SRC"
 
-	include    "SPHR56.SRC"
+	scope background
+		include "RA37.SRC"
+		include "RB37.SRC"
 
-	scope ddd.lo
-		include   "EQ4.SRC"
+    scope trek5
+		include "EQ4.SRC"
+        include "TREK5.SRC"
 
-		; ATTR9      ($DA00-$DEBC)
-		; LOG11      ($D000-$D931)
-		; TESTB12    ($E000-$E933)
-		; TESTC8     ($E940-$EF14;$F400-$F4XX)
-		; TEST12     ($F480-$FFFF)
+    scope trekc5
+		include "EQ4.SRC"
+        include "TREKC5.SRC"
 
-		include   "ATTR9.SRC"      
-		include   "LOG11.SRC"      
-		include   "TESTB12.SRC"
-		include   "TESTC8.SRC"
-		include   "TEST12.SRC"     
+	scope lorom
+		include "EQ4.SRC"
+        include "ET13.SRC"
+        include "MESS2.SRC"
+        include "BPS15.SRC"
+        include "LMA12.SRC"
+        include "YF14.SRC"
+        include "SD51.SRC"
+        include "TEXT31.SRC"
+        include "SAM16.SRC"
 
+    scope DN11
+		include "EQ4.SRC"
+        include "DN11.SRC"
+
+	scope hirom
+		include "EQ4.SRC"
+		include "ATTR9.SRC"      
+		include "LOG11.SRC"      
+		include "TESTB12.SRC"
+		include "TESTC8.SRC"
+		include "TEST12.SRC"     
 

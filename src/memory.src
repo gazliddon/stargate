@@ -1,32 +1,62 @@
 
-stargate_rom_1   equ  0x10000	; CRC(88824d18) SHA1(f003a5a9319c4eb8991fa2aae3f10c72d6b8e81a) )
-stargate_rom_2   equ  0x11000	; CRC(afc614c5) SHA1(087c6da93318e8dc922d3d22e0a2af7b9759701c) )
-stargate_rom_3   equ  0x12000	; CRC(15077a9d) SHA1(7badb4318b208f49d7fa65e915d0aa22a1e37915) )
-stargate_rom_4   equ  0x13000	; CRC(a8b4bf0f) SHA1(6b4d47c2899fe9f14f9dab5928499f12078c437d) )
-stargate_rom_5   equ  0x14000	; CRC(2d306074) SHA1(54f871983699113e31bb756d4ca885c26c2d66b4) )
-stargate_rom_6   equ  0x15000	; CRC(53598dde) SHA1(54b02d944caf95283c9b6f0160e75ea8c4ccc97b) )
-stargate_rom_7   equ  0x16000	; CRC(23606060) SHA1(a487ffcd4920d1056b87469735f7e1002f6a2e49) )
-stargate_rom_8   equ  0x17000	; CRC(4ec490c7) SHA1(8726ebaf048db9608dfe365bf434ed5ca9452db7) )
-stargate_rom_9   equ  0x18000	; CRC(88187b64) SHA1(efacc4a6d4b2af9a236c9d520de6d605c79cc5a8) )
-stargate_rom_10  equ  0x0d000	; CRC(60b07ff7) SHA1(ba833f48ddfc1bd04ddb41b1d1c840d66ee7da30) )
-stargate_rom_11  equ  0x0e000	; CRC(7d2c5daf) SHA1(6ca39f493eb8b370154ad46ef01976d352c929e1) )
-stargate_rom_12  equ  0x0f000	; CRC(a0396670) SHA1(c46872550e0ca031453c6513f8f0448ecc9b5572) )
+stargate_rom_1   equ  0x0000	; CRC(88824d18) SHA1(f003a5a9319c4eb8991fa2aae3f10c72d6b8e81a) )
+stargate_rom_2   equ  0x1000	; CRC(afc614c5) SHA1(087c6da93318e8dc922d3d22e0a2af7b9759701c) )
+stargate_rom_3   equ  0x2000	; CRC(15077a9d) SHA1(7badb4318b208f49d7fa65e915d0aa22a1e37915) )
+stargate_rom_4   equ  0x3000	; CRC(a8b4bf0f) SHA1(6b4d47c2899fe9f14f9dab5928499f12078c437d) )
+stargate_rom_5   equ  0x4000	; CRC(2d306074) SHA1(54f871983699113e31bb756d4ca885c26c2d66b4) )
+stargate_rom_6   equ  0x5000	; CRC(53598dde) SHA1(54b02d944caf95283c9b6f0160e75ea8c4ccc97b) )
+stargate_rom_7   equ  0x6000	; CRC(23606060) SHA1(a487ffcd4920d1056b87469735f7e1002f6a2e49) )
+stargate_rom_8   equ  0x7000	; CRC(4ec490c7) SHA1(8726ebaf048db9608dfe365bf434ed5ca9452db7) )
+stargate_rom_9   equ  0x8000	; CRC(88187b64) SHA1(efacc4a6d4b2af9a236c9d520de6d605c79cc5a8) )
+stargate_rom_10  equ  0xd000	; CRC(60b07ff7) SHA1(ba833f48ddfc1bd04ddb41b1d1c840d66ee7da30) )
+stargate_rom_11  equ  0xe000	; CRC(7d2c5daf) SHA1(6ca39f493eb8b370154ad46ef01976d352c929e1) )
+stargate_rom_12  equ  0xf000	; CRC(a0396670) SHA1(c46872550e0ca031453c6513f8f0448ecc9b5572) )
 
-macro refrom(addr, file) {
 	org 0
-	put |addr|
-	incbinref "$(REF_ROMS_DIR)/|file|"
-}
-	refrom (stargate_rom_1,01)
-	refrom (stargate_rom_2,02)
-	refrom (stargate_rom_3,03)
-	refrom (stargate_rom_4,04)
-	refrom (stargate_rom_5,05)
-	refrom (stargate_rom_6,06)
-	refrom (stargate_rom_7,07)
-	refrom (stargate_rom_8,08)
-	refrom (stargate_rom_9,09)
-	refrom (stargate_rom_10,10)
-	refrom (stargate_rom_11,11)
-	refrom (stargate_rom_12,12)
+	put stargate_rom_1
+	incbinref "$(REF_ROMS_DIR)/01",stargate_rom_1
+
+	org 0
+	put stargate_rom_2
+	incbinref "$(REF_ROMS_DIR)/02",stargate_rom_2
+
+	org 0
+	put stargate_rom_3
+	incbinref "$(REF_ROMS_DIR)/03",stargate_rom_3
+
+	org 0
+	put stargate_rom_4
+	incbinref "$(REF_ROMS_DIR)/04",stargate_rom_4
+
+	org 0
+	put stargate_rom_5
+	incbinref "$(REF_ROMS_DIR)/05",stargate_rom_5
+
+	org 0
+	put stargate_rom_6
+	incbinref "$(REF_ROMS_DIR)/06",stargate_rom_6
+
+	org 0
+	put stargate_rom_7
+	incbinref "$(REF_ROMS_DIR)/07",stargate_rom_7
+
+	org 0
+	put stargate_rom_7
+	incbinref "$(REF_ROMS_DIR)/08",stargate_rom_8
+
+	org 0
+	put stargate_rom_9
+	incbinref "$(REF_ROMS_DIR)/09",stargate_rom_9
+
+	org 0
+	put stargate_rom_10
+	incbinref "$(REF_ROMS_DIR)/10",stargate_rom_10
+
+	org 0
+	put stargate_rom_11
+	incbinref "$(REF_ROMS_DIR)/11",stargate_rom_11
+
+	org 0
+	put stargate_rom_12
+	incbinref "$(REF_ROMS_DIR)/12",stargate_rom_12
 

@@ -1,29 +1,29 @@
 
 
     macro write_rom(id,size) {
-		writebin "$(OUT_DIR)/defend.|id|"  ,defend_|id| ,|size|
+		; writebin "$(OUT_DIR)/defend.|id|"  ,defend_|id| ,|size|
     }
 
 	;; Set a byte in physical memeory 
 	macro poke(a,b) {
 		org 0
-		put |a|
-		fcb |b|
+		put a
+		fcb b
 	}
 
 	macro section(a) {
 		org 0
-		put |a|
+		put a
 	}
 
 	macro MAKP(addr) {
 		JSR	MAKEP
-		fdb |addr|
+		fdb addr
 	}
 
 macro NAP(time,wakeup) {
-        LDA    #|time|              ;TIME
-        LDX    #|wakeup|              ;WAKEUP ADDR
+        LDA    #time                ;TIME
+        LDX    #wakeup              ;WAKEUP ADDR
         JMP    SLEEP
 }
 
@@ -32,18 +32,18 @@ macro NAP(time,wakeup) {
 *
 macro SHL     (a,b,c) {
         JSR    GETSHL
-        FDB    |a|, |b|, |c|
+        FDB    a, b, c
         }
 
 macro KILP (a,b) {
         JSR    KILPOS
-        FDB    |a|
-        FDB    |b|
+        FDB    a
+        FDB    b
 	}
 
 macro KILO(a,b) {
         JSR    KILOS
-        FDB    |a|, |b|
+        FDB  a, b
         }
 
 ; *INIT OBJECT
@@ -54,7 +54,7 @@ macro KILO(a,b) {
 
 macro OBI(a,b,c) {
         JSR    OBINIT
-        FDB    |a|,|b|,|c|
+        FDB    a,b,c
 }
 
 ; CLRD    MACRO
@@ -92,8 +92,8 @@ macro 	DIE()  {
 ;         ENDM 
 
 macro NEWP(addr, type) {
-        LDX    #|addr|  ;ADDR
-        LDA    #|type|  ;TYPE
+        LDX    #addr  ;ADDR
+        LDA    #type  ;TYPE
         JSR    MKPROC
 }
 
@@ -116,3 +116,15 @@ macro NEWP(addr, type) {
 ;         JSR    CWRIT
 ;         ENDM 
 ;         PAGE 
+
+macro MKPROB(a,b,c,d) {
+     JSR    MPROB
+     FDB    a,b,c,d
+}
+
+*MAKE A PROCESS AND OBJECT
+; MKPROB    MACRO    \0,\1,\2,\3
+;     JSR    MPROB
+;     FDB    \0,\1,\2,\3
+;     ENDM
+*

@@ -8,8 +8,10 @@ SRCS := stargate.src
 SYMS := $(SRCS:%.src=$(TMP_DIR)/%.sym)
 DEPS := $(SRCS:%.src=$(DEPS_DIR)/%.d)
 
-GAZM_DIR = ../gazm/target/debug
-ASM := @$(GAZM_DIR)/gazm --star-comments --max-errors 50 --mem-size 94208 --trailing-comments\
+GAZM_DIR := ~/development/gazm/gazm
+GAZM := cargo +nightly run --manifest-path $(GAZM_DIR)/Cargo.toml --
+
+ASM := @$(GAZM) --star-comments --max-errors 500 --mem-size 94208 --trailing-comments\
 	   -vvvv \
 		--set OUT_DIR $(OUT_DIR) \
 		--set TMP_DIR $(TMP_DIR) \
