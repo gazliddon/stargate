@@ -3,6 +3,7 @@
     ; INCLUDE   EQ4.SRC
     ; LIST
     ; TTL   <<<<<  S T A R G A T E  >>>>>
+
 ;      TEXT PROGRAM ORGANIZATION.
 ;
 ;      REGISTER X WILL CONTAIN THE CURRENT CURSOR.  
@@ -19,9 +20,9 @@
 ;      USE SPECIAL CODES THAT FALL IN BETWEEN THE NUMBERS AND LETTERS.
 ;      THEY WILL BE EQUATED IN THIS CODE.
 
-;****
+; ----
 ;      PRIMITIVES:
-;****
+; ----
 
 ;      PRINIT - THIS ROUTINE IS USEFUL TO CALL BEFORE THE FIRST PRINTING
 ;               TASK.  IT SETS UP A DEFAULT COLOR FOR TEXT, AND ZEROS OUT
@@ -43,14 +44,15 @@
 *      PRN57F - EVEN RANDY COULD FIGURE OUT WHAT THIS ROUTINE DOES.
 
     ORG TXTSAV
-        RMB 1                             ; (TEXCOL) CURRENT PRINTING COLOR (NIBBLES REPRESENT FLAVOR COLOR)
-        RMB 1                             ; (TXFLAV) FLAVOR OF CURRENT CURSOR (0=EVEN, 1=ODD)
-        RMB 1                             ; (TXLEAD) LEAD ZERO BLANKING ON/OFF (0=OFF, 1=ON)
-        RMB 1                             ; (TXFONT) FONT HEIGHT (5 OR 7) PIXELS
-TEXMAR  RMB 2                             ; CURRENT LEFT MARGIN CURSOR POINTER
-TEXMFL  RMB 1                             ; CURRENT LEFT MARGIN FLAVOR
-TEXTP3  RMB 1
-BYTBUF  RMB 7                             ; INTERNAL CHARACTER CONSTRUCTION BUFFER
+
+          RMB 1                             ; (TEXCOL) CURRENT PRINTING COLOR (NIBBLES REPRESENT FLAVOR COLOR)
+          RMB 1                             ; (TXFLAV) FLAVOR OF CURRENT CURSOR (0=EVEN, 1=ODD)
+          RMB 1                             ; (TXLEAD) LEAD ZERO BLANKING ON/OFF (0=OFF, 1=ON)
+          RMB 1                             ; (TXFONT) FONT HEIGHT (5 OR 7) PIXELS
+TEXMAR    RMB 2                             ; CURRENT LEFT MARGIN CURSOR POINTER
+TEXMFL    RMB 1                             ; CURRENT LEFT MARGIN FLAVOR
+TEXTP3    RMB 1
+BYTBUF    RMB 7                             ; INTERNAL CHARACTER CONSTRUCTION BUFFER
 
 ;      SPECIAL CHARACTER NAMES
 
@@ -611,8 +613,8 @@ RETRN   TFR X,D                             ; GET TO OPERABLE
         RTS                                 ; AND RETURN
 
 LINFD   TFR X,D                             ; GET TO A PLACE WHERE WE CAN OPERATE
-        ADDB    TXFONT                      ; ADD THE FONT HEIGHT
-        ADDB    #2                          ; DOUBLE PIXEL SPACES.
+        ADDB TXFONT                         ; ADD THE FONT HEIGHT
+        ADDB #2                             ; DOUBLE PIXEL SPACES.
         TFR D,X
         RTS
 
@@ -630,19 +632,19 @@ CURSR   TFR X,D                             ; WE NEED TO OPERATE ON CURSOR
         BMI CURSR4
         LDA TXFLAV
         BEQ CURSR2
-        LEAX    $100,X                      ; BUMP ONE MORE COLUMN
+        LEAX $100,X                         ; BUMP ONE MORE COLUMN
         LDA #$FF
 CURSR2  INCA
         STA TXFLAV
         BRA CURSR3
 CURSR4  LDA TXFLAV
-        CMPA    #1
+        CMPA #1
         BEQ CURSR5
-        LEAX    -$100,X                     ; MOVE ONE TO THE LEFT
+        LEAX -$100,X                        ; MOVE ONE TO THE LEFT
         LDA #2
 CURSR5  DECA
         STA TXFLAV
-CURSR3  LEAY    3,Y
+CURSR3  LEAY 3,Y
         RTS
 
 CURAB   LDX ,Y++                            ; GET THE NEW ABSOLUTE CURSOR
@@ -656,26 +658,26 @@ MARGN   LDB TXFLAV
         RTS
 
 LFONTT  LDA TXFONT                          ; GET NEW FONT
-        CMPA    #7                          ; ALREADY LARGE??
+        CMPA #7                             ; ALREADY LARGE??
         BEQ FNTRTS                          ; K-BYE
         LDA #7
         STA TXFONT                          ; MAKE LARGE FONT
-        LEAX    -2,X                        ; AND BOTTOM ADJUST
+        LEAX -2,X                           ; AND BOTTOM ADJUST
 FNTRTS  RTS                                 ; AND RETURN
 
 SFONTT  LDA TXFONT
-        CMPA    #5
+        CMPA #5
         BEQ FNTRTS
         LDA #5
         STA TXFONT
-        LEAX    2,X
+        LEAX 2,X
         RTS
 
 ZBLNK   LDA #1
-        STA TXLEAD  REQUEST LEAD ZERO BLANKING
+        STA TXLEAD                          ; REQUEST LEAD ZERO BLANKING
         RTS
 
-NBLNK   CLR TXLEAD  KILL LEAD ZERO BLANKING
+NBLNK   CLR TXLEAD                          ; KILL LEAD ZERO BLANKING
         RTS
 
 SBLNK   LDA #2                              ; BLANKING WITH SPACING
@@ -1432,7 +1434,7 @@ CMICOK  FCB CURSAB,$20,$B0,0,COLOR,$00,SUB
         FCC "RAISING TABLE TOP"
         FCB 0
 
-FROBMP  FCB COLOR,$99,FROB,COLOR,$88,0  DISPLAY FROB
+FROBMP  FCB COLOR,$99,FROB,COLOR,$88,0                    ; DISPLAY FROB
 
 CONTMP  FCB LFONT,COLOR,$99,CURSAB,$37,$10,0
         FCC "GAME ADJUSTMENT"
@@ -2104,7 +2106,7 @@ NOWRPP  FCB COLOR,$77,CURSAB
         FDB MESSUL+$400
         FCB 0,SUB
         FDB WRSUB                   ; WARP REQUIRES
-        FCC "1" 1
+        FCC "1"                     ; 1
         FCB SUB
         FDB ADSUB                   ; ADDITIONAL M
         FCC "AN"                    ; AN
