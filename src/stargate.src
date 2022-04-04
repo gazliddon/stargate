@@ -38,3 +38,16 @@
 		include "TESTC8.SRC"
 		include "TEST12.SRC"     
 
+	;; Write the roms
+	writebin "$(OUT_DIR)/01",stargate_rom_1, $1000
+	writebin "$(OUT_DIR)/02",stargate_rom_2, $1000
+	writebin "$(OUT_DIR)/03",stargate_rom_3, $1000
+	writebin "$(OUT_DIR)/04",stargate_rom_4, $1000
+	writebin "$(OUT_DIR)/05",stargate_rom_5, $1000
+	writebin "$(OUT_DIR)/06",stargate_rom_6, $1000
+	writebin "$(OUT_DIR)/07",stargate_rom_7, $1000
+	writebin "$(OUT_DIR)/08",stargate_rom_8, $1000
+	writebin "$(OUT_DIR)/09",stargate_rom_9, $1000
+	writebin "$(OUT_DIR)/10",stargate_rom_10, $1000
+	writebin "$(OUT_DIR)/11",stargate_rom_11, $1000
+	writebin "$(OUT_DIR)/12",stargate_rom_12, $1000

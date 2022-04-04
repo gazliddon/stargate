@@ -41,7 +41,7 @@ stargate_rom_12  equ  0xf000	; CRC(a0396670) SHA1(c46872550e0ca031453c6513f8f044
 	incbinref "$(REF_ROMS_DIR)/07",stargate_rom_7
 
 	org 0
-	put stargate_rom_7
+	put stargate_rom_8
 	incbinref "$(REF_ROMS_DIR)/08",stargate_rom_8
 
 	org 0

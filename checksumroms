@@ -1,0 +1,15 @@
+#!/bin/bash
+while (( "$#"  )) ; do
+	RES="$(shasum -a 256 $2 | cut -c 1-64 2>&1)"
+
+	if [[ $RES == $1 ]]
+	then
+        echo -e "$2\t✅";
+	else
+        echo -e "$2\t❌";
+	fi
+
+	shift
+	shift
+done
+

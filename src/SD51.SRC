@@ -425,23 +425,19 @@ PRCHM	PSHS	X,Y,D
 PRCHM1	LDA	#CHFBM
 PRCHM2	JSR	WRD7V
 	PULS	X,Y,D,PC
-*
+
 *'HIDDEN' MESAGE TABLE
 *
 HIDTAB	
-    ; FCB	$5B!X$5A,'C!X$5A,$5C!X$5A
-	; FCB	' !X$5A,'1!X$5A,'9!X$5A,'8!X$5A,'1!X$5A,' !X$5A
-	; FCB	'W!X$5A,'I!X$5A,'L!X$5A,'L!X$5A
-	; FCB	'I!X$5A,'A!X$5A,'M!X$5A,'S!X$5A,' !X$5A
-	; FCB	'E!X$5A,'L!X$5A,'E!X$5A,'C!X$5A,$3D!X$5A
-	; FCB	' !X$5A,'I!X$5A,'N!X$5A,'C!X$5A,$3D!X$5A,0!X$5A
+    FCB	$5B^$5A,  'C'^$5A, $5C^$5A
+	FCB	' '^$5A,  '1'^$5A, '9'^$5A,'8'^$5A , '1'^$5A ,' '^$5A
+	FCB	'W'^$5A,  'I'^$5A, 'L'^$5A,'L'^$5A
+	FCB	'I'^$5A,  'A'^$5A, 'M'^$5A,'S'^$5A , ' '^$5A
+	FCB	'E'^$5A,  'L'^$5A, 'E'^$5A,'C'^ $5A,
+	fcb $3D^$5A
+	FCB	' '^$5A,  'I'^$5A, 'N'^$5A,'C'^ $5A, 
+	fcb $3D^$5A, 0^$5A
 
-    FCB	0,0,$5C!X$5A
-	FCB	0,0,0,0,0,' !X$5A
-	FCB	0,0,0,0
-	FCB	0,0,0,0,0
-	FCB	0,0,0,0,0
-	FCB	0,0,0,0,0,0
 *
 *COLORING PROCESS START
 *
@@ -474,12 +470,12 @@ PLINIT	EQU	*
 	STD	PLAXC
 	LDD	#$2000
 	STD	PLAX16
-	LDD	#$2000!>2
+	LDD	#$2000>>2
 	ADDD	BGL
 	STD	PLABX
 	LDD	#$8000
 	STD	PLAY16
-	CLRD
+	CLRD()
 	STD	PLAXV
 	STA	PLAXV+2
 	STD	PLAYV
