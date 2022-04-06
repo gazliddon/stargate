@@ -9,14 +9,14 @@
 
         ORG BGSAV
 
-BGLXX   RMB 2                             ; OLDIE
-SSTACK  RMB 2                             ; TEMP STACK SAVE
-TTBLP   RMB 2                             ; OUTPUT TABLE POINTER
-TDPTR   RMB 1                             ; DATA TABLE PTR OFFSET
-TCNT    RMB 1                             ; NIBBLE COUNTER DATA TABLE $FF=HN,0=LN
-TOFF0   RMB 1                             ; ALT OFFSET FLAV0
-TOFF1   RMB 1                             ; ALT OFFSET FLAV1
-SCFLG   RMB 1                             ; SCROLL DIRECTION 0=RT.,$FF=LFT.
+BGLXX     RMB 2                             ; OLDIE
+SSTACK    RMB 2                             ; TEMP STACK SAVE
+TTBLP     RMB 2                             ; OUTPUT TABLE POINTER
+TDPTR     RMB 1                             ; DATA TABLE PTR OFFSET
+TCNT      RMB 1                             ; NIBBLE COUNTER DATA TABLE $FF=HN,0=LN
+TOFF0     RMB 1                             ; ALT OFFSET FLAV0
+TOFF1     RMB 1                             ; ALT OFFSET FLAV1
+SCFLG     RMB 1                             ; SCROLL DIRECTION 0=RT.,$FF=LFT.
 
 ; VECTORS
 
