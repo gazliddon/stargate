@@ -1260,9 +1260,16 @@ ROMTAB  FCB    $00,$BC                  ;  0000
 ROMEND  FCB    0                                        
         FCB    $3C                      ;  CHECK BYTE (FUDGER) FOR THIS PART ($F000)
 
-        org 65520                                       
-        FDB    PWRUPV,PWRUPV,PWRUPV                                
-        FDB    PWRUPV,IRQHK                                
-        FDB    PWRUPV,PWRUPV,PWRUPV                                
+
+;; Hardware Vectors
+        org $fff0                                       
+        fdb    PWRUPV   ; reserved by motorola
+        fdb    PWRUPV   ; sw3
+        fdb    PWRUPV   ; sw2
+        fdb    PWRUPV   ; firq
+        fdb    IRQHK    ; irq
+        fdb    PWRUPV   ; swi
+        fdb    PWRUPV   ; nmi
+        fdb    PWRUPV   ; reset
 
                                                         
