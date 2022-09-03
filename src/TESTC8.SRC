@@ -203,7 +203,7 @@ FGODC1  LEAX  1,X
 
 MKSCCK  PSHS  A 
         BSR FSCCK                           ; FORM THE CHECK BYTE
-        STA 6,Y STORE IT
+        STA 6,Y                             ; STORE IT
         PULS  A,PC
 
 FSCCK   PSHS  Y,B
@@ -217,98 +217,98 @@ MSCCK1  LEAY  1,Y
         BNE MSCCK0
         PULS  Y,B,PC
 
-CKHS    LDA #50                                   ; DONT GO THROUGH MORE THAN 50
+CKHS    LDA #50                             ; DONT GO THROUGH MORE THAN 50
         PSHS  A
-        LDY #CMSCOR                               ; WALK THROUGH SCORES
-CKHS7   BSR FSCCK                                 ; FORM THE SCORE CHECK BYTE
+        LDY #CMSCOR                         ; WALK THROUGH SCORES
+CKHS7   BSR FSCCK                           ; FORM THE SCORE CHECK BYTE
         EORA  6,Y
         ANDA  #$F
         BEQ CKHS5
-CKHS4   JSR RMENTR                                ; REMOVE THE ENTRY
+CKHS4   JSR RMENTR                          ; REMOVE THE ENTRY
         CLR CREDST
         CLR CREDST+1
-        DEC ,S                                    ; MAKE SURE WE DON'T REMOVE TOO MANY
+        DEC ,S                              ; MAKE SURE WE DON'T REMOVE TOO MANY
         BEQ CKHS67
-        BRA CKHS7                                 ; DON'T PUSH POINTER YET.
+        BRA CKHS7                           ; DON'T PUSH POINTER YET.
 CKHS5   LDA #3
         LDB #4
         BSR CKENT
         BCS CKHS4
-CKHS6   LEAY  SCRSIZ,Y                            ; MOVE TO NEXT
+CKHS6   LEAY  SCRSIZ,Y                      ; MOVE TO NEXT
         CMPY  #TODAYS
         BLO CKHS7
-CKHS67  PULS  A                                   ; TAKE ENTRY OFF OF STACK
-        LDX #TODTAB                               ; TODAY'S TABLE (NORMAL BYTES)
+CKHS67  PULS  A                             ; TAKE ENTRY OFF OF STACK
+        LDX #TODTAB                         ; TODAY'S TABLE (NORMAL BYTES)
         LDY #TODAYS
         LDB #ENDTOD-TODTAB
         JSR CMSMVV
-        BSR FGODC                                 ; NOW CHECK OUT GOD.  
-        EORA  GODSCR+40                           ; CHECK IT OUT
+        BSR FGODC                           ; NOW CHECK OUT GOD.  
+        EORA  GODSCR+40                     ; CHECK IT OUT
         ANDA  #$F
-        BEQ CKHS1                                 ; OK..CONTINUE
+        BEQ CKHS1                           ; OK..CONTINUE
         BSR REMGOD
-CKHS1   LDY #GODINT                               ; BEGINNING OF TEXT ONLY PART-CHECK ALPHA NUM
-        LDA #23                                   ; 20 CHARS OF TEXT
-        LDB #4                                    ; 4 BYTES OF NUMBERS PLEASE
-        BSR CKENT                                 ; MAKE SURE ALPHAS AND NUMERICS
+CKHS1   LDY #GODINT                         ; BEGINNING OF TEXT ONLY PART-CHECK ALPHA NUM
+        LDA #23                             ; 20 CHARS OF TEXT
+        LDB #4                              ; 4 BYTES OF NUMBERS PLEASE
+        BSR CKENT                           ; MAKE SURE ALPHAS AND NUMERICS
         BCC CKHS3
-        BSR REMGOD                                ; REMOVE GOD
+        BSR REMGOD                          ; REMOVE GOD
 CKHS3   RTS
 
-REMGOD  LDX #GODSCR                               ; GOD BAD FIRST BLANK OUT
+REMGOD  LDX #GODSCR                         ; GOD BAD FIRST BLANK OUT
         LDA #$3A
 CKHS2_  JSR WCMOSA
-        CMPX  #GODSCR+40                          ; DONE??
-        BLO CKHS2_                                ; DO ANOTHER CHARACTER
-        LDX #CMSCOR #2    
+        CMPX  #GODSCR+40                    ; DONE??
+        BLO CKHS2_                          ; DO ANOTHER CHARACTER
+        LDX #CMSCOR                         ; #2    
         LDY #GODSCR
-        LDA #6                                    ; 6 NIBBLES
-        JSR BLKMOV                                ; MOVED
-        LDY #GODINT                               ; X STILL POINTS AT FIRST GUYS INITIALS
-        JSR BLKMOV                                ; MOV EM TOO
-        LDX #CMSCOR+6 #2                          ; SCORE
-        LDY #GODSCR+40 #2                         ; SCORE GOES HERE
+        LDA #6                              ; 6 NIBBLES
+        JSR BLKMOV                          ; MOVED
+        LDY #GODINT                         ; X STILL POINTS AT FIRST GUYS INITIALS
+        JSR BLKMOV                          ; MOV EM TOO
+        LDX #CMSCOR+6                       ; #2 SCORE
+        LDY #GODSCR+40                      ; #2 SCORE GOES HERE
         LDA #8
         JSR BLKMOV
-        JSR MKGODC                                ; MAKE THE CHECK BYTE
-        LDY #CMSCOR                               ; NOW REMEOVE #2
-        JMP RMENTR                                ; REMOVE #2 AND RETURN
+        JSR MKGODC                          ; MAKE THE CHECK BYTE
+        LDY #CMSCOR                         ; NOW REMEOVE #2
+        JMP RMENTR                          ; REMOVE #2 AND RETURN
 
 CKENT   PSHS  D,X
         LDB #WDATA
         STB WDOG
-        TFR Y,X                                   ; CMOSABLE REGISTER
-CKENT1  JSR RCMOSB                                ; READ A BYTE
-        CMPB  #$41                                ; LOWER THAN A??
-        BHS CKENT4                                ; NOPE...HIGH ENOUGH CHECK TOO HIGH
-        CMPB  #$3A                                ; TOO LOW..CHECK SPACE
-        BNE CKENT5                                ; NOPE...NOT VALID
+        TFR Y,X                             ; CMOSABLE REGISTER
+CKENT1  JSR RCMOSB                          ; READ A BYTE
+        CMPB  #$41                          ; LOWER THAN A??
+        BHS CKENT4                          ; NOPE...HIGH ENOUGH CHECK TOO HIGH
+        CMPB  #$3A                          ; TOO LOW..CHECK SPACE
+        BNE CKENT5                          ; NOPE...NOT VALID
 CKENT4  CMPB  #$5A
-        BHI CKENT5                                ; HIGHER THAN Z
-        DECA                                      ; ONE LESS ON THIS FRONT
+        BHI CKENT5                          ; HIGHER THAN Z
+        DECA                                ; ONE LESS ON THIS FRONT
         BNE CKENT1
-        LDA 1,S                                   ; GET THE SECOND PART COUNTER BACK
-        JSR RCMOSB                                ; GET THE CHECK BYTE
+        LDA 1,S                             ; GET THE SECOND PART COUNTER BACK
+        JSR RCMOSB                          ; GET THE CHECK BYTE
         ANDB  #$F
         CMPB  #9
-        BHI CKENT5                                ; NO HEX ALLOWED
+        BHI CKENT5                          ; NO HEX ALLOWED
         DECA
 CKENT2  JSR RCMOSB
         PSHS  B
-        ANDB  #$F                                 ; LOOK AT LOW HALF
+        ANDB  #$F                           ; LOOK AT LOW HALF
         CMPB  #9
         PULS  B
-        BHI CKENT5                                ; NOT NUMERIC...ERROR!
+        BHI CKENT5                          ; NOT NUMERIC...ERROR!
         ANDB  #$F0
         CMPB  #$99
         BHI CKENT5
         DECA
         BNE CKENT2
-CKENT3  ANDCC #$FE                                ; (CLC)
+CKENT3  ANDCC #$FE                          ; (CLC)
 CKENT8  LDA #WDATA
         STA WDOG
         PULS  X,D,PC
-CKENT5  ORCC  #$01                                ; SEC 
+CKENT5  ORCC  #$01                          ; SEC 
         BRA CKENT8  
 
 ;
@@ -531,7 +531,7 @@ GODESB  PULS  Y                                 ; GET RETURN ADDRESS
         LDA #GODMES 
         JSR SCRCLR                              ; CLEAR THE SCREEN.
         JSR WRD7V                               ; PRINT OUT CONGRATS
-        TFR B,A MAX                             ; LETTERS IN A NOW
+        TFR B,A                                 ; MAX  LETTERS IN A NOW
         JSR BCDHEX
         LDX #$2D80                              ; PLACE TO DO IT
         LDY #ALTBL+20                           ; PLACE TO STORE THE CHARS

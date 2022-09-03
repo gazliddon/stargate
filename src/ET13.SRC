@@ -36,7 +36,7 @@ BGI__2  ADDA  ,X
         LEAX  $9,X
         CMPX  #$F000
         BLO BGI__2
-        CMPA  #$56  THIS
+        CMPA  #$56                      ; THIS
         BEQ BGI__1
         LDB HSEED
         CMPB  #$16
@@ -158,7 +158,7 @@ BGO     LDD BGL
 BGT1    JSR SCROLR                    ; SCROLL `EM
         DEC SSTACK
         BNE BGT1
-        BRA TOUT0 GO DO IT
+        BRA TOUT0                     ; GO DO IT
 
 ; SCROLL letf
 
@@ -329,27 +329,27 @@ RCHG3   STB TOFF1
 ;
 
 LCHG    COM SCFLG
-        LDA TDPTR GET DATA PTR
+        LDA TDPTR                           ; GET DATA PTR
 LCHG1   SUBA  #$27
-        STA TDPTR NEW DATA PTR
-        LDX TTBLP CALC NEW ALT OFFSET
-        LDA 1,X SKEW
-        LDB ,X  GET ALT
-        ANDA  #$0F  1001?
-        BEQ LCHG2 YES 0 SKEW
+        STA TDPTR                           ; NEW DATA PTR
+        LDX TTBLP                           ; CALC NEW ALT OFFSET
+        LDA 1,X                             ; SKEW
+        LDB ,X                              ; GET ALT
+        ANDA  #$0F                          ; 1001?
+        BEQ LCHG2                           ; YES 0 SKEW
         INCB
 LCHG2   STB TOFF0
-*CALC   SKEW FLAVOR 1
+
+; CALC SKEW FLAVOR 1
         LDA $9A*6+1,X
         LDB $9A*6,X
-        ANDA  #$0F  1001?
-        BEQ LCHG3 YES 0 SKEW
+        ANDA  #$0F                          ; 1001?
+        BEQ LCHG3                           ; YES 0 SKEW
         INCB
 LCHG3   STB TOFF1
         RTS
-;
+
 ; SCROLL LFT. 1 NIBBLE
-;
 
 SCROLL  LDX #TDATA0+$80
         LDB TDPTR
@@ -380,8 +380,8 @@ SCL1    ANDA  #$F
         ASLB
         ASLB
         ASLB  X8
-        LEAY  B,X FLAV 1
-        LEAX  A,X FLAV 0
+        LEAY  B,X                               ; FLAV 1
+        LEAX  A,X                               ; FLAV 0
         LDU TTBLP
         LEAU  -6,U
         CMPU  #TERTF0                           ; END OF TABLE?
@@ -588,7 +588,7 @@ LEDEX1  LDX PD,U                              ; GET OBJECT
         INCB                                  ; CENTER THE 4 PIXEL RANGE
         ADDD  PD+3,U                          ; ADD UPPER LEFT
         STD CENTMP                            ; AND PUT AWAY
-        JSR XSVCT GO                          ; AND DO IT SAM
+        JSR XSVCT                             ; GO AND DO IT SAM
         DEC PD+2,U
         BEQ LEDEX2
         NAP (1,LEDEX1)

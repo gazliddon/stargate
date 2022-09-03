@@ -71,7 +71,7 @@ DNLOP3  SEX
         LDD OXV,X                           ; CHECK X VELOCITY FOR TOO LARGE
         BPL DNLP0
         CMPD    #-40    
-        BHS DNLOP4  OK
+        BHS DNLOP4                          ; OK
         BRA DNLP1
 DNLP0   CMPD    #40
         BLS DNLOP4
@@ -142,7 +142,7 @@ DNPICT  LDX .OPTR,U                         ; GET OUR POINTER
         BHS DNPIC4
         LDD OBJX X                          ; SEE IF ACTUALLY ON SCREEN.
         BNE DNPCC1                          ; YEP
-        LDA #19 STOP                        ; A QUICK SHOT!
+        LDA #19                             ; STOP A QUICK SHOT!
         STA .SHOT,U 
 DNPCC1  LDY OPICT,X                         ; GET OUR PICTURE POINTER
         LDD OXV,X                           ; CHECK DIRECTION

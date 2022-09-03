@@ -354,7 +354,7 @@ ON580   LDS OBJP0,Y
 ;  ON 3X4 OBJECT                                                
 
 ON34    BCC ON340                                       
-        LEAY 2,Y                        ; ODD	GUY       
+        LEAY 2,Y                        ; ODD GUY       
 ON340   LDY OBJP0,Y                                     
         TFR D,U                                         
 ON341   LDD ,Y                                          
@@ -711,7 +711,7 @@ COINC   PSHS D,X                        ; SAVE STATE
 COINL   PSHS D,X                        ; SAVE STATE    
         LDB #$01                        ; 1ST TOTALS(LEFT COIN)
 COIN_   JSR AUD1                        ; BUMP COUNT BY 1
-        ASLB                            ; DOUBLE	FOR CMOS
+        ASLB                            ; DOUBLE FOR CMOS
         LDX #SLOT1M-2                   ; POINT TO START-2
         ABX                             ; REMOVE OFFSET 
         JSR RCMOSB                      ; GET CORRECT SLOT X
@@ -770,7 +770,7 @@ DIVAB1  ADDA #$01                       ; NEXT
 
 BCDBIN  PSHS A                          ; SAVE STATE    
         EXG A,B                         ; MOVE B TO A FOR DAA
-        CLRB                            ; SET	COUNT TO ZERO
+        CLRB                            ; SET COUNT TO ZERO
 BCDBN1  TSTA                            ; DONE?         
         BNE BCDBN2                      ; NO            
         PULS A,PC                       ; CLEAN UP + GO 
@@ -1081,7 +1081,7 @@ MONO5   ANDA #$BB                       ;  CHANGE COLOR TO $B
         STD ,U++                        ;  SAVE TWO BYTES MONO, ADVANCE POINTER
         CMPU 4,S                        ;  CHECK FOR END OF OBJECT
         BLO MONO1                       ;  NO?, CONTINUE
-        RTS                             ; YES?,	                ; RETURN
+        RTS                             ; YES?,                 ; RETURN
 ;  RANDOM MAX ROUTINE; A = RAND <=A                                                
 RMAX    PSHS A                                          
         JSR RAND                                        
@@ -1156,7 +1156,7 @@ STOUT   LDA STATUS
         ROLA                                            
 
 ;  STAR OUTPUT                                                
-;   	ITEMP2 = PHASE MASK                                                
+;    ITEMP2 = PHASE MASK                                                
 ;    X      = ADDR OF STAR TABLE START                                                
 ;    B      = COUNT                                                
 ;    ITEMP  = MOVEMENT                                                
@@ -1225,7 +1225,7 @@ SBLNK0  FCB $6F,$98,$00                 ;  !!!BSO BONER!!!=CLR [SX,X] HYPER
         LDA STATUS                                      
         BITA #2                                         
         BEQ SBLNK1                      ;  TERRAIN ACTIVE, QUIT
-        LDA LSEED                       ;  Y	HYPER      
+        LDA LSEED                       ;  Y HYPER      
         ANDA #$3F                                       
         LDB #3                                          
         MUL                                             
@@ -1323,7 +1323,7 @@ VOLC2L  LDA LAVTIM,X                    ; ACTIVE??
         ANDB #$3F                                       
         ADDB #$38                                       
         STB LAVTIM,X                                    
-        LDA #$9C                        ; VOLCANO	Y     
+        LDA #$9C                        ; VOLCANO Y     
         STA LAVY16,X                                    
 VOLC3   LEAX LAVL,X                                     
         CMPX #LAVTND                                    

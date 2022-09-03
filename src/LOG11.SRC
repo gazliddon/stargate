@@ -1,16 +1,17 @@
 ;  NLIST                                                
-;  INCLUDE	SPHR56.SRC                                                
-;  INCLUDE	EQ4.SRC                                                
+;  INCLUDE SPHR56.SRC                                                
+;  INCLUDE EQ4.SRC                                                
 ;  LIST                                                 
-;  TTL	<<<<< S T A R G A T E  >>>>>                                                
+;  TTL <<<<< S T A R G A T E  >>>>>                                                
+
         org LOGORG                                      
         JMP ATTR_                                       
         JMP GOV_                        ; GAME OVER     
         JMP HALL                                        
         JMP GNCIDA                                      
-;                                                       
+                                                       
 ; ATTRACT MODE                                                
-;                                                       
+                                                       
 GOV_    equ *                                           
 ATTR_   LDX #CHKS2+78                   ; HIDDEN CHECKSUM
         LDY #$D004                                      
@@ -28,9 +29,9 @@ ATTR0_  ADDB ,Y
         LDA CREDIT                                      
         LBNE CRDPAG                                     
 HALLV   JMP HALL                                        
-;                                                       
+                                                       
 ; KILL ALL BUT ATTR PROCESSES                                                
-;                                                       
+                                                       
 GNCIDA  PSHS A,X                                        
         LDX #ACTIVE                                     
 GNC1    LDX ,X                                          
@@ -92,9 +93,9 @@ HALSX   LDA PIA21
         LDX #SECRET                                     
         JSR MSPROC                                      
 SECSX   NAP (2,CRDSLP)                                  
-;                                                       
+                                                       
 ; CREDIT PAGE DISPLAY                                                
-;                                                       
+                                                       
 CRDPAG  LDA #$50                                        
         STA ATRFLG                                      
         LDA #$FF                                        
@@ -212,10 +213,10 @@ CRDSB   PSHS A,X
         LDA #NIUM                                       
         JSR WRD7FV                                      
         PULS A,X,PC                                     
-;                                                       
+                                                       
 ; PLAYER OBJECT DISPLAY SUBROUINTE                                                
 ; A=PLAYER 1 SHIP #,B=PLAYER 2                                                
-;                                                       
+                                                       
 CRDSB1  STA .P1LAS                                      
         STA .P1SBC                                      
         PSHS B                                          
@@ -326,7 +327,7 @@ HALL    LDA #$FF
         LDA #$10                                        
         STA ATRFLG                                      
         JSR GNCIDA                                      
-        CLRA                            ; BECOME	A SUPER PROCESS
+        CLRA                            ; BECOME A SUPER PROCESS
         LDX #HALL1                                      
         JSR MSPROC                                      
         JMP SUCIDE                                      
@@ -426,7 +427,7 @@ HSCOLM  LDA #3                          ; 3 COLUMNS
 HSCOL0  LDA PD+7,U                      ; NUMBER PER COLUMN
         STA PD+1,U                      ; MAKE THAT NUMBER LEFT IN THIS COLUMN
 HSCOL3                                                  
-        NAP (1,HSCOL6) TIME BREAK HERE                ; TIME BREAK HERE
+        NAP (1,HSCOL6) ; TIME BREAK HERE
 HSCOL6  LDA TEXCOL                      ; GET CURRENT COLOR
         ADDA #$11                       ; PUSH TO NEXT  
         CMPA #$88                                       
@@ -475,7 +476,7 @@ HSCOL2  EXG X,Y
         LBLS PRTODY                     ; NOPE...GO AND DO TODAYS
 ;                                                       
 PRDONE                                                  
-        MAKP (LOGCOL) DONE...START THE COLORS.                ; DONE...START THE COLORS.
+        MAKP (LOGCOL) ; DONE...START THE COLORS
         LDU CRPROC                                      
         LDA #8                                          
         STA PD,U                                        
@@ -608,8 +609,10 @@ LOG2    equ *
         STA PCRAM+9                                     
         LDA #$99                        ; AND DO HALO IN COLOR 9
         JSR HALO                                        
-        NAP ($FF,PIKVCT) DELAY 4 SECS AND GO TO LOOP                ; DELAY 4 SECS AND GO TO LOOP
-; OPERATOR DEFAULT MESSAGE                                                
+        NAP ($FF,PIKVCT)                ; DELAY 4 SECS AND GO TO LOOP
+
+; OPERATOR DEFAULT MESSAGE
+
 OMST    FCC "WILLIAMS ELECTRONICS INC"                                
         FCB $3D                         ; PERIOD        
         FCC "           PRESENTS"                                
@@ -628,9 +631,9 @@ GETME2  CMPA #$3C
         LDA #$3C                                        
 GETME3  TFR D,X                                         
         RTS                                             
-;                                                       
+                                                       
 ; OPERATOR MESS COLORER                                                
-;                                                       
+                                                       
 OPMCOL  INC PD,U                                        
         LDA PD,U                                        
         ANDA #$7                                        
@@ -793,9 +796,9 @@ HALO    STY XTEMP                       ; SAVE BOTTOM RIGHT IN MEMORY
         LDU CRPROC                                      
         STX PD,U                        ; SAVE UPPER LEFT
         STY PD+6,U                      ; RETURN ADDRESS
-        CLRB                            ; START	ON EVEN FLAVOR
+        CLRB                            ; START ON EVEN FLAVOR
 HALO0   BSR VFILL                       ; FILL A VERTICAL LINE
-        TSTB                            ; MOVE	TO NEXT FLAVOR
+        TSTB                            ; MOVE TO NEXT FLAVOR
         BEQ HALO1                       ; EVEN FLAVOR..MOVE TO ODD
         LDU CRPROC                                      
         STD PD+2,U                                      
@@ -893,7 +896,7 @@ VBYE    LDA #1
         ANDCC #$EF                      ; (CLI)         
         PULS D,PC                                       
 HFILL   PSHS X,D                                        
-        CLRB                            ; START	ON EVEN FLAVOR
+        CLRB                            ; START ON EVEN FLAVOR
 HFILL1  BSR WCHK                                        
         BNE HFILL2                      ; STILL LOOKING FOR WHITE
         BSR HADV                        ; MOVE TO NEXT PIX

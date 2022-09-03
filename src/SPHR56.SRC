@@ -29,7 +29,7 @@ RWCNTL    EQU    $C900    ; (BIT 0: 1-ROM READ; 0-RAM READ)
 ;    (BIT 1: 1-INVERT;   0-NORMAL SCREEN)
 ;
 
-;PIA DEFINITIONS
+; PIA DEFINITIONS
 ;
 
 PIA0    EQU    $C80C    ;B0 AUTO UP
@@ -800,13 +800,14 @@ PSBC      EQU    player_data.PSBC
 PINV      EQU    player_data.PINV
 PTARG     EQU    player_data.PTARG
 PENEMY    EQU    player_data.PENEMY
+
 ;
 ;ASTRONAUT COUNT
 ASTCNT    RMB    1
+
 ;
 ;ENEMIES LIST
 ;WARNING DO NOT CHANGE ORDER OF COUNTS
-
 ELIST    EQU    *
 
 ;RESERVE COUNTS
@@ -855,25 +856,28 @@ MCHXV       RMB    1
 MCHYV       RMB    1
 ELEND       EQU    *
 
-                             ;ACTIVE COUNTS, NON RESTORE
-ECNTS     EQU    *
-LNDCNT    RMB    1
-WAVTMR    RMB    1
-UFOTMR    RMB    1
-UFOCNT    RMB    1
-MCHCNT    RMB    1
-BMCNT     RMB    1
-MISCNT    RMB    1
-ECEND     EQU    *
-                             ;
-                             ;TARGET LIST
-                             ;
+; ACTIVE COUNTS, NON RESTORE
+ECNTS       EQU    *
+LNDCNT      RMB    1
+WAVTMR      RMB    1
+UFOTMR      RMB    1
+UFOCNT      RMB    1
+MCHCNT      RMB    1
+BMCNT       RMB    1
+MISCNT      RMB    1
+ECEND       EQU    *
+
+;
+;TARGET LIST
+;
 TLIST     EQU    *
           RMB    20
 TLEND     EQU    *
-                             ;
-                             ;VOLCANO DATA STRUCTURE
-                             ;
+
+;
+;VOLCANO DATA STRUCTURE
+;
+
 LAVXV     EQU    0           ; X VELOCITY
 LAVYV     EQU    2           ; Y VELOCITY
 LAVX16    EQU    4           ; 16-BIT X
@@ -890,3 +894,4 @@ EGRAM2    RMB    2           ; IT LIKES TO GO 2 DEEP.
 GETLST    RMB    3           ; RAM TO IMPLEMENT RUBOUT FEATURE OF INITIAL ENTRY
 CHKS2     RMB    1
 SGDFLG    RMB    1           ; STARGATE DELAY FLAG.
+

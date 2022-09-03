@@ -1,8 +1,8 @@
 ;  NLIST                                                
-;  INCLUDE	SPHR56.SRC                                                
-;  INCLUDE	EQ4.SRC                                                
+;  INCLUDE SPHR56.SRC                                                
+;  INCLUDE EQ4.SRC                                                
 ;  LIST                                                 
-;  TTL	<<<<<  S T A R G A T E  >>>>>                                                
+;  TTL <<<<<  S T A R G A T E  >>>>>                                                
 
 ;  MESSAGE HANDLER                                                
 
