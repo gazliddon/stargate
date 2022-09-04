@@ -878,7 +878,7 @@ RANDV   JSR RAND
         LDB SEED
         SEX
         ASLB
-        ROLA    X2
+        ROLA                                ; X2
         STD OYV,X
         LDB LSEED
         ANDB    #$3F
@@ -896,9 +896,9 @@ MMSW_   PSHS    D,X,Y,U
 MMSLP   LDA SWCNT
         INCA
         CMPA    #20
-        BHI MMSWX                                   ; TOO MANY GUYS
+        BHI MMSWX                          ; TOO MANY GUYS
         MKPROB  (MSWM,SWPIC1,MSWKIL,$2424)
-        BEQ MMSWX                                   ; NONE LEFT
+        BEQ MMSWX                          ; NONE LEFT
         STA SWCNT
         LDD OX16,Y
         STD OX16,X
@@ -907,7 +907,7 @@ MMSLP   LDA SWCNT
         BSR RANDV
         LDD HSEED
         ANDB    SWAC
-        STB PD2,U                                   ; ACCEL
+        STB PD2,U                          ; ACCEL
         ANDA    #$1F
         STA PTIME,U
         LDA SWSTIM

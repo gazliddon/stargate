@@ -335,56 +335,56 @@ FBOFUP	LDX	.OPTR,U				  ; GET OBJECT POINTER
 
 ; 	ON SCREEN...AGREEABLE TO THE CURRENT Y POSITION.
 
-FBYDLT	EQU	3					  ; DISTANCE WHEN BOMB SHOULD LAUNCH
+FBYDLT	EQU	3					   ; DISTANCE WHEN BOMB SHOULD LAUNCH
 
-FBLOOP	CLR	.DELA,U	              ; INDICATE NO DELAY ON ENTRY
-FBGO	LDA	.DELA,U	              ; CHECK DELAY
+FBLOOP	CLR	.DELA,U	               ; INDICATE NO DELAY ON ENTRY
+FBGO	LDA	.DELA,U	               ; CHECK DELAY
 		BEQ	FBLOP0
-		DEC	.DELA,U	              ; TAKE ONE AWAY.
-FBLOP0	LDX	.OPTR,U	              ; GET OUR POINTER
-FBGO0	LDA	OY16,X	              ; GET HEIGHT
-		SUBA	PLAYC	          ; SUBTRACT Y COORD.
-		STA	XTEMP	              ; SAVE FOR POSSIBLE CORRECTION
-		BMI	FBGO1	              ; HE'S BELOW US.....
-		CMPA	#FBYDLT+6         ; ADD SHIP HEIGHT ALSO
-		BHI	FBGOF0	              ; NOT IN RANGE....CONTINUE
-		LDY	#FBFIRU	              ; OK TO FIRE??
-		BSR	FIREFB	              ; THEN FIRE UP
+		DEC	.DELA,U	               ; TAKE ONE AWAY.
+FBLOP0	LDX	.OPTR,U	               ; GET OUR POINTER
+FBGO0	LDA	OY16,X	               ; GET HEIGHT
+		SUBA	PLAYC	           ; SUBTRACT Y COORD.
+		STA	XTEMP	               ; SAVE FOR POSSIBLE CORRECTION
+		BMI	FBGO1	               ; HE'S BELOW US.....
+		CMPA	#FBYDLT+6          ; ADD SHIP HEIGHT ALSO
+		BHI	FBGOF0	               ; NOT IN RANGE....CONTINUE
+		LDY	#FBFIRU	               ; OK TO FIRE??
+		BSR	FIREFB	               ; THEN FIRE UP
 FBGOF0	CMPA	#(2*FBYDLT)+6
-		BHS	FBGO3				  ; NOT EVEN CLOSE!
-FBGOO	LDB	FBDV	              ; GET THE CURRENT DODGE VELOCITYT MUCH
+		BHS	FBGO3				   ; NOT EVEN CLOSE!
+FBGOO	LDB	FBDV	               ; GET THE CURRENT DODGE VELOCITYT MUCH
 		CLRA
 		TST	XTEMP
 		BPL	FBGOOO
-		COMA	NEGATE
+		COMA	                   ; NEGATE
 		COMB
-FBGOOO	TST	INVFLG	              ; INVISIBLE??
-		BNE	FBGOO2	              ; THEN ACT STUPID
+FBGOOO	TST	INVFLG	               ; INVISIBLE??
+		BNE	FBGOO2	               ; THEN ACT STUPID
 		ASLB
 		ROLA
 FBGOO2	STD	OYV,X	               ; STORE
 		BRA	FBGOO1
-FBGO1	NEGA		              ; MAKE POSITIVE.....MY SANITY IS WORTH 2 CYCLES.
-		CMPA	#FBYDLT+9         ; ADD MY HEIGHT 
-		BHI	FBGOF1	              ; AND FIRE DOWNWARD AT HIM.
-		LDY	#FBFIRD	              ; TEST
-		BSR	FIREFB	              ; OK TO FIRE.
+FBGO1	NEGA		               ; MAKE POSITIVE.....MY SANITY IS WORTH 2 CYCLES.
+		CMPA	#FBYDLT+9          ; ADD MY HEIGHT 
+		BHI	FBGOF1	               ; AND FIRE DOWNWARD AT HIM.
+		LDY	#FBFIRD	               ; TEST
+		BSR	FIREFB	               ; OK TO FIRE.
 FBGOF1	CMPA	#(2*FBYDLT)+9
-		BLS	FBGOO	              ; CLOSE ENOUGH TO RUN!!
-FBGO3	DEC	.COAST,U              ; WELL...TIME FOR NEXT CYCLE??
-		BMI	FBGO4	              ; YEP
-		BRA	FBGOV	              ; NAP AND STUFF
-FBGO4	JSR	FBXV	              ; GET A NEW X.
-		BSR	FBYV	              ; GET A NEW Y.
-FBGOO1	LDA	SEED	              ; RADNUB
+		BLS	FBGOO	               ; CLOSE ENOUGH TO RUN!!
+FBGO3	DEC	.COAST,U               ; WELL...TIME FOR NEXT CYCLE??
+		BMI	FBGO4	               ; YEP
+		BRA	FBGOV	               ; NAP AND STUFF
+FBGO4	JSR	FBXV	               ; GET A NEW X.
+		BSR	FBYV	               ; GET A NEW Y.
+FBGOO1	LDA	SEED	               ; RADNUB
 		ANDA	#$7F
-		ADDA	#30	              ; MINIMUM
-		STA	.COAST,U              ; TIME TILL NEXT
-FBGOV	LDD	OBJX,X	              ; GET PICTURE
-		BNE	FBGOV1	              ; ON SCREEN...OK.
-		NAP	(1,FBOFUP)            ; THEN DO ON SCREEN UPDATE
+		ADDA	#30	               ; MINIMUM
+		STA	.COAST,U               ; TIME TILL NEXT
+FBGOV	LDD	OBJX,X	               ; GET PICTURE
+		BNE	FBGOV1	               ; ON SCREEN...OK.
+		NAP	(1,FBOFUP)             ; THEN DO ON SCREEN UPDATE
 FBGOV1	JSR	FBIMAG
-		NAP	(1,FBGO)	          ; AND SLEEP ON IT.
+		NAP	(1,FBGO)	           ; AND SLEEP ON IT.
 
 FBYV	LDB	LSEED	              ; GET A RAD.
 		SEX
@@ -522,7 +522,7 @@ FBSET2	TST	INVFLG	                ; INVISIBLE??
 FBSET3	STD	OYV,X
 		RTS
 
-FBXR	LDD	#32	1 					; PIXEL
+FBXR	LDD	#32	                    ; 1 PIXEL
 		STD	OXV,X
 		RTS
 
@@ -563,7 +563,7 @@ FBAL22	LDX	PD,U	                    ; GET THE OBJECT
 		LDA	SEED
 		ANDA	#$7	                    ; 8 POSSIBLE CHANGES
 		LDB	#10
-		MUL		BYTE                    ; OFFSET
+		MUL		                        ; BYTE OFFSET
 		ADDD	OPICT,X	                ; ADD TO CURRENT
 		CMPD	#FBALL7	                ; PAST TOP
 		BLS	FBAL3	                    ; NOPE

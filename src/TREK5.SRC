@@ -122,7 +122,7 @@ RNDDS1  ANDB  #$3F
 RNDDS2  SEX
         SUBD  TEMP5  ; THIS FORMS X.
         ADDD  #RADIUS
-        ASRA  HALVE  ; FOR X
+        ASRA  ; HALVE FOR X
         RORB
         RTS
 
@@ -269,7 +269,7 @@ RCKSND  FCB  $FF,$20,2,$F2,$60,$01,$F2,0
 
 RANDM  LDD  SDDD
         RORA
-        RORB  B         ; NOW HAS HIGH HALF OF NEW SDDD
+        RORB            ; B NOW HAS HIGH HALF OF NEW SDDD
         LDA  HSDDD      ; FOR LOW SEVEN BITS
         ASLA
         EORA  HSDDD     ;   BIT 6-0 IS NOW LOW SEVEN BITS OF NEW SDDD
@@ -282,4 +282,4 @@ RANDM  LDD  SDDD
         LDB  LSDDD      ; RETURN IN B
 NWRTS  RTS
 
-  ; END
+ ; END

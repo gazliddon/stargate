@@ -140,7 +140,7 @@ DNPICT  LDX .OPTR,U                         ; GET OUR POINTER
         ADDD    #50*32
         CMPD    #400*32
         BHS DNPIC4
-        LDD OBJX X                          ; SEE IF ACTUALLY ON SCREEN.
+        LDD OBJX                            ; X SEE IF ACTUALLY ON SCREEN.
         BNE DNPCC1                          ; YEP
         LDA #19                             ; STOP A QUICK SHOT!
         STA .SHOT,U 
@@ -206,7 +206,7 @@ MSLOOP  JSR MSPICT                          ; DO THE PICTURE NUMBER
         BLS NEWY                            ; IN HITTING DISTANCE....
         BSR YCHK                            ; X NOT GOOD BE CAREFUL ABOUT Y
         BHI NEWY                            ; Y NOT CLOSE ENOUGH...ZERO IN.
-        LDD #0  Y                           ; CLOSE ENOUGH.
+        LDD #0                              ; Y  CLOSE ENOUGH.
         STD OYV,X
         BRA MSLOP2
 NEWY    LDD PLAYC                           ; GET THE PLAYERS Y.

@@ -2,10 +2,8 @@
 name = "stargate"
 
 [opts]
-verbose="Info"
+verbose="Normal"
 mem-size = 94208
-star-comments = true
-trailing-comments = true
 project-file = "src/stargate.src"
 
 [vars]

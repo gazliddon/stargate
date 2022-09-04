@@ -199,7 +199,7 @@ EXST5   LDD #$100                     ; INITIALIZE SIZE
 EXST6   LDD ,U                        ; PHONY CENTER 1/2 W,H
         LSRA
         LSRB
-EXST7   LSRB    Y/2
+EXST7   LSRB                          ; Y/2
         STD XOF,Y
         ADDD  CENTER,Y
         STD CENTER,Y
@@ -374,7 +374,7 @@ EXPUC   SUBA  #$C
         MUL
         LDB 1,U
         LSRB
-        LSRB    Y/2
+        LSRB                              ; Y/2
         STD XOF,Y                         ; SAVE YOUR OFFSETS IDIOT++++
         ROLB                              ; READJUST
         ADDD  XTEMP                       ; ADD TO TOP LEFT
@@ -396,9 +396,9 @@ EERASE  LDB ERASES,Y
         BHI EERAS2                    ; TOO BIG
         NEGB
         LDX #ERASLP                   ; CALC STARTING ADDR
-        ABX   X2
+        ABX                           ; X2
         LSRB
-        ABX   X3
+        ABX                           ; X3
         LDD #0
         JMP ,X                        ; GO TO YOUR ADDR
 ERASLP  STD [62,Y]

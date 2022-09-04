@@ -556,7 +556,7 @@ WRD__1  PULS U,A
         ASLB
         ROLA
         LDY #PHRTAB                         ; PHRASE TABLE
-        LDY D,Y Y                           ; NOW HAS POINTER TO FIRST LETTER OF PHRASE
+        LDY D,Y                             ; Y NOW HAS POINTER TO FIRST LETTER OF PHRASE
 WRD572  LDA ,Y+
         BEQ WRDRTS                          ; DONE
         CMPA #$16                           ; RANGE OF CONTROL CHARATERS (0-$15)
