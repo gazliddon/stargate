@@ -1,0 +1,14 @@
+[project]
+name = "stargate"
+
+[opts]
+verbose="Info"
+mem-size = 94208
+star-comments = true
+trailing-comments = true
+project-file = "src/stargate.src"
+
+[vars]
+OUT_DIR = "roms"
+TMP_DIR = "tmp"
+REF_ROMS_DIR = "stargate"
