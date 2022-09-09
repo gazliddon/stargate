@@ -5,8 +5,7 @@
         ORG ATRORG
 ; ATTRACT
 ; PICKUP MODE
-PICKUP  
-
+PICKUP
         LDA #$FF
         STA STATUS
         LDA #$30
