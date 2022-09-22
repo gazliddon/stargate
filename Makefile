@@ -9,10 +9,15 @@ SYMS := $(SRCS:%.src=$(TMP_DIR)/%.sym)
 DEPS := $(SRCS:%.src=$(DEPS_DIR)/%.d)
 
 GAZM_DIR := ~/development/gazm/gazm
-GAZM := cargo +nightly run --release --manifest-path $(GAZM_DIR)/Cargo.toml --
+GAZM := cargo +nightly run --release --manifest-path $(GAZM_DIR)/Cargo.toml -- asm
 
+<<<<<<< HEAD
 ASM := @$(GAZM) asm --star-comments --max-errors 50 --mem-size 94208 --trailing-comments\
 	   -v \
+=======
+ASM := @$(GAZM) --star-comments --max-errors 50 --mem-size 94208 --trailing-comments\
+	   --build-async \
+>>>>>>> 95863b6 (misc)
 		--set OUT_DIR $(OUT_DIR) \
 		--set TMP_DIR $(TMP_DIR) \
 		--set REF_ROMS_DIR $(REF_ROMS_DIR)
