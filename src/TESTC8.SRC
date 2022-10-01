@@ -316,7 +316,7 @@ CKENT5  ORCC  #$01                          ; SEC
 ;
 
 RMENTR  PSHS X,Y,D
-        LEAX SCRSIZ,Y X                           ; POINTS PAST Y
+        LEAX SCRSIZ,Y                             ; X  POINTS PAST Y
 RMENT0  CMPX #TODAYS                              ; ARE WE BEYOND IN X.
         BHS RMENT1                                ; YEP...DONE.
         LDA #SCRSIZ
@@ -406,7 +406,7 @@ EGSUB1  JSR TODCHK                              ; CHECK TODAYS HIGH
 GETHIM  CLR EGRAM2
         LDD #HSTUNE                             ; HIGH SCORE TUNE
         CMPY  #TODAYS                           ; IS IT POINTING AT THE HIGHEST
-        BNE GETHM1  NOPE
+        BNE GETHM1                              ; NOPE
         LDD #ULTUNE
 GETHM1  JSR SNDLD
         LDA #CONG

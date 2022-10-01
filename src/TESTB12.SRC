@@ -35,10 +35,10 @@ CMMV1   LDA  ,X+          ; GET SOURCE
 ;  CLEAR CMOS: CRASHES A,B,X
  
 CLRALL  LDX  #CMOS          ;POINT TO START
-CLRA1  CLR  ,X+
+CLRA1   CLR  ,X+
         CMPX  #CMOS+$400
         BNE  CLRA1          ; NO, LOOP
-        RTS  BYE
+        RTS                 ; BYE
  
 ;  INIT CMOS: SAVES STATE
  
@@ -422,7 +422,7 @@ INCDEC  PULS  D
         LDA  PIA2               ; CHECK FOR THRUST,FIRE
         RORA                    ; FIRE??
         BCS  INCME
-        RORA  THRUST
+        RORA                    ; THRUST
         BCS  DECME
 IDRET   JMP  [PD+6,U]
 
@@ -486,9 +486,9 @@ PROTCK  PSHS  A,X
 PROTC1  JSR  RCMOSA
         TSTA
         BEQ  PROTOK
-        ORCC  #$01  (SEC)
+        ORCC  #$01              ; (SEC)
         PULS  A,X,PC
-PROTOK  ANDCC  #$FE  (CLC)  
+PROTOK  ANDCC  #$FE             ; (CLC)  
         PULS  A,X,PC
 
 FROBON  PSHS  X,D
@@ -754,9 +754,9 @@ SPCASE  CMPY  #GA1              ; MASTER ADJUST??
 MASTER  TFR  Y,X
         JSR  RCMOSA             ; READ  
         PSHS  A
-        ASLA    DOUBLE
-        ASLA    4X
-        ADDA  ,S+  5X
+        ASLA                    ; DOUBLE
+        ASLA                    ; 4X
+        ADDA  ,S+               ; 5X
         LDX  #DIFTAB
         LEAX  A,X               ; POINT AT FIRST GUY
 MSTR1  LEAU  6,U                ; MOVE TO NEXT ENTRY
@@ -775,7 +775,7 @@ INCOIN  TFR  Y,X
         ASLA
         PSHS  A
         ASLA
-        ADDA  ,S+  6X
+        ADDA  ,S+               ; 6X
         LDX  #CSELCT
         LEAX  A,X               ; SLIDE DOWN
 INCON1  LEAU  6,U
@@ -858,8 +858,8 @@ AUDCHK  LDX  #SLOT1
 AUDCK2  LDA  ,X+                ; GET A BYTE
         ANDA  #$F
         CMPA  #9                ; HEX???
-        BLS  AUDCK1  NOPE
-        DECB    ONE             ; MORE
+        BLS  AUDCK1             ; NOPE
+        DECB                    ; ONE MORE
         BEQ  AUDCK4
 AUDCK1  CMPX  #WARPS+6          ; DONE??
         BNE  AUDCK2 
@@ -943,7 +943,7 @@ GETLT3
         NAP  (2,GETLT4)
 GETLT4  LDA  PIA2           ; STILL DOWN??
         RORA
-        BCC  GETLT5  NOPE
+        BCC  GETLT5         ; NOPE
         DEC  PD+1,U         ; ONE LESS COUNT
         BEQ  GETLT5
         LDA  PD+1,U         ; CHECK FOR 80
@@ -982,7 +982,7 @@ GETRUB  BSR  NOFROB         ; MAKE LIKE WE'RE NOT HERE.
         LDY  PD+4,U         ; GET THE Y
         LEAY  -1,Y          ; MOVE BACK ONE ASSUMING RAM
         CMPY  #$C000        ; CMOS??
-        BLO  GETRB1  NOPE
+        BLO  GETRB1         ; NOPE
         LEAY  -1,Y
 GETRB1  STY  PD+4,U
         JMP  GETLLL         ; NOW GO AND GET THE LAST CHARACTER AGAIN.

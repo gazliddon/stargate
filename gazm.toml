@@ -4,10 +4,8 @@ name = "stargate"
 [opts]
 verbose="Normal"
 mem-size = 94208
-star-comments = true
-trailing-comments = true
 project-file = "src/stargate.src"
-build-async=true
+build-async = true
 
 [vars]
 OUT_DIR = "roms"

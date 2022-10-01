@@ -222,7 +222,7 @@ FITLP   LDX PD2,U                                ; FIGHT TIME-OUT CHECK
         LDA STATUS                               ; CHECK DEATH
         CMPA #$DA
         LBEQ FDIE                                ; WE HAVE DIED
-        LDA PLAY16  Y                            ; OUT OF RANGE??
+        LDA PLAY16                               ; Y OUT OF RANGE??
         CMPA #$48
         BLS FIT1A
         CMPA #$C0
