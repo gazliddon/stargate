@@ -2,13 +2,30 @@
 name = "stargate"
 
 [opts]
-verbose="Info"
+verbose="Normal"
 mem-size = 94208
 star-comments = true
 trailing-comments = true
 project-file = "src/stargate.src"
+build-async=true
 
 [vars]
 OUT_DIR = "roms"
 TMP_DIR = "tmp"
 REF_ROMS_DIR = "stargate"
+
+[checksums]
+rom_1 = { addr = 0x0000, size = 0x1000, sha1 = "f003a5a9319c4eb8991fa2aae3f10c72d6b8e81a" }
+rom_2 = { addr = 0x1000, size = 0x1000, sha1 = "087c6da93318e8dc922d3d22e0a2af7b9759701c" }
+rom_3 = { addr = 0x2000, size = 0x1000, sha1 = "7badb4318b208f49d7fa65e915d0aa22a1e37915" }
+rom_4 = { addr = 0x3000, size = 0x1000, sha1 = "6b4d47c2899fe9f14f9dab5928499f12078c437d" }
+rom_5 = { addr = 0x4000, size = 0x1000, sha1 = "54f871983699113e31bb756d4ca885c26c2d66b4" }
+rom_6 = { addr = 0x5000, size = 0x1000, sha1 = "54b02d944caf95283c9b6f0160e75ea8c4ccc97b" }
+rom_7 = { addr = 0x6000, size = 0x1000, sha1 = "a487ffcd4920d1056b87469735f7e1002f6a2e49" }
+rom_8 = { addr = 0x7000, size = 0x1000, sha1 = "8726ebaf048db9608dfe365bf434ed5ca9452db7" }
+rom_9 = { addr = 0x8000, size = 0x1000, sha1 = "efacc4a6d4b2af9a236c9d520de6d605c79cc5a8" }
+rom_a = { addr = 0xd000, size = 0x1000, sha1 = "ba833f48ddfc1bd04ddb41b1d1c840d66ee7da30" }
+rom_b = { addr = 0xe000, size = 0x1000, sha1 = "6ca39f493eb8b370154ad46ef01976d352c929e1" }
+rom_c = { addr = 0xf000, size = 0x1000, sha1 = "c46872550e0ca031453c6513f8f0448ecc9b5572" }
+
+
