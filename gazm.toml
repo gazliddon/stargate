@@ -2,7 +2,7 @@
 name = "stargate"
 
 [opts]
-verbose="Normal"
+verbose="Silent"
 mem-size = 94208
 project-file = "src/stargate.src"
 build-async = true
