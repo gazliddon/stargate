@@ -9,17 +9,14 @@ SYMS := $(SRCS:%.src=$(TMP_DIR)/%.sym)
 DEPS := $(SRCS:%.src=$(DEPS_DIR)/%.d)
 
 GAZM_DIR := ~/development/gazm/gazm
-GAZM := cargo +nightly run --release --manifest-path $(GAZM_DIR)/Cargo.toml -- build 
+ASM := cargo +nightly run --release --manifest-path $(GAZM_DIR)/Cargo.toml -- build 
 
-ASM := @$(GAZM) gazm.toml
-
-all: dirs $(SYMS)
+all: dirs gazm.toml $(SYMS)
 	@echo All Done!
 
 $(TMP_DIR)/%.sym : $(SRC_DIR)/%.src
-	file $<
 	@echo Assembling $< to $@
-	$(ASM)
+	$(ASM) gazm.toml
 
 dirs:
 	@mkdir -p $(TMP_DIR) $(OUT_DIR) $(DEPS_DIR)

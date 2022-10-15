@@ -7,6 +7,12 @@ mem-size = 94208
 project-file = "src/stargate.src"
 build-async = true
 
+# [opts.debug]
+# verbose="Info"
+# mem-size = 94208
+# project-file = "src/stargate.src"
+# build-async = true
+
 [vars]
 OUT_DIR = "roms"
 TMP_DIR = "tmp"
@@ -26,4 +32,10 @@ rom_a = { addr = 0xd000, size = 0x1000, sha1 = "ba833f48ddfc1bd04ddb41b1d1c840d6
 rom_b = { addr = 0xe000, size = 0x1000, sha1 = "6ca39f493eb8b370154ad46ef01976d352c929e1" }
 rom_c = { addr = 0xf000, size = 0x1000, sha1 = "c46872550e0ca031453c6513f8f0448ecc9b5572" }
 
+[sections]
+lo_rom  = {start = 0x0000, size = 0x9000}
+hi_rom  = {start = 0xd000, size = 0x3000}
+palette = {start = 0xc000, size = 0x0010}
+ram     = {start = 0x9000, size = 0x2000}
+nv_ram  = {start = 0xc900, size = 0x0100}
 
