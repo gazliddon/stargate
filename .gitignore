@@ -2,4 +2,5 @@ deps
 tmp
 roms
 .DS_Store
+lsp.log
 
