@@ -9,7 +9,19 @@ SYMS := $(SRCS:%.src=$(TMP_DIR)/%.sym)
 DEPS := $(SRCS:%.src=$(DEPS_DIR)/%.d)
 
 GAZM_DIR := ~/development/gazm/gazm
-ASM := cargo +nightly run --release --manifest-path $(GAZM_DIR)/Cargo.toml -- build 
+
+ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
+    OS = Windows
+else
+    OS = $(shell uname -s)
+	ARCH = $(shell uname -m)
+endif
+
+RUSTFLAGS_Darwin_arm64 := RUSTFLAGS="-C target-cpu=apple-m1"
+RUSTFLAGS_Darwin_x86_64 := RUSTFLAGS="-C target-cpu-native"
+
+PFX := $(RUSTFLAGS_$(OS)_$(ARCH))
+ASM := $(PFX) cargo +nightly run --manifest-path $(GAZM_DIR)/Cargo.toml -- build
 
 all: dirs gazm.toml $(SYMS)
 	@echo All Done!
