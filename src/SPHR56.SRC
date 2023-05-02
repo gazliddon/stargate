@@ -789,7 +789,7 @@ PLDATA    EQU    *
 .P2TRG    RMB    1
 .P2ENM    RMB    50
 
-PLDEND    EQU    *    ; END OF PLAYER DATA
+PLDEND                  ; END OF PLAYER DATA
 
 PLDLEN    EQU    player_data.size
 PSCOR     EQU    player_data.PSCOR
@@ -808,11 +808,11 @@ ASTCNT    RMB    1
 ;
 ;ENEMIES LIST
 ;WARNING DO NOT CHANGE ORDER OF COUNTS
-ELIST    EQU    *
+ELIST
 
 ;RESERVE COUNTS
 LNDRES    RMB    1 ; # OF LANDERS
-ELIST1    EQU    *
+ELIST1
 
 ;RESTORED COUNTS
 TIECNT    RMB    1
@@ -823,7 +823,7 @@ YLCNT     RMB    1
 SGCNT     RMB    1    ; STAR GATE COUNT
 FBCNT     RMB    1    ; FIRE BOMBER COUNT
 DYNCNT    RMB    1
-ELIST2    EQU    *
+ELIST2
 
 ;PARAMETERS
 WAVTIM      RMB    1    ; TIME FOR NEXT WAVE
@@ -854,10 +854,10 @@ BMSTIM      RMB    1
 MCHSLP      RMB    1
 MCHXV       RMB    1
 MCHYV       RMB    1
-ELEND       EQU    *
+ELEND
 
 ; ACTIVE COUNTS, NON RESTORE
-ECNTS       EQU    *
+ECNTS
 LNDCNT      RMB    1
 WAVTMR      RMB    1
 UFOTMR      RMB    1
@@ -865,14 +865,14 @@ UFOCNT      RMB    1
 MCHCNT      RMB    1
 BMCNT       RMB    1
 MISCNT      RMB    1
-ECEND       EQU    *
+ECEND
 
 ;
 ;TARGET LIST
 ;
-TLIST     EQU    *
+TLIST
           RMB    20
-TLEND     EQU    *
+TLEND
 
 ;
 ;VOLCANO DATA STRUCTURE
@@ -887,7 +887,7 @@ LAVC      EQU    9           ; ROCK COLOR
 LAVTIM    EQU    11          ; LAVA LIFE TIME
 LAVL      EQU    12          ; LENGTH
 LAVTAB    RMB    LAVL*3      ; 3 OF THEM
-LAVTND    EQU    *
+LAVTND
                              ;
 EGRAM     RMB    2           ; ENDGAME PROCESSING RETURN ADDRESS SAVE
 EGRAM2    RMB    2           ; IT LIKES TO GO 2 DEEP.

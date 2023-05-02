@@ -5,7 +5,7 @@ name = "stargate"
 verbose="Silent"
 mem-size = 94208
 project-file = "src/stargate.src"
-build-async = true
+# no-async=true
 
 # [opts.debug]
 # verbose="Info"
