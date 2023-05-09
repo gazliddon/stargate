@@ -68,7 +68,7 @@ ASTK1   BSR ASTCLR
         JMP SNDLD
 AKIL1   LDU OBJID,X
         BEQ ASTKIL                     ; NOT FALLING
-        LDD PADDR,U                     ; 1ST TIME
+        LDD proc.addr,U                     ; 1ST TIME
         CMPD #AFALL2
         BEQ NOKILL
         LDA PCFLG
@@ -79,9 +79,9 @@ AKIL1   LDU OBJID,X
         MAKP (PPAC)                 ; DO THE INCREASING CATCH STUFF.
         LEAY ,X
         PULS X
-        STX PD,Y                     ; ASTRO OBJ-500 ROUTINE
+        STX proc.data,Y                     ; ASTRO OBJ-500 ROUTINE
 AKIL2   LDD #AFALL2
-        STD PADDR,U
+        STD proc.addr,U
 NOKILL  CLRA
         PULS D,PC
 AKIL10  BSR ASTK1
@@ -155,10 +155,10 @@ TBBL4 LDY OPTR                 ; GET ON SCREEN LIST
         JSR SCLEAN                 ; CLEAN UP SAMRAM
         JSR SCRCLR                 ; CLEAR THE STUFF AWAY.
         JSR TDISPV                 ; PUT THE TOP STUFF BACK
-        CLR PD,U                 ; PARAMETER TO INDICATE WHICH LIST
+        CLR proc.data,U                 ; PARAMETER TO INDICATE WHICH LIST
         LDX #IPTR                 ; MAKE SURE INACTIVE GUYS FAR AWAY
         BSR HYPEM
-        INC PD,U
+        INC proc.data,U
         LDX #OPTR
         BSR HYPEM
         JSR OSCAN                 ; REFORM LIST
@@ -168,7 +168,7 @@ TBBL4 LDY OPTR                 ; GET ON SCREEN LIST
         JMP SUCIDE
 
 NITRUS LDX ACTIVE
-TBL5 LDA PTYPE,X             ; GET TYPE
+TBL5 LDA proc.type,X             ; GET TYPE
         CMPA #CTYPE         ; COIN??
         BEQ TBL6
         CMPA #DTYPE         ; DEATH??
@@ -177,7 +177,7 @@ TBL5 LDA PTYPE,X             ; GET TYPE
         BEQ TBL6
         CMPA #SBTYPE
         BEQ TBL6
-        STB PTIME,X             ; MAKE MAX TIME FOR NON COINS
+        STB proc.time,X             ; MAKE MAX TIME FOR NON COINS
 TBL6 LDX ,X
         BNE TBL5
         RTS
@@ -195,7 +195,7 @@ HYPEM LDX ,X                     ; GET THE NEXT MAN.
         LDD OX16,X
         ADDD #$8000             ; TRIP TO THE SPACE WARS
         STD OX16,X
-        TST PD,U                 ; WHICH LIST??
+        TST proc.data,U                 ; WHICH LIST??
         BEQ HYPEM                 ; INACTIVE.....LEAVE ALONE..
         LDD OBJX,X                 ; GET COORDINATE
         BEQ HYPEM                 ; NOT THERE
@@ -210,12 +210,12 @@ HYPEMX RTS
 ; PD =CURRENT INDEX TO TLIST
 ;
 
-ASTRO LDX PD,U
+ASTRO LDX proc.data,U
         LEAX 2,X
         CMPX #TLEND
         BLO ASTRO1
         LDX #TLIST
-ASTRO1 STX PD,U
+ASTRO1 STX proc.data,U
         LDX ,X
         BEQ ASTX                     ; NOONE THERE
         LDD OBJX,X                     ; ON SCREEN?
@@ -290,7 +290,7 @@ P250 LDD #$0125
         LDA OFREE                       ; ANY OBJECTS??
         BEQ SUCVV                       ; NOPE...JUST DROP DEAD
         OBI (C25P1,NOKILL,$0000)
-        LDY PD,U                        ; GET THE MAN OBJECT
+        LDY proc.data,U                        ; GET THE MAN OBJECT
         LDD OBJX,Y                      ; IS HE ON SCREEN??
         LBNE P5001                      ; YEP....HANDLE LIKE A SET DOWN
         LDD OX16,Y                      ; GET THE MANS WORLD X
@@ -347,7 +347,7 @@ SUCVV   BEQ SUCV
         OBI (C5P1,NOKILL,$0000)
 P5100   LDD #$0150
 P5000   JSR SCORE
-        LDY PD,U
+        LDY proc.data,U
 P5001   JSR RAND                     ; CYCLE THE GENERATOR IN CASE OF MANY AT ONCE
         LDB SEED
         ASRB                      ; MUCH SMALLER
@@ -370,9 +370,9 @@ P2503   LDB HSEED                     ; Y SKEW......MAKE IT UPWARD
 P501    SUBD #$2000
 P502    STD OY16,X
         STX OPTR
-        STX PD,U                     ; OBJECT INDEX
+        STX proc.data,U                     ; OBJECT INDEX
         NAP (100,P503)
-P503    LDX PD,U
+P503    LDX proc.data,U
         JSR KILOFF
 SUCV    JMP SUCIDE
 
@@ -387,7 +387,7 @@ PROCAT  JSR GNCIDE                      ; MAMA...OOOO....I DONT WANT TO DIE
         LDA #$76
         STA STATUS
         NAP (1,PROCT0)
-PROCT0  LDY PD,U
+PROCT0  LDY proc.data,U
         LDD OBJX,Y                      ; GET COORD OF MAN.
         BNE PROCT1                      ; OK
         LDD #$50B0                      ; USE DEFAULT
@@ -402,9 +402,9 @@ PROCT1  SUBB #$15                       ; RAISE Y
         JSR SNDLD                       ; DO THE SOUND
 
         LDA #$18
-        STA PD,U
+        STA proc.data,U
         LDD #$800                       ; FIRST DELAY
-        STD PD+1,U
+        STD proc.data+1,U
 PROCT3  JSR RAND
         ANDA #$1F
         LDX #COLTAB
@@ -412,14 +412,14 @@ PROCT3  JSR RAND
         STA PCRAM
         NAP (2,PROCT4)
 PROCT4  CLR PCRAM
-        DEC PD,U                        ; DONE??
+        DEC proc.data,U                        ; DONE??
         LBEQ ENDWVV                     ; YEP...BACK INTO GAME EXEC.
-        LDD PD+1,U
+        LDD proc.data+1,U
         CMPD #$160
         BHI PROCT6
         LDD #$160
 PROCT6  SUBD #$60
-        STD PD+1,U
+        STD proc.data+1,U
         LDX #PROCT3
         JMP SLEEP
 
@@ -470,11 +470,11 @@ SHOOTX  PULS X,PC
 
 ; LANDER SHOOT
 
-LSHOT   DEC PD6,U
+LSHOT   DEC proc.d6,U
         BNE LSHTX
         LDA LDSTIM
         JSR RMAX
-        STA PD6,U
+        STA proc.d6,U
         BSR SHOOT
         BEQ LSHTX
         LDD #LSHSND
@@ -536,8 +536,8 @@ GT2     LDD ,X
         BNE GT1
         PULS X,PC
 GT3     STX TPTR                            ; FOUND ONE
-        STD PD2,U
-        STX PD4,U
+        STD proc.d2,U
+        STX proc.d4,U
 GTX     PULS X,PC
 
                                             ;
@@ -562,7 +562,7 @@ LNDST1
         STD OYV,X
         LDA LDSTIM                                      ; SHOOTING TIME
         JSR RMAX
-        STA PD6,U
+        STA proc.d6,U
         LDA LNDXV
         JSR RMAX
         TFR A,B
@@ -584,11 +584,11 @@ LNDSTX PULS A,PC
 BOZOV_  PSHS X,U,Y,D
         LDU #ACTIVE
         BRA BOZVLP
-BOZOV0  LDY PADDR,U
+BOZOV0  LDY proc.addr,U
         CMPY #LANDS0
         BLO BOZVLP                                      ; NOT A LANDER
         BNE BOZV2                                       ; NO VELOCITY
-        LDX PD,U
+        LDX proc.data,U
         LDA LNDXV
         JSR RMAX
         TFR A,B
@@ -602,7 +602,7 @@ BOZV2   CMPY #LANDFX                                    ; NOT A LANDER
         BHI BOZVLP
         LDA LDSTIM                                      ; GET SHOT TIMER
         JSR RMAX
-        STA PD6,U
+        STA proc.d6,U
 BOZVLP  LDU ,U
         BNE BOZOV0
         PULS X,Y,U,D,PC
@@ -612,9 +612,9 @@ BOZVLP  LDU ,U
 ; PD=OBJECT,PD2=TARGET,PD4=TLIST INDEX
 ; PD6=SHOT TIMER,PD7=ROTATION DIVIDER
 
-LANDS0  LDX PD,U
-        LDY PD2,U
-        LDD [PD4,U]                        ; TARGET ALIVE?
+LANDS0  LDX proc.data,U
+        LDY proc.d2,U
+        LDD [proc.d4,U]                        ; TARGET ALIVE?
         BEQ LNDSAA
         LDA OCVECT+1,Y
         CMPA #ASTKIL&$FF
@@ -655,7 +655,7 @@ LANDS2  STD OYV,X                            ; NEW Y VEL
         JSR LSHOT
         BSR LPSUB                            ; CYCLE IMAGE
         NAP (3,LNDSP1)
-LNDSP1  LDX PD,U                             ; GET PICTURE BACK
+LNDSP1  LDX proc.data,U                             ; GET PICTURE BACK
         BSR LPSUB                            ; DO THE PICTURE AGAIN
         NAP (3,LANDS0)
 
@@ -678,9 +678,9 @@ LANDG0
         INC OTYP,X                             ; DONT HYPER ME
         STD OXV,X
         STD OYV,X
-LANDG LDX PD,U
-        LDY PD2,U
-        LDD [PD4,U]
+LANDG LDX proc.data,U
+        LDY proc.d2,U
+        LDD [proc.d4,U]
         LBEQ LNDSAA                         ; DEAD
         LDA OCVECT+1,Y
         CMPA #ASTKIL&$FF
@@ -733,7 +733,7 @@ LANDG3 LDD OX16,X
 ; FLEE
 
 LANDF LDU CRPROC
-        LDX PD,U
+        LDX proc.data,U
         LDA OY16,X
         CMPA #YMIN+8
         BLS LANDFX                         ; ALL DONE
@@ -748,9 +748,9 @@ LANDFO
 
 LANDFX  LDD #LSKSND
         JSR SNDLD
-LNDFXA  LDX PD,U
-        LDY PD2,U
-        LDD [PD4,U]
+LNDFXA  LDX proc.data,U
+        LDY proc.d2,U
+        LDD [proc.d4,U]
         BNE LNDFX0
         JSR KILOFF                      ; GIVE UP
         DEC LNDCNT
@@ -784,7 +784,7 @@ SCZ00   DEC LNDCNT
         LDX #ALLLND                     ; ALL LANDER MESSAGE
         JSR MESLDV                      ; AND SEND IT.
 SCZ00_  INC SCZCNT
-        LDX PD,U
+        LDX proc.data,U
         CLR OTYP,X                      ; OK TO HYPER
         LDD #SCZP1
         STD OPICT,X
@@ -793,13 +793,13 @@ SCZ00_  INC SCZCNT
         LDD #SCZKIL
         STD OCVECT,X
         LDA SZSTIM
-        STA PD2,U
+        STA proc.d2,U
 ;
 ; I AM SCHITZO I,M FEELING FINE
 ; PD=OBJECT,PD2=SHOT TIME
 ;
 
-SCZ0 LDX PD,U
+SCZ0 LDX proc.data,U
         LDB SZXV
         LDY PLABX
         CMPY OX16,X
@@ -850,11 +850,11 @@ SCZ11 ADDB OY16,X
         BHS SCZ110
         LDB #YMAX
 SCZ110 STB OY16,X
-        DEC PD2,U                     ; SHOT TIME
+        DEC proc.d2,U                     ; SHOT TIME
         BNE SCZ12
         LDA SZSTIM
         JSR RMAX
-        STA PD2,U
+        STA proc.d2,U
         JSR SHOOT
         BEQ SCZ12
         LDD #SSHSND
@@ -866,13 +866,13 @@ SCZ12
 ;
 
 LKIL1 LDU OBJID,X                             ; GOT A PASSENGER?
-        LDD [PD4,U]
+        LDD [proc.d4,U]
         BEQ LKILL
 LKIL2 LDU OBJID,X
         PSHS X
         MAKP (AFALL)                         ; START HIM FALLING
-        LDU PD2,U
-        STU PD,X
+        LDU proc.d2,U
+        STU proc.data,X
         LDD #ASCSND
         JSR SNDLD                             ; SCREAM.....
         LDD #0
@@ -903,7 +903,7 @@ ALLLND FCB $20,CLEAR + BLINK,$80,LNDKLM
 
 ; ASTRONAUT FALL
 
-AFALL   LDX PD,U
+AFALL   LDX proc.data,U
         LDD #8                          ; ACCEL DOWNWARD
         ADDD OYV,X
         CMPD #$300
@@ -922,7 +922,7 @@ AFALL0  JSR GETALT
         JMP SUCIDE
 AFALL1 
         NAP (4,AFALL)
-AFALL2  LDX PD,U
+AFALL2  LDX proc.data,U
         LDD #0
         STD OYV,X
         LDA PLAY16
@@ -945,7 +945,7 @@ ALND00  LDA #STYPE
         JSR MKPROC
         LEAY ,X
         PULS X
-        STX PD,Y                        ; ASTRO OBJECT TO 500 PROC
+        STX proc.data,Y                        ; ASTRO OBJECT TO 500 PROC
         LDD #0
         STD OBJID,X
         STD OYV,X
@@ -1044,7 +1044,7 @@ PHSL
         TFR X,Y
         STX OPTR
         OBI (ASTP1,AKIL1,$6666)
-        STX PD2,U
+        STX proc.d2,U
         STX OPTR
         CLRA
         CLRB
@@ -1064,7 +1064,7 @@ PHSL
         STA 1,S
         LDD #$200
         STD OYV,Y
-        STD PD4,U                                   ; FOR LANDER KILLER FOOLING
+        STD proc.d4,U                                   ; FOR LANDER KILLER FOOLING
         LDA #1
         STA OTYP,X
         STA OTYP,Y                                  ; DONT HYPER PLEASE
@@ -1078,17 +1078,17 @@ PHSL
 ; PHONY LANDER ROUTINE
 ; PD=LANDER,PD2=GUY
 
-PHLND   LDX PD,U                             ; REV WHEN ON HIM
+PHLND   LDX proc.data,U                             ; REV WHEN ON HIM
         LDA OY16,X
         CMPA #$D0
         BHS PHL1
         NAP (1,PHLND)
-PHL1 LDX PD,U
+PHL1 LDX proc.data,U
         LDD #$D400
         STD OY16,X
         LDD #$FF80
         STD OYV,X
-        LDX PD2,U
+        LDX proc.d2,U
         STD OYV,X
 PHL2 
         NAP (60,PHL2)                          ; R.I.P.

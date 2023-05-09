@@ -39,6 +39,8 @@ palette = {start = 0xc000, size = 0x0010}
 ram     = {start = 0x9000, size = 0x2000}
 nv_ram  = {start = 0xc900, size = 0x0100}
 
+ATRORG = {start = 0xda00}
+
 [lsp]
 log-file="lsp.log"
 

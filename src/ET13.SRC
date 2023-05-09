@@ -29,23 +29,27 @@ SCFLG     RMB 1                             ; SCROLL DIRECTION 0=RT.,$FF=LFT.
 ; TERRAIN INITIALIZE
 
 BGI     LDX #$D004
+
         LDA STATUS
-        BMI BGI__1
+        BMI !next                        ; Game over
+
         CLRA
-BGI__2  ADDA  ,X
+!loop   ADDA  ,X
         LEAX  $9,X
         CMPX  #$F000
-        BLO BGI__2
+        BLO   !loop
+
         CMPA  #$56                      ; THIS
-        BEQ BGI__1
-        LDB HSEED
+        BEQ   !next
+        LDB   HSEED
         CMPB  #$16
-        BHI BGI__1
-        LDB SEED
-        LDA #$9C
-        TFR D,Y
-        COM ,Y
-BGI__1  JSR BGALT                       ; INIT ALTITUDE TABLE
+        BHI   !next
+        LDB   SEED
+        LDA   #$9C
+        TFR   D,Y
+        COM   ,Y
+
+!next   JSR BGALT                       ; INIT ALTITUDE TABLE
         JSR BGSI                        ; INIT ERASE TABLE
         LDX #TERTF0                     ; SETUP OUTPUT TABLE CURSOR
         STX TTBLP
@@ -54,9 +58,11 @@ BGI__1  JSR BGALT                       ; INIT ALTITUDE TABLE
         LDB #1
         LDA TDATA0                      ; CALC OFFSET FLAV 1
         ASLA
-        BCS BGI1
+        BCS !skip_neg
         NEGB
-BGI1    ADDB  #$E0
+
+!skip_neg
+        ADDB  #$E0
         STB TOFF1
         LDA #$FF
         STA TCNT                        ; NIBBLE COUNT
@@ -67,22 +73,21 @@ BGI1    ADDB  #$E0
                                         ; SCROLL RT. 1ST SCREEN
         LDA #$4D
         STA SSTACK
-BGI2    JSR SCROLR
+!loop2  JSR SCROLR
         DEC SSTACK
-        BNE BGI2
-
+        BNE !loop2
                                         ; SCROLL TO BGL
         LDX #0
         STX SSTACK
-BGISC   LDX SSTACK
+!loop3  LDX SSTACK
         LEAX  $80,X
-        BEQ BGIX                        ; NO INFINITE LOOP
+        BEQ !done                        ; NO INFINITE LOOP
         STX SSTACK
         CMPX  BGL
-        BHS BGIX
+        BHS !done
         JSR SCROLR
-        BRA BGISC
-BGIX    LDD BGL
+        BRA !loop3
+!done   LDD BGL
         ANDB  #$80
         STD BGLXX                       ; INIT OLDIE
         RTS
@@ -558,11 +563,11 @@ TDATA0  FCB $55,$40,$00,$00,$00,$00,$3F,$FF,$FF,$FF,$FC,$00,$07,$FF,$FF,$D3
 ;
 
 LEDEX   PULS  D                               ; GET RETURN ADDRESS
-        STD PD+6,U                            ; SAVE IN CONVENTIONAL SPOT
-        STX PD+3,U                            ; SAVE EXPLOSION UPPER LEFT
+        STD proc.data+6,U                            ; SAVE IN CONVENTIONAL SPOT
+        STX proc.data+3,U                            ; SAVE EXPLOSION UPPER LEFT
         TFR X,D                               ; POINT TO EXPLODE
         JSR GETOB                             ; GET A PLACEBO OBJECT
-        STX PD,U                              ; SAVE PHONEY OBJECT.
+        STX proc.data,U                              ; SAVE PHONEY OBJECT.
         STB OY16,X                            ; SAVE THE 16 BIT Y
         LSRA                                  ; X ADDRESS IN BYTE...SHOUL HAVE 6 FRACS. IN WORLD COORDS
         RORB
@@ -576,25 +581,25 @@ LEDEX   PULS  D                               ; GET RETURN ADDRESS
         LDD #PHBPIC                           ; FACING LEFT
 LEDEX0  STD OPICT,X                           ; SAVE PICTURE
         LDA #13                               ; 13 BLOWS
-        STA PD+2,U                            ; PLACE TO COUNT EM.
+        STA proc.data+2,U                            ; PLACE TO COUNT EM.
         MAKP  (COLR)                          ; GET THE LASER COLOR ROLLING
         MAKP  (CBOMB)                         ; AND THE BOMB COLOR
         MAKP  (TIECOL)                        ; AND THE TIE COLOR
-LEDEX1  LDX PD,U                              ; GET OBJECT
+LEDEX1  LDX proc.data,U                              ; GET OBJECT
         LDA LSEED                             ; TRY LEFT SEED
         ANDA  #$7                             ; 3 BITS FOR RANDOM X DEFLECTION
         LDB HSEED
         ANDB  #$03                            ; 2 BITS OF RANDOM Y DEFLECTION
         INCB                                  ; CENTER THE 4 PIXEL RANGE
-        ADDD  PD+3,U                          ; ADD UPPER LEFT
+        ADDD  proc.data+3,U                          ; ADD UPPER LEFT
         STD CENTMP                            ; AND PUT AWAY
         JSR XSVCT                             ; GO AND DO IT SAM
-        DEC PD+2,U
+        DEC proc.data+2,U
         BEQ LEDEX2
         NAP (1,LEDEX1)
 LEDEX2  
         NAP ($60,LEDEX3)
-LEDEX3  JMP [PD+6,U]                          ; AND RETURN
+LEDEX3  JMP [proc.data+6,U]                          ; AND RETURN
 
 PHAPIC  FCB 8,6
         FDB PLAD10,PLAD10

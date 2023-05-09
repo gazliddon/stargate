@@ -31,8 +31,7 @@ PCSAV   RMB  1
 SDDD    EQU  *
 HSDDD   RMB  1
 LSDDD   RMB  1
-
-PTABLE  EQU  *
+PTABLE
 
 struct ptable2 {
     YV   : word,
@@ -51,7 +50,6 @@ YPOS    equ ptable2.YPOS
 FROB    equ ptable2.FROB
 
 PSIZZ   equ ptable2.size
-
         RMB  PSIZZ*399   ; ROOM FOR 351 ENTRIES
 
 PTABE   EQU  *
@@ -193,7 +191,7 @@ GETVEL  LDA  HSDDD
 
 ROCK0   LDU  CRPROC
         PULS  X             ; GET RETURN ADDRESS
-        STX  PD+6,U         ; AND SAVE
+        STX  proc.data+6,U         ; AND SAVE
         LDX  IRQHK+1
         STX  IRQSV
         LDX  #BLOIRQ        ; USE OUR IRQ
@@ -272,7 +270,7 @@ UPPDT2  LDA  #8
         STX  IRQHK+1
         CLR  PCRAM
         LDU  CRPROC  ; TIME TO CAN IT
-        JMP  [PD+6,U]
+        JMP  [proc.data+6,U]
 
 RKKKP2  LDX  #PTABLE  ; GET START OF TABLE
         LDY  #0

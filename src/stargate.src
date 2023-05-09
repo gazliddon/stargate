@@ -1,24 +1,24 @@
 	include "macros.src"
 	include "memory.src"
-
+    include "hw.src"
 	include "SPHR56.SRC"
-
+    include "EQ4.SRC"
 
 	scope background
+        ;; Orgs at zero
+        ;; then at 0x7ad
 		include "RA37.SRC"
+        ;; carries on from RA37 to 0x26a7
+        ;; then orgs at 0x2b70
 		include "RB37.SRC"
 
-
     scope trek5
-		include "EQ4.SRC"
         include "TREK5.SRC"
 
     scope trekc5
-		include "EQ4.SRC"
         include "TREKC5.SRC"
 
 	scope lorom
-		include "EQ4.SRC"
         include "ET13.SRC"
         include "MESS2.SRC"
         include "BPS15.SRC"
@@ -29,11 +29,9 @@
         include "SAM16.SRC"
 
     scope DN11
-		include "EQ4.SRC"
         include "DN11.SRC"
 
 	scope hirom
-		include "EQ4.SRC"
 		include "ATTR9.SRC"      
 		include "LOG11.SRC"      
 		include "TESTB12.SRC"

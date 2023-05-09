@@ -30,7 +30,7 @@ UFOST_  LDA SEED                                ; START BAITER MASTER????
         BEQ UFOSTX
         INC UFOCNT
         LDA #3                                  ; INITIALIZE VELOCITY DIVIDER
-        STA PD5,U
+        STA proc.d5,U
         LDD SEED
         ANDA    #$1F
         ADDD    BGL
@@ -39,40 +39,40 @@ UFOST_  LDA SEED                                ; START BAITER MASTER????
         ADDB    #YMIN
         STB OY16,X
         LDA #8
-        STA PD2,U                               ; INIT SHOT TIMER
+        STA proc.d2,U                               ; INIT SHOT TIMER
         BSR UFONV0
         JMP APVCT
 UFOSTX  RTS
 
 ; UFO PROCESS
 
-UFOLP   LDX PD,U
+UFOLP   LDX proc.data,U
         LDD OPICT,X
         CMPD    #NULOB
         BEQ UFO4
-        DEC PD2,U
+        DEC proc.d2,U
         BNE UFO1
         LDA UFSTIM
         JSR RMAX
-        STA PD2,U
+        STA proc.d2,U
         JSR SHOOTV
         BEQ UFO1
         LDD #USHSND
         JSR SNDLD
-UFO1    DEC PD5,U                               ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
+UFO1    DEC proc.d5,U                               ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
         BNE UFO2                                ; NOT THIS TIME
         LDA #3                                  ; RESET DIVIDER
-        STA PD5,U
+        STA proc.d5,U
         BSR UFONV                               ; AND DO THE VELOCITY NUMBER
 UFO2    LDD OBJX,X                              ; SEE IF ON SCREEN
         BEQ UFO4                                ; THEN TAKE A VERY LONG SNOOZE
         LDA #6
-        STA PD4,U
+        STA proc.d4,U
 UFO5    
         NAP (1,UFO3)                            ; SHORT NAP TILL NEXT IMAGE UPDATE
-UFO3    LDX PD,U                                ; GET IMAGE 
+UFO3    LDX proc.data,U                                ; GET IMAGE 
         BSR UFOPIC                              ; AND DO THE IMAGE NUMBER
-        DEC PD4,U
+        DEC proc.d4,U
         BNE UFO5                                ; 1 MORE ITERATION
         BRA UFOLP
 UFO4    
@@ -152,7 +152,7 @@ MPROB_  PSHS    D,Y
         STU 4,S                                 ; NEW RET ADDR
         LEAU    ,Y
         STU OBJID,X
-        STX PD,U
+        STX proc.data,U
         CLRA
         CLRB
         STD OYV,X
@@ -173,7 +173,7 @@ BMST
         MKPROB (BM,BMRP0,BMKIL,$3333)
         BEQ BMSTX
         INC BMCNT
-        CLR PD2,U
+        CLR proc.d2,U
         LDD SEED
         ANDA    #$1F
         ADDD    BGL
@@ -183,13 +183,13 @@ BMST
         STB OY16,X
         LDA BMSTIM
         JSR RMAX
-        STA PD6,U
+        STA proc.d6,U
         LDY #BMPT1
         LDA SEED
         ANDA    #3                                  ; CHOOSE BM TYPE
         BNE BMST1                                   ; BSO BONER
         FCB $31,$A9,$00,$0C                         ; ((LEAY    BMPT2-BMPT1,Y))
-BMST1   STY PD4,U                                   ; BASE IMAGE TABLE BSO BONER
+BMST1   STY proc.d4,U                                   ; BASE IMAGE TABLE BSO BONER
         BSR BMNV0
         JSR MCHPIC                                  ; GET IMAGE
         JMP APVCT
@@ -200,7 +200,7 @@ BMSTX   RTS
 ; PD=OBJ,PD2=IMAGE#,PD4=BASE IMAGE TABLE,PD6=SHOT TIMER
 ;
 
-BM      LDX PD,U
+BM      LDX proc.data,U
         LDD OPICT,X
         CMPD    #NULOB                              ; APPEARING?
         BEQ BMX
@@ -211,17 +211,17 @@ BM      LDX PD,U
         CMPB    #10
         BHS BM1
         LDA #-4                                     ; 4X FASTER WHEN CLOSE IN Y
-BM1     ADDA    PD6,U
+BM1     ADDA    proc.d6,U
         CMPA    #$FC
         BLO BM2
         JSR BMSHT
         LDA BMSTIM
-        LDY PD4,U
+        LDY proc.d4,U
         CMPY    #BMPT2
         BNE BM1A
         LSRA                                        ; MORE  SHOTS FOR RED GUYS
 BM1A    JSR RMAX
-BM2     STA PD6,U
+BM2     STA proc.d6,U
         BSR BMNV                                    ; GET VEL+PICT
         JSR MCHPIC
 BMX 
@@ -280,7 +280,7 @@ BMSHT   PSHS    X,U,D,Y
         INC MCHCNT
         LDD #BMSSND
         JSR SNDLD
-        CLR PD2,U
+        CLR proc.d2,U
         LDA SEED
         ANDA    #3
         BEQ BMSHT1
@@ -288,7 +288,7 @@ BMSHT   PSHS    X,U,D,Y
 BMSHT1  LDB #MCHPT2-MCHPT1
         MUL
         ADDD    #MCHPT1
-        STD PD4,U                                   ; BASE PICT TABLE
+        STD proc.d4,U                                   ; BASE PICT TABLE
         LDB #$40                                    ; INIT XV
         JSR RMAX
         LDA OX16,Y
@@ -301,7 +301,7 @@ BMSHT2  SEX
         LDA MCHSLP
         LSRA
         JSR RMAX
-        STA PD3,U
+        STA proc.d3,U
         JSR RAND
         LDB HSEED
         SEX
@@ -338,8 +338,8 @@ MCKSND  FCB $D0,$01,$0C,$1A,$1,$08,$17,0    ; MUNCHY KILL
 ; PD=OBJECT,PD2=IMAGE#,PD3=SLEEP TIME,PD4=BASE IMAGE TABLE
 ;
 
-MCH     LDX PD,U                            ; GET OBJ
-        DEC PD3,U
+MCH     LDX proc.data,U                            ; GET OBJ
+        DEC proc.d3,U
         BNE MCH10
         LDB MCHXV                           ; CALC VEL LIMITS
         CLRA
@@ -391,7 +391,7 @@ MCHVX   LEAS    8,S                                 ; CLEAR STACK
         STD OXV,X
         LDA MCHSLP                                  ; NEW SLEEP TIME
         JSR RMAX
-        STA PD3,U
+        STA proc.d3,U
 MCH10   BSR MCHPIC
         NAP (6,MCH)
 
@@ -400,7 +400,7 @@ MCH10   BSR MCHPIC
 ; PD2=IMAGE#,PD4=BASE IMAGE
 
 MCHPIC  PSHS    D,Y
-        LDA PD2,U                                   ; GET IMAGE #
+        LDA proc.d2,U                                   ; GET IMAGE #
         INCA
         LDB OXV,X
         BMI MCHP1                                   ; CHECK DIR
@@ -413,8 +413,8 @@ MCHP1   CMPA    #5
 MCHP10  CMPA    #3
         BHS MCHP2
 MCHP11  LDA #3
-MCHP2   STA PD2,U
-        LDY PD4,U
+MCHP2   STA proc.d2,U
+        LDY proc.d4,U
         ASLA
         LDD A,Y
         STD OPICT,X
@@ -677,7 +677,7 @@ PRBST_  STA XTEMP                           ; COUNT IN RAM
         PSHS    D                           ; OPERATE ON IT ON STACK 
         MAKP    (PRBTIM)                    ; MAKE THE MESSAGE TIMER PROCESS
         LDD ,S                              ; GET TIME
-        STD PD,X                            ; AND PASS IT. 
+        STD proc.data,X                            ; AND PASS IT. 
 PRBS1   
         OBI (PRBP1,PRBKIL,$CCCC)            ; GET THE OBJECT ETC.
         JSR RAND
@@ -751,26 +751,26 @@ PRBTIM  LDA PRBCNT                          ; CHECK OUT COUNT
         CMPA    #3
         BLO PRBDIE                          ; NOT ENOUGH...BYE BYE.
         CLR XTEMP                           ; USE AS COUNTER
-        LDD PD,U                            ; GET 16 MS TIME
+        LDD proc.data,U                            ; GET 16 MS TIME
 PRBT1   SUBD    #$40                        ; TAKE A SECOND AWAY
         BCS PRBT2
         INC XTEMP
         BRA PRBT1
 PRBT2   LDA XTEMP                           ; GET THE NUMBER
         JSR HEXBCD                          ; MAKE BCD
-        STA PD,U                            ; AND SAVE
+        STA proc.data,U                            ; AND SAVE
 PRBT3   LDX #PODM1                          ; GET TIME  
-PRBT5   LDB PD,U                            ; SEND THE MESSAGE
+PRBT5   LDB proc.data,U                            ; SEND THE MESSAGE
         JSR MESLDV                          ; DONE.
         NAP ($40,PRBT4)
 PRBT4   LDA PRBCNT                          ; COUNT EM.
         CMPA    #3
         BLO PRBDIE                          ; NOT ENOUGH ANY MORE...BYE.
-        LDA PD,U                            ; GET TIMER
+        LDA proc.data,U                            ; GET TIMER
         ADDA    #$99                        ; TAKE ONE AWAY
         DAA
         BMI PRBDIE                          ; TIMER OUT...BYE
-        STA PD,U                            ; GET READY FOR MESSAGE
+        STA proc.data,U                            ; GET READY FOR MESSAGE
         LDX #PODM2
         BRA PRBT5
 PRBDIE  JMP SUCIDE
@@ -809,18 +809,18 @@ PRBS_1  JSR SCORE
         JSR GETOB                           ; GET OBJECT BACK FROM POD.
         TFR X,Y                             ; SAVE OBJECT
         MAKP    (SBSWP)                     ; MAKE A PROCESS TO DO THIS DEED
-        STY PD,X                            ; AND PASS IT THE OBJECT
+        STY proc.data,X                            ; AND PASS IT THE OBJECT
         RTS                                 ; AND WE'RE DONE!
 
 SBSWP   
         NAP (4,SBSWP1)                      ; DELAY TO LET THE POD STUFF MOVE.
 SBSWP1  LDA #3                              ; DO 3 OF THEM.     
-        STA PD+2,U
-BOOM1   LDX PD,U                            ; GET OBJECT
+        STA proc.data+2,U
+BOOM1   LDX proc.data,U                            ; GET OBJECT
         JSR XSVCT                           ; DO AN EXPLOSION
         LDD PHFBP                           ; LOAD FROM PHONEY FIREBALL POINTER
         STD OPICT,X                         ; THIS MAKES 2 PURPLE, 2 RED-YELLOW.
-        DEC PD+2,U
+        DEC proc.data+2,U
         BEQ BOOM2
         NAP (3,BOOM1)
 BOOM2   LDD OFREE
@@ -907,12 +907,12 @@ MMSLP   LDA SWCNT
         BSR RANDV
         LDD HSEED
         ANDB    SWAC
-        STB PD2,U                          ; ACCEL
+        STB proc.d2,U                          ; ACCEL
         ANDA    #$1F
-        STA PTIME,U
+        STA proc.time,U
         LDA SWSTIM
         JSR RMAX
-        STA PD4,U
+        STA proc.d4,U
         STX OPTR
         DEC XTEMP
         BNE MMSLP
@@ -947,7 +947,7 @@ MSWKIL  DEC SWCNT
 ; PD=OBJECT,PD2 ACCELERATION,PD4=SHOT TIMER
 ;
 
-MSWM    LDX PD,U
+MSWM    LDX proc.data,U
         LDB SWXV
         LDY PLABX
         CMPY    OX16,X
@@ -956,8 +956,8 @@ MSWM    LDX PD,U
 MSWM2   SEX
         STD OXV,X                               ; X VELOCITY
         BRA MSWL
-MSWLP   LDB PD2,U
-        LDX PD,U
+MSWLP   LDB proc.d2,U
+        LDX proc.data,U
         LDA PLAYC                               ; GET Y ACCEL
         CMPA    OY16,X
         BHI MSWM3
@@ -997,7 +997,7 @@ MSP     CMPD    #300*32                     ; WAY PAST?
         BHI MSWM                            ; GO BACK + GIT IM
 
 ; FIRE?
-MSWMF   DEC PD4,U
+MSWMF   DEC proc.d4,U
         BNE MSWL
         JSR SWBMB                           ; BOMB GUY
 MSWL    
@@ -1040,7 +1040,7 @@ SWB1    ASRA
         STD OYV,X
 SWBX    LDA SWSTIM
         JSR RMAX
-        STA PD4,U
+        STA proc.d4,U
         PULS    X,PC
 
 PHPOD   FCB 4,8

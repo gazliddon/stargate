@@ -1,90 +1,30 @@
-    ; TTL    <<<<<  S T A R G A T E >>>>>
-    ; NOGEN
-
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-    ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
-
-
-; HARDWARE CONSTANTS
+; TTL    <<<<<  S T A R G A T E >>>>>
+;************   S T A R G A T E    V E R S I O N    S G W 4   **************
 
 HSTK      EQU    $BFFF
-CRAM      EQU    $C000    ; COLOR RAM ADDR
-WDOG      EQU    $CBFF
-WDATA     EQU    $39
-CMOS      EQU    $CC00
-SOUND     EQU    $C80E
-VERTCT    EQU    $CB00    ; 6-BIT VERTICAL BEAM ADDR
-RWCNTL    EQU    $C900    ; (BIT 0: 1-ROM READ; 0-RAM READ)
 
-;    (BIT 1: 1-INVERT;   0-NORMAL SCREEN)
-;
 
-; PIA DEFINITIONS
-;
+; Score display constants
+YMAX        equ    240
+YMIN        equ    44                     ; MIN Y COORD
+P1ORG       equ    7*$100
+P1LAS       equ    P1ORG+19
+P1SBD       equ    P1ORG+26
+P1DISP      equ    P1ORG+35
+P1IVD       equ    P1ORG+32
+P2ORG       equ    P1ORG+102*$100
+P2LAS       equ    P2ORG+19
+P2SBD       equ    P2ORG+26
+P2DISP      equ    P2ORG+35
+P2IVD       equ    P2ORG+32
+PLIN        equ    YMIN-1
+SCANH       equ    8
+SCANER      equ    P1ORG+(37*$100)+SCANH
+DIGLTH      equ    $400
+MESSUL      equ    (YMIN-5)+(SCANER&$FF00)
+MESSLR      equ    (YMIN)+((P2DISP-$200)&$FF00)
 
-PIA0    EQU    $C80C    ;B0 AUTO UP
-                        ;B1 ADVANCE
-                        ;B2 RCOIN
-                        ;B3 HSRESET
-                        ;B4 LCOIN
-                        ;B5 CCOIN
-                        ;B6 SLAM
-                        ;B7 SOUND HANDSHAKE
-                        ;CA2 LED3 
-                        ;CA1 IRQ 240 (16 MS)  (LINE 240)
-
-PIA1    EQU    $C80E    ;B0-B5 SOUND
-                        ;B6-B7 LED 0,1
-                        ;CB1 IRQ 4 MS (0,$40,$80,$C0)
-                        ;CB2 LED2            
-
-PIA2      EQU    $C804  ;B0 FIRE
-                        ;B1 THRUST
-                        ;B2 SMART BOMB
-                        ;B3 HYPERSPACE
-                        ;B4 START 2
-                        ;B5 START 1
-                        ;B6 REV
-                        ;B7 DOWN
-
-PIA3      EQU    $C806  ;B0 UP
-                        ;B1 HYPERDRIVE (ANTI-MATTER)  ....DOES IT MATTER?
-                        ;B7 INPUT 1=COCKTAIL
-                        ;CB2 OUTPUT SWITCH MUX CONTROL 1=PLAYER1,0=PLAYER2
-                        ;SCORE DISPLAY CONSTANTS
-
-YMAX      EQU    240
-YMIN      EQU    44                     ; MIN Y COORD
-P1ORG     EQU    7*$100
-P1LAS     EQU    P1ORG+19
-P1SBD     EQU    P1ORG+26
-P1DISP    EQU    P1ORG+35
-P1IVD     EQU    P1ORG+32
-P2ORG     EQU    P1ORG+102*$100
-P2LAS     EQU    P2ORG+19
-P2SBD     EQU    P2ORG+26
-P2DISP    EQU    P2ORG+35
-P2IVD     EQU    P2ORG+32
-PLIN      EQU    YMIN-1
-SCANH     EQU    8
-SCANER    EQU    P1ORG+(37*$100)+SCANH
-DIGLTH    EQU    $400
-MESSUL    EQU    (YMIN-5)+(SCANER&$FF00)
-MESSLR    EQU    (YMIN)+((P2DISP-$200)&$FF00)
-
-;
 ;MAIN PROGRAM VECTORS
-; 
 
 TSCORG    EQU    $E940                  ; HIGH SCORE BULLSHIT
 PUPHSC    EQU    TSCORG                 ; POWER UP HIGH SCORE CHECK
@@ -273,40 +213,33 @@ CP2M      EQU    150
 YLDUNM    EQU    151
 FBDUNM    EQU    152
 
-WRPORG    EQU    $3240                  ; WARP PROGRAM
+WRPORG    EQU    $3240                  ;;; WARP PROGRAM
 WARPV     EQU    WRPORG
 
-BLOWV     EQU    $3440                  ; TERRAIN BLOW UP
+BLOWV     EQU    $3440                  ;;; TERRAIN BLOW UP
 
 ;         SCANNER AREA MESSAGE HANDLER
-MESORG    EQU    $3740
-MESLDV    EQU    MESORG                 ; MESSAGE LOADER
-MESINV    EQU    MESLDV+3               ; INITIALIZE
-MESUPV    EQU    MESINV+3               ; MESSAGE UPDATE
+MESORG    EQU    $3740                  ;;; Scanner area jump table
+MESLDV    EQU    MESORG                 ;;; MESSAGE LOADER
+MESINV    EQU    MESLDV+3               ;;; INITIALIZE
+MESUPV    EQU    MESINV+3               ;;; MESSAGE UPDATE
 
 
-;         MESSAGE STATUS BIT POSITIONS
-BLINK     EQU    $40                    ; BLINK BIT POSITION
-COND      EQU    $20                    ; CONDITIONAL ON RESIDENT MESSAGE
-CONT      EQU    $10                    ; CONTINUATION
-PTR       EQU    $8                     ; POINTER TO INDIRECT CONTINUATION
-CLEAR     EQU    $4                     ; CLEAR BLOCK BEFORE EXECUTION
-
-BPSORG    EQU    $3840                  ; BAITER POD SWARMER
+BPSORG    EQU    $3840                  ;;; BAITER POD SWARMER
 UFOST     EQU    BPSORG
 PRBST     EQU    UFOST+3
 MMSW      EQU    PRBST+3
 RIPV1     EQU    MMSW+3
 MPROB     EQU    RIPV1+3
-BMSTV     EQU    MPROB+3
+BMSTV     EQU    MPROB+3                ;;; Stffff
 BAITPV    EQU    BMSTV+3
-BREDPV    EQU    BAITPV+2               ; 2 BYTE ADDRS
-PHRDPV    EQU    BREDPV+2 
-MCHYPV    EQU    PHRDPV+2 
-MCHRPV    EQU    MCHYPV+2 
-MCHGPV    EQU    MCHRPV+2 
+BREDPV    EQU    BAITPV+2               ;;; 2 BYTE ADDRS
+PHRDPV    EQU    BREDPV+2
+MCHYPV    EQU    PHRDPV+2
+MCHRPV    EQU    MCHYPV+2
+MCHGPV    EQU    MCHRPV+2
 
-LMAORG    EQU    $4540                  ; LANDERS MUTANTS AND ASTRONAUTS
+LMAORG    EQU    $4540                  ;;; LANDERS MUTANTS AND ASTRONAUTS
 LANDST    EQU    LMAORG
 SCZST     EQU    LANDST+3
 ASTST     EQU    SCZST+3
@@ -328,16 +261,16 @@ RIPV      EQU    YLST+3
 PHFBP     EQU    RIPV+3                 ; 2 BYTE*** POINTER TO PHONEY FIREBALL
 FBMBPV    EQU    PHFBP+2                ; BYTE
 FBALPV    EQU    FBMBPV+2               ; 2 BYTE
-YLPV      EQU    FBALPV+2               ; 2 BYTE  
+YLPV      EQU    FBALPV+2               ; 2 BYTE
 
 DNORG     EQU    $5AD0
 DYNSTV    EQU    DNORG
 DYNPV     EQU    DYNSTV+3
 HUMPV     EQU    DYNPV+2
 
-                                        ;
-                                        ; CMOS RAM ALLOCATION
-                                        ;
+;
+; CMOS RAM ALLOCATION
+;
             ORG    CMOS+$100            ; WRITABLE CMOS
 
 CREDST      RMB    2                    ; CREDITS BACKUP
@@ -355,7 +288,7 @@ GODINT      RMB    6
 GODSCR      RMB    48
 CMSCOR      RMB    40*SCRSIZ            ; 40 BACKED UP SCORES, 39 OF WHICH ARE VISIBLE
 TODAYS      RMB    6*SCRSIZ             ; TODAYS GREATEST
-TODEND      EQU    *
+TODEND
 
             ORG    CMOS                 ; ADEQUATE BIRTH CONTROL PROTECTION
 
@@ -378,7 +311,7 @@ GA1         RMB    2                    ; 10 MASTER DIFFICULTY CONTROL          
             RMB    2                    ; NUMBER ADDED IN ADDITION TO REGULAR INCREASE  6
             RMB    2                    ; INVISO TIME/MAN                               7
             RMB    2                    ; # OF MEN FOR WARP                             8
-            RMB    2                    ; LAST WAVE WARP IS ALLOWED TO OCCUR IN.        9  
+            RMB    2                    ; LAST WAVE WARP IS ALLOWED TO OCCUR IN.        9
             RMB    2                    ; NUMBER OF LETTERS ALLOWED TO GOD             10
 SPECFN      RMB    2                    ; RESTORE FACTORY SETTINGS
             RMB    2                    ; CLEAR AUDIT TOTALS
@@ -386,7 +319,7 @@ SPECFN      RMB    2                    ; RESTORE FACTORY SETTINGS
             RMB    2                    ; INTIATE AUTO CYCLE
             RMB    2                    ; ENTER ATTRACT MODE MESSAGE
             RMB    2                    ; ENTER HIGHEST SCORE NAME
-ENDADJ      EQU    *
+ENDADJ
 
 OPMESS      RMB    100                  ; 2 LINES OF 25 CHARS EACH.
 OPL1        RMB    2
@@ -394,23 +327,22 @@ OPL2        RMB    2
 ADJSUM      RMB    2
 OMESUM      RMB    2
 
-;
 ;BASE PAGE RAM AREA
-;
 			ORG    $9C00
 
-RAM         EQU    $9c00
-
-			SETDP    RAM>>8
+RAM         EQU     $9c00
+			SETDP   RAM>>8
 
 BGSAV 		rmb 16
-TEXCOL    
-TXFLAV    	equ * + 1    
+
+TEXCOL
+TXFLAV    	equ * + 1
 TXLEAD    	equ * + 2
 TXFONT    	equ * + 3
 TXTSAV 		rmb 16
 
-BGL 		RMB    2    ; TERRAIN LEFT POINTER
+;;;TERRAIN LEFT POINTER
+BGL 		RMB    2
 BGLX        RMB    2    ; OLD TERRAIN LEFT
 GTIME       RMB    1    ; GAME TIMER
 PDFLG       RMB    1    ; SPACE HOLDER PLAYER DIED
@@ -418,11 +350,20 @@ PCRAM       RMB    16   ; PSEUDO COLOR RAM
 CREDIT      RMB    1
 CUNITS      RMB    1
 BUNITS      RMB    1
+;;; Firq Counter
 TIMER       RMB    1    ; FIRQ TIMER
+;;; Some kind of counter to detect when CPU is slowing down
 OVCNT       RMB    1
-ACTIVE      RMB    2    ; POINTER TO LIST OF CURRENTLY ACTIVE (SLEEPING) PROCS.
-FREE        RMB    2    ; POINTER TO LIST OF UNALLOCATED PROCESS SLEEP SPACE.
-CRPROC      RMB    2    ; POINTER TO SLEEP AREA OF CURRENTLY EXECUTING PROCESS.
+
+;;; Pointer to list of currently active (sleeping) procs.
+ACTIVE      RMB    2
+
+;;; Pointer to list of unallocated process sleep space.
+FREE        RMB    2
+
+;;; Pointer to sleep area of currently executing process.
+CRPROC      RMB    2
+
 OPTR        RMB    2    ; OBJECT LIST POINTER
 OFREE       RMB    2    ; FREE LIST POINTER
 SPFREE      RMB    2    ; SUPER PROCESS FREE LIST
@@ -442,35 +383,40 @@ SLMCNT      RMB    1    ; SLAM,COIN DEBOUNCERS
 LCCNT       RMB    1
 RCCNT       RMB    1
 CCCNT       RMB    1
-SWPROC      RMB    8    ; SWITCH SCAN TEMP
+
+;;; Switch scan temp
+SWPROC      RMB    8
+
 SCRFLG      RMB    1    ; PLAYER SCORE FLAG
 CURPLR      RMB    1    ; CURRENT
 PLRCNT      RMB    1    ; NUMBER OF PLAYERS
 PLRX        RMB    2    ; CURRENT PLAYER INDEX STORE
-IRQHK       RMB    3    ; IRQ RAM VECTOR
-IFLG        RMB    1    ; IRQ FLAG
+
+
+IRQHK       RMB    3    ;;; IRQ RAM VECTOR
+IFLG        RMB    1    ;;; IRQ FLAG
 PCX         RMB    2
 BGDELT      RMB    2
-SETEND      RMB    2    ; SCANNER ERASE TABLE END
-BMBCNT      RMB    1    ; BOMBS ACTIVE
-SBFLG       RMB    1    ; SMART BOMB FLAG
-TPTR        RMB    2    ; TARGET LIST INDEX
-SHTEMP      RMB    2    ; SHELL ROUTINE
-THX         RMB    2    ; THRUST TABLE INDEX
-XXX1        RMB    1    ; SCREEN OUTPUT PARAMS
+SETEND      RMB    2    ;;; Scanner erase table end
+BMBCNT      RMB    1    ;;; Bombs active
+SBFLG       RMB    1    ;;; Smart bomb flag
+TPTR        RMB    2    ;;; Target list index
+SHTEMP      RMB    2    ;;; Shell routine
+THX         RMB    2    ;;; Thrust table index
+XXX1        RMB    1    ;;; Screen output params
 XXX2        RMB    1
 XXX3        RMB    1
-FISX        RMB    2    ; LAS FISSLE TABLE INDEX
-BAX         RMB    2    ; BOMB IMAGE PTR
-TFLG        RMB    1    ; TIE DIRECTION
-REPLA       RMB    2    ; REPLAY LEVEL
-THFLG       RMB    1    ; THRUST SOUND FLAG
-STRCNT      RMB    1    ; STARS ACTIVE COUNT
-REVFLG      RMB    1    ; REV SWITCH DEBOUNCE
+FISX        RMB    2    ;;; Las fissle table index
+BAX         RMB    2    ;;; Bomb image ptr
+TFLG        RMB    1    ;;; Tie direction
+REPLA       RMB    2    ;;; Replay level
+THFLG       RMB    1    ;;; Thrust sound flag
+STRCNT      RMB    1    ;;; Stars active count
+REVFLG      RMB    1    ;;; Rev switch debounce
 
 ;SOUND RAM
-SNDX        RMB    2    ; TABLE INDEX
-SNDPRI      RMB    1    ; PRIORITY
+SNDX        RMB    2    ;;; Sound TABLE INDEX
+SNDPRI      RMB    1    ;;; Sound PRIORITY
 SNDTMR      RMB    1
 SNDREP      RMB    1
 
@@ -478,24 +424,35 @@ SNDREP      RMB    1
 LFLG        RMB    1
 LCOLRX      RMB    1
 
-; STATUS FLAG
-; 	B7 = GAME OVER
-; 	B6 = PLAYER CONTROLS INACTIVE
-; 	B5 = STARS,OBJECTS,SHELLS
-; 	B4 = PLAYER IMAGE INACTIVE
-; 	B3 = PLAYER DEAD
-; 	B2 = APPEARS,EXPLOSIONS DISABLE
-; 	B1 = TERRAIN INACTIVE
-; 	B0 = SPECIAL ATTR SWITCH FEED INACTIVE [ATTR MODE ONLY]
-
+;;; ## Var: STATUS
+;;; Holds global flags for the games status
+;;;     * b0 : 0x01 : SPECIAL ATTR SWITCH FEED INACTIVE [ATTR MODE ONLY]
+;;;     * b1 : 0x02 : Terrain innactive
+;;;     * b2 : 0x04 : APPEARS,EXPLOSIONS DISABLE
+;;;     * b3 : 0x08 : Player dead
+;;;     * b4 : 0x10 : Player image inactive
+;;;     * b5 : 0x20 : Do not draw stars, objs, shells?
+;;;     * b6 : 0x40 : Player controls inactive
+;;;     * b7 : 0x80 : Game over
 STATUS RMB 1
+
+st_game_over            equ 1 << 7
+st_controls_inactive    equ 1 << 6
+st_no_stars_objs        equ 1 << 5
+st_player_invisible     equ 1 << 4
+st_player_dead          equ 1 << 3
+st_explosions           equ 1 << 2
+st_terrain_invisible    equ 1 << 1
+st_attr_mode            equ 1 << 0
+
+st_init                 equ st_game_over | st_controls_inactive | st_player_invisible | st_player_invisible | st_terrain_invisible |  st_attr_mode | st_player_dead
 
 ; PLAYER DIRECTION+THRUST
 NPLAD    	RMB    2    ; NEW PLAYER DIRECTION
 PLADIR      RMB    2
 
 ;PLAYER COORDINATES
-;UPPER LEFT 
+;UPPER LEFT
 PLAXC       RMB    1
 PLAYC       RMB    1
 
@@ -525,7 +482,7 @@ PY1         RMB    1
 OBHT        RMB    1                       ; HT TEMPS
 PLHT        RMB    1
 ULX         RMB    1                       ; UPPER LEFT COORD
-ULY         RMB    1    
+ULY         RMB    1
 LRX         RMB    1
 LRY         RMB    1
 CTEMP       RMB    2                       ; INDEX TEMP
@@ -556,7 +513,6 @@ SAMEXC      RMB    1    ; 0=SAM ROUTINES ACCESS;  ELSE LINKY TREK EFFECTS
 
 
 ;  TERRAIN BLO IRQ POINTER SAVE
-
 IRQSV       RMB    2
 SCNCOL      RMB    1    ; SCANNER BORDER COLOR SAVE
 
@@ -568,139 +524,129 @@ FREEP       RMB    2    ; FREE LIST
 APPTR       RMB    2    ; APPEAR LIST
 EXPTR       RMB    2    ; EXPLODE LIST
 TRPTR       RMB    2    ; TRANSPORTER LIST ******COULD GO***
-;
+
 ;** ADDITIONAL TEXT ALLOCATION
-;
 TXTEMP      RMB    2
 INVFLG      RMB    2    ; INVISIBLE FLAG
 SWEXC       RMB    1    ; SWARMER EXPLOSION EXCLUSION
-;
+
 ;*************************************** MOVE THIS WITH MESSAGE RAM
 MESSCD      RMB    1    ; CODE OF CURRENT MESSAGE
 ;******************************************************************
 
 RIPOFF      RMB    1    ; *****************THIS MAY ALSO BE MOVED OUT OF BASEPAGE
 
-VFLG        RMB    1    ; VOLCANO STUFF
-VETIM       RMB    1    ; TIME TO NEXT ERUPT
-OSNDD       RMB    1    ; INVISIO EDGE DETECTOR
-ATRSW2      RMB    1    ; ATTRACT PIA2 FEED
-ATRSW3      RMB    1    ; "       PIA3 "
-INDIAG      RMB    1    ; NON ZERO INDICATES IN DIAGNOSTICS
-SWPR3_      RMB    4    ; THIRD SWITCH BUFFER
-ATRFLG      RMB    1    ; ATTRACT MODE FLAG
-GETLRM      RMB    2    ; GET LETTER PROCESS ADDRESS SAVE (FOR TIMER)
-SWPR4_      RMB    4    ; FOURTH SWITCH BUFFER
+VFLG        RMB    1    ;;; VOLCANO STUFF
+VETIM       RMB    1    ;;; TIME TO NEXT ERUPT
+OSNDD       RMB    1    ;;; INVISIO EDGE DETECTOR
+ATRSW2      RMB    1    ;;; ATTRACT PIA2 FEED
+ATRSW3      RMB    1    ;;; PIA3
+INDIAG      RMB    1    ;;; NON ZERO INDICATES IN DIAGNOSTICS
+SWPR3_      RMB    4    ;;; THIRD SWITCH BUFFER
+ATRFLG      RMB    1    ;;; ATTRACT MODE FLAG
+GETLRM      RMB    2    ;;; GET LETTER PROCESS ADDRESS SAVE (FOR TIMER)
+SWPR4_      RMB    4    ;;; FOURTH SWITCH BUFFER
 CHKS1       RMB    1
 
 ; TABLE DATA
-
 			ORG    RAM+$100 ; PAST BASE PAGE
+WRPRAM    	EQU    RAM+$100     ;;; WARP EFFECT OVERLAYS EXPLOSIONS AND TERRAIN
+RAMALS    	RMB    $400         ;;; Ram for explosions
+RAMEND
 
-; WARP EFFECT OVERLAYS EXPLOSIONS AND TERRAIN
-
-WRPRAM    	EQU    RAM+$100
-
-;
-;EXPLOSIONS
-;
-RAMALS    	RMB    $400
-RAMEND    	EQU    *
-;
 ;TERRAIN TABLES
-;
-ALTBL    	RMB    $400    		; ALTITUDES
-STBL        RMB    $9A*2        ; ERASE TABLE
-TERTF0      RMB    $9A*6        ; FLAVOR 0
-TERTF1      RMB    $9A*6        ; FLAVOR 1
-;
-;MASTER OBJECT LIST
-;
-OLIST    	EQU    *
+ALTBL    	RMB    $400    		;;; ALTITUDES
+STBL        RMB    $9A*2        ;;; ERASE TABLE
+TERTF0      RMB    $9A*6        ;;; FLAVOR 0
+TERTF1      RMB    $9A*6        ;;; FLAVOR 1
+
+
+; Object index offsets
+OLINK    	EQU    0    		;;; Obj - LINK TO NEXT
+OPICT       EQU    2            ;;; Obj - PICTURE DESCRIPTOR ADDR
+OBJX        EQU    4            ;;; Obj - UPPER LEFT SCREEN X
+OBJY        EQU    5            ;;; Obj - UPPER LEFT SCREEN Y
+OBJID       EQU    6            ;;; Obj - ASSOCIATED PROCESS ID (IF ANY)
+OCVECT      EQU    8            ;;; Obj - COLLISION ROUTINE ADDR
+OX16        EQU    $A           ;;; Obj - 16 Obj - BIT X WORLD COORD
+OY16        EQU    $C           ;;; Obj - 16 BIT Y WORLD COORD
+OXV         EQU    $E           ;;; Obj - X VELOCITY
+OYV         EQU    $10          ;;; Obj - Y VELOCITY
+OBJCOL      EQU    $12          ;;; Obj - SCANNER BLIP
+OTYP        EQU    $14          ;;; Obj - OBJECT TYPE
+ODATA       EQU    $15          ;;; Obj - MISC. DATA
 OSIZE    	EQU    $17
 
-; INDEX OFFSETS
+OLIST       RMB    (95)*OSIZE   ;;; Master Object list. Table that contains all of the game's visual objects
+OLEND    	                    ;;; Object list end
 
-OLINK    	EQU    0    		; LINK TO NEXT
-OPICT       EQU    2            ; PICTURE DESCRIPTOR ADDR
-OBJX        EQU    4            ; UPPER LEFT SCREEN X
-OBJY        EQU    5            ; UPPER LEFT SCREEN Y
-OBJID       EQU    6            ; ASSOCIATED PROCESS ID (IF ANY)
-OCVECT      EQU    8            ; COLLISION ROUTINE ADDR
-OX16        EQU    $A           ; 16 BIT X WORLD COORD
-OY16        EQU    $C           ; 16 BIT Y WORLD COORD
-OXV         EQU    $E           ; X VELOCITY
-OYV         EQU    $10          ; Y VELOCITY
-OBJCOL      EQU    $12          ; SCANNER BLIP
-OTYP        EQU    $14          ; OBJECT TYPE
-ODATA       EQU    $15          ; MISC. DATA
-
-; RESERVE AREA
-			RMB    (95)*OSIZE
-OLEND    	EQU    *
- 
 ;USER DEFINED OBJECT TYPES
 ;0=NORMAL,HYPERABLE
 ;1=LANDER PICKING UP NON-HYP
 ;2(BIT 1)= APPEAR NON-HYP
 ;$10=EARTHLING NON-HYP,NON SMART BOMB
 ;$11=SIGN POST NON-HYP,NON SB
-;
+
+
 ;USER DEFINED PROCESS TYPES
-;
 STYPE    EQU    0    ; SYSTEM PROCESS
 ATYPE    EQU    1
 CTYPE    EQU    2
 DTYPE    EQU    3    ; PLAYER DEATH PROCESS
 LTYPE    EQU    4    ; LASER
-SBTYPE    EQU    5    ; SMART BOMB
-;
-;SLEEPING PROCESS TABLE
-;
-PTAB    EQU    *
-;
-;OFFSET CONSTANTS 
-;
-PLINK    EQU    0
-PADDR    EQU    2
-PTIME    EQU    4
-PTYPE    EQU    5
-PCOD    EQU    6
-PDATA    EQU    7
-PD    EQU    7
-PD1    EQU    8
-PD2    EQU    9
-PD3    EQU    10
-PD4    EQU    11
-PD5    EQU    12
-PD6    EQU    13
-PD7    EQU    14
-PSIZE    EQU    15
-    RMB    15*(85)
-TABEND    EQU    *
-;
-;SUPER PROCESSES
-;
-SPSIZE    EQU    PSIZE+8
-SPTAB    RMB    SPSIZE*5
-SPTEND    EQU    *
-;
-;LASER FISSLE TABLE
-;
+SBTYPE   EQU    5    ; SMART BOMB
+
+struct proc {
+    link    : word,
+    addr    : word,
+    time    : byte,
+    type    : byte, 
+    cod     : byte,
+    data    : byte,
+    d1      : byte,
+    d2      : byte,
+    d3      : byte,
+    d4      : byte,
+    d5      : byte,
+    d6      : byte,
+    d7      : byte,
+}
+
+;OFFSET CONSTANTS
+;; PLINK    EQU    proc.link
+;; PADDR    EQU    proc.addr
+;; PTIME    EQU    proc.time
+;; PTYPE    EQU    proc.type
+;; PCOD     EQU    proc.cod
+;; PDATA    EQU    proc.data
+;; PD       EQU    proc.data
+;; PD1      EQU    proc.d1
+;; PD2      EQU    proc.d2
+;; PD3      EQU    proc.d3
+;; PD4      EQU    proc.d4
+;; PD5      EQU    proc.d5
+;; PD6      EQU    proc.d6
+;; PD7      EQU    proc.d7
+;; PSIZE    EQU    proc.size
+
+PTAB    ;;; Process table
+    RMB    proc.size*(85)
+TABEND  ;;; End of process tab
+
+SPSIZE    EQU    proc.size+8
+;;; Super process tab - space for 5 processes with an extra 8 bytes
+SPTAB     RMB    SPSIZE*5
+SPTEND
+
+;;;LASER FISSLE TABLE
 FISTAB    RMB    32
-FISEND    EQU    *
+FISEND ;;; End of lazer fisile table
 
-;
-;THRUST TABLE
-;
-
+;;;THRUST TABLE
 THTAB    RMB    64
-THTEND    EQU    *
+THTEND ;;; end of thrust table
 
-;
-;STAR DATA STRUCTURE
-;
-
+;;;STAR DATA STRUCTURE
 struct smap {
     sx : byte,
     sy : byte,
@@ -708,31 +654,25 @@ struct smap {
     pad : byte,
 }
 
-SMAP    EQU    *
-SNUM    EQU    16
-
+SNUM     EQU    16
 SLGTH    EQU   smap.size
-         RMB   SNUM*SLGTH  ; RESERVE SPACE
-SMEND    EQU   *
+
+SMAP     RMB   SNUM*SLGTH  ; RESERVE SPACE
+SMEND
 
 ;OFFSET CONSTANTS
 SX      EQU    smap.sx
 SY      EQU    smap.sy
 SCOL    EQU    smap.scol
 
-;
-;MONOCHROME TABLE
-;
+;;; MONOCHROME TABLE
 MONOTB    RMB    128
-;
+
 ;SCANNER ERASE TABLES
-;
-SETAB    RMB    200    ; OBJECTS
+SETAB     RMB    200    ; OBJECTS
 STETAB    RMB    128    ; TERRAIN
 
-;
 ;OBJECT PICTURE STRUCTURE
-;
 OBJW      EQU    0
 OBJH      EQU    1
 OBJP0     EQU    2
@@ -741,23 +681,45 @@ OBJWRT    EQU    OBJP0+4
 OBJDEL    EQU    OBJP0+6
 OBJL      EQU    OBJDEL+2
 
-;
-;* MESSAGE MANIPULATOR RAM........THESE HAVE BEEN MOVED OUT OF BASE PAGE
-; 
 
-MESSCR    RMB    2     ; CURRENT PLACE IN MESSAGE POINTER
-MESSST    RMB    2     ; STARTING PLACE OF CURRENT MESSAGE
-MESSSP    RMB    1     ; SPECIAL ACTION BITS FOR CURRENT MESSAGE
-MESSTM    RMB    1     ; TIME LEFT IN CURRENT MESSAGE
-MESSBL    RMB    1     ; TIME LEFT IN CURRENT BLINK
-MESSBC    RMB    1     ; BLINKING MESSAGE COLOR
-MESSB     RMB    1     ; B REGISTER USED FOR CURRENT MESSAGE
-MESSY     RMB    2     ; Y REGISTER USED FOR CURRENT MESSAGE
+; MESSAGE MANIPULATOR RAM........THESE HAVE BEEN MOVED OUT OF BASE PAGE
+;;; Current place in message
+MESSCR    RMB    2
 
-;
+;;; Beginning of this message
+MESSST    RMB    2
+
+;;; Special action bits for current message
+;;;
+;;; * b0 N/A
+;;; * b1 N/A
+;;; * b2 Clear block
+;;; * b3 Ptr to indirect continuation 
+;;; * b4 Continuation 
+;;; * b5 Conditional on resident message 
+;;; * b6 Blink
+;;; * b7 N/A 
+MESSSP    RMB    1
+BLINK     EQU    $40                    ; BLINK BIT POSITION
+COND      EQU    $20                    ; CONDITIONAL ON RESIDENT MESSAGE
+CONT      EQU    $10                    ; CONTINUATION
+PTR       EQU    $8                     ; POINTER TO INDIRECT CONTINUATION
+CLEAR     EQU    $4                     ; CLEAR BLOCK BEFORE EXECUTION
+
+;;; Time left in current message
+MESSTM    RMB    1
+;;; time left in current blink
+MESSBL    RMB    1
+;;; blinking message color
+MESSBC    RMB    1
+;;; b register used for current message
+MESSB     RMB    1
+;;; y register used for current message
+MESSY     RMB    2
+
+
 ;PLAYER DATA TABLE
 ;
-
 struct player_data {
     PSCOR    : byte[4],
     PRPLA    : byte[4],
@@ -769,7 +731,7 @@ struct player_data {
     PENEMY   : byte[50]
 }
 
-PLDATA    EQU    *
+PLDATA
 .P1SCR    RMB    4     ; SCORE MSB 1ST
 .P1RP     RMB    4     ; NEXT REPLAY LEVEL
 .P1LAS    RMB    1     ; #OF LASERS
@@ -778,7 +740,7 @@ PLDATA    EQU    *
 .P1INV    RMB    1     ; INVISO TIMER
 .P1TRG    RMB    1     ; ASTRONAUTS
 .P1ENM    RMB    50    ; ENEMY STATE
-.P1END    EQU    *
+.P1END
 
 .P2SCR    RMB    4
 .P2RP     RMB    4
@@ -800,12 +762,10 @@ PSBC      EQU    player_data.PSBC
 PINV      EQU    player_data.PINV
 PTARG     EQU    player_data.PTARG
 PENEMY    EQU    player_data.PENEMY
-
 ;
 ;ASTRONAUT COUNT
 ASTCNT    RMB    1
 
-;
 ;ENEMIES LIST
 ;WARNING DO NOT CHANGE ORDER OF COUNTS
 ELIST
@@ -820,8 +780,8 @@ PRBCNT    RMB    1
 SCZCNT    RMB    1
 SWCNT     RMB    1
 YLCNT     RMB    1
-SGCNT     RMB    1    ; STAR GATE COUNT
-FBCNT     RMB    1    ; FIRE BOMBER COUNT
+SGCNT     RMB    1      ; STAR GATE COUNT
+FBCNT     RMB    1      ; FIRE BOMBER COUNT
 DYNCNT    RMB    1
 ELIST2
 
@@ -867,28 +827,26 @@ BMCNT       RMB    1
 MISCNT      RMB    1
 ECEND
 
-;
-;TARGET LIST
-;
-TLIST
-          RMB    20
+;;; TARGET LIST
+TLIST    RMB    20
 TLEND
 
-;
-;VOLCANO DATA STRUCTURE
-;
+;;;Volcano lava data structure
+struct lava {
+    xvel     : word,
+    yvel     : word,
+    x16      : word,
+    x        : byte,
+    y16      : word,
+    col      : word,
+    time     : byte,
+}
 
-LAVXV     EQU    0           ; X VELOCITY
-LAVYV     EQU    2           ; Y VELOCITY
-LAVX16    EQU    4           ; 16-BIT X
-LAVX      EQU    6           ; X SCREEN
-LAVY16    EQU    7           ; 16 BIT Y
-LAVC      EQU    9           ; ROCK COLOR
-LAVTIM    EQU    11          ; LAVA LIFE TIME
-LAVL      EQU    12          ; LENGTH
-LAVTAB    RMB    LAVL*3      ; 3 OF THEM
-LAVTND
-                             ;
+;;; Start of lava table
+lava_tab    RMB    lava.size *3   ; 3 OF THEM
+;;; End of lava table
+lava_tab_end
+
 EGRAM     RMB    2           ; ENDGAME PROCESSING RETURN ADDRESS SAVE
 EGRAM2    RMB    2           ; IT LIKES TO GO 2 DEEP.
 GETLST    RMB    3           ; RAM TO IMPLEMENT RUBOUT FEATURE OF INITIAL ENTRY

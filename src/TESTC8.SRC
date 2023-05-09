@@ -1,19 +1,20 @@
-    ; NLIST
-    ; INCLUDE SPHR56.SRC
-    ; INCLUDE EQ4.SRC
-    ; LIST
-    ; TTL <<<<< S T A R G A T E  >>>>>
+; NLIST
+; INCLUDE SPHR56.SRC
+; INCLUDE EQ4.SRC
+; LIST
+; TTL <<<<< S T A R G A T E  >>>>>
 
       ORG TSCORG                          ; PLACE TO RUN FROM
-        JMP CKHS                          ; CHECK HIGH SCORES (POWER UP)
-        JMP ENDGAM                        ; END OF GAME HIGH SCORE PROCESSING
-        JMP GODENT                        ; ENTER GOD
-        JMP RESHSC                        ; RESET HIGH SCORES
-        JMP HSCHK                         ; CHECK HIGH SCORES AFTER FAC SET RESTORE
-        JMP HSBUT                         ; HIGH SCORE RESET BUTTON
+
+            JMP CKHS                          ; CHECK HIGH SCORES (POWER UP)
+            JMP ENDGAM                        ; END OF GAME HIGH SCORE PROCESSING
+            JMP GODENT                        ; ENTER GOD
+            JMP RESHSC                        ; RESET HIGH SCORES
+            JMP HSCHK                         ; CHECK HIGH SCORES AFTER FAC SET RESTORE
+            JMP HSBUT                         ; HIGH SCORE RESET BUTTON
 
 HSBUT   LDA #$18                          ; 3 SECONDS REQUIRED
-        STA PD,U
+        STA proc.data,U
         LDA #$3F
         STA SOUND
 HSBUT1  
@@ -21,7 +22,7 @@ HSBUT1
 HSBUT2  LDA PIA0
         BITA  #8                          ; STILL PRESSED??
         BEQ HSBUT3                        ; NOPE....BYE
-        DEC PD,U
+        DEC proc.data,U
         BNE HSBUT1                        ; NOT ENOUGH TIME YET
         LDY #GODINT                       ; JUST PUT IN DEFAULT NAME
         LDX #DEFHSR

@@ -1,0 +1,119 @@
+; HARDWARE CONSTANTS
+CRAM      EQU    $C000      ;;; HW Reg: Colour RAM
+WDOG      EQU    $CBFF      ;;; HW Reg: Watch dog address
+WDATA     EQU    $39        ;;; HW Reg: Watch value
+CMOS      EQU    $CC00      ;;; HW Reg: CMOS Address
+VERTCT    EQU    $CB00      ;;; HW Reg: 6-bit vertical beam addr
+
+;;; HW register that controls whether reads to the screen
+;;; returns screen data or ROM and if the screen is
+;;; displayed inverted
+;;; * 0x01 : b0 : ROM read (0 for RAM read)
+;;; * 0x02 : b1 : invert screen, used for cocktail version
+RWCNTL    EQU    $C900
+
+////////////////////////////////////////////////////////////////////////////////
+// PIA Stuff
+// Stagate has two 6821 PIAS https://sowerbutts.com/replica1-serial/6821.pdf
+// 6821 have two bidirectional data ports that can generate interupts
+struct Pia {
+    data_a : byte,
+    ctrl_a : byte,
+    data_b : byte,
+    ctrl_b : byte,
+}
+
+ROM_PIA     equ $c80c
+WIDGET_PIA  equ $c804
+
+;;; ROM PIA Port A Data
+;;;
+;;; * 0x01 : B0 : AUTO UP
+;;; * 0x02 : B1 : ADVANCE
+;;; * 0x04 : B2 : RCOIN
+;;; * 0x08 : B3 : HSRESET
+;;; * 0x10 : B4 : LCOIN
+;;; * 0x20 : B5 : CCOIN
+;;; * 0x40 : B6 : SLAM
+;;; * 0x80 : B7 : SOUND HANDSHAKE
+PIA0        EQU    ROM_PIA + Pia.data_a
+
+;;; ROM PIA Port A Ctrl
+;;;
+;;; * 0x01 : B0 : CA1 - IRQ 240 (16ms) (Line 240)
+;;; * 0x02 : B1 : CA1
+;;; * 0x04 : B2 : Data Direction
+;;; * 0x08 : B3 : CA2 - LEDS
+;;; * 0x10 : B4 : CA2
+;;; * 0x20 : B5 : CA2
+;;; * 0x40 : B6 : IRQ A
+;;; * 0x80 : B7 : IRQ B
+PIA0_ctrl   equ    ROM_PIA + Pia.ctrl_a              ;;; Rom PIA port A control
+
+;;; ROM PIA Port B Data
+;;;
+;;; * 0x01 : B0 : Sound
+;;; * 0x02 : B1 : Sound
+;;; * 0x04 : B2 : Sound
+;;; * 0x08 : B3 : Sound
+;;; * 0x10 : B4 : Sound
+;;; * 0x20 : B5 : Sound
+;;; * 0x40 : B6 : LED
+;;; * 0x80 : B7 : LED
+PIA1        equ    ROM_PIA + Pia.data_b
+SOUND       equ    PIA1    ;;; Alias for ROM PIA data port B
+
+;;; ROM PIA Port B Ctrl
+;;;
+;;; * 0x01 : B0 : CB1 - IRQ 4 MS (0,$40,$80,$C0)
+;;; * 0x02 : B1 : CB1
+;;; * 0x04 : B2 : Data Direction
+;;; * 0x08 : B3 : CB2 - LEDS2
+;;; * 0x10 : B4 : CB2
+;;; * 0x20 : B5 : CB2
+;;; * 0x40 : B6 : IRQ A
+;;; * 0x80 : B7 : IRQ B
+PIA1_ctrl   equ    ROM_PIA + Pia.ctrl_b
+
+;;; Widget PIA Port A Data
+;;;
+;;; * 0x01 : B0 : FIRE
+;;; * 0x02 : B1 : THRUST
+;;; * 0x04 : B2 : SMART BOMB
+;;; * 0x08 : B3 : HYPERSPACE
+;;; * 0x10 : B4 : START 2
+;;; * 0x20 : B5 : START 1
+;;; * 0x40 : B6 : REV
+;;; * 0x80 : B7 : DOWN
+PIA2        EQU    WIDGET_PIA + Pia.data_a
+;;; Widget PIA Port A Ctrl
+;;;
+PIA2_ctrl   equ    WIDGET_PIA + Pia.ctrl_a
+
+sw_fire         equ 1 << 0
+sw_thrust       equ 1 << 1
+sw_smart_bomb   equ 1 << 2
+sw_hyperspace   equ 1 << 3
+sw_start2       equ 1 << 4
+sw_start1       equ 1 << 5
+sw_reverse      equ 1 << 6
+sw_down         equ 1 << 7
+
+;;; Widget PIA Port B
+;;;
+;;; * B0 Up
+;;; * B1 hyperdrive (anti-matter)  ....does it matter?
+;;; * B7 Input 1=cocktail
+PIA3        equ    WIDGET_PIA + Pia.data_b
+
+;;; Widget PIA Port B ctrl
+;;;
+;;; * 0x01 : B0 : CB1
+;;; * 0x02 : B1 : CB1
+;;; * 0x04 : B2 : Data Direction
+;;; * 0x08 : B3 : CB2 - Output switch mux control 1=player1,0=player2
+;;; * 0x10 : B4 : CB2
+;;; * 0x20 : B5 : CB2
+;;; * 0x40 : B6 : IRQ A
+;;; * 0x80 : B7 : IRQ B
+PIA3_ctrl   equ    WIDGET_PIA + Pia.ctrl_b

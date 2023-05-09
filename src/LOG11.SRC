@@ -38,7 +38,7 @@ GNC1    LDX ,X
         BEQ GNCX                                        
         CMPX CRPROC                                     
         BEQ GNC1                                        
-        LDA PTYPE,X                                     
+        LDA proc.type,X                                     
         CMPA #CTYPE                                     
         BEQ GNC1                                        
         CMPA #ATYPE                                     
@@ -50,13 +50,13 @@ GNCX    PULS A,X,PC
 ; CREDIT SCANNING                                                
 ;                                                       
 CRDSCN  LDA CREDIT                                      
-        STA PD,U                                        
-        CLR PD1,U                                       
-        CLR PD2,U                                       
+        STA proc.data,U                                        
+        CLR proc.d1,U                                       
+        CLR proc.d2,U                                       
 CRDSLP  LDA CREDIT                                      
-        CMPA PD,U                                       
+        CMPA proc.data,U                                       
         BEQ CRDSLX                                      
-        STA PD,U                                        
+        STA proc.data,U                                        
         LDA ATRFLG                                      
         CMPA #$50                       ; CREDIT PAGE?? 
         BNE CRDSL1                                      
@@ -68,9 +68,9 @@ CRDSL1  JSR GNCIDE
         JSR MSPROC                                      
 CRDSLX  LDA PIA21                                       
         ANDA #$8                                        
-        CMPA PD1,U                                      
+        CMPA proc.d1,U                                      
         BEQ HALSX                                       
-        STA PD1,U                                       
+        STA proc.d1,U                                       
         BEQ HALSX                                       
         LDA ATRFLG                                      
         CMPA #$10                                       
@@ -81,9 +81,9 @@ CRDSLX  LDA PIA21
         JSR MSPROC                                      
 HALSX   LDA PIA21                                       
         ANDA #$40                                       
-        CMPA PD2,U                                      
+        CMPA proc.d2,U                                      
         BEQ SECSX                                       
-        STA PD2,U                                       
+        STA proc.d2,U                                       
         BEQ SECSX                                       
         LDA ATRFLG                                      
         CMPA #$40                                       
@@ -109,11 +109,11 @@ CRDPAG  LDA #$50
         JSR OCRDM                                       
         LDU CRPROC                                      
         LDA CREDIT                                      
-        STA PD4,U                                       
+        STA proc.d4,U                                       
         LDA #2                                          
         STA PLRCNT                                      
         LDA #8                                          
-        STA PD3,U                       ; TIMER         
+        STA proc.d3,U                       ; TIMER         
         LDX #$14AC                                      
         JSR OSEXM                       ; OUTPUT EXTRA SHIP MESSAGE
         LDX #$3EE0                                      
@@ -130,12 +130,12 @@ CRDPAG  LDA #$50
         JSR WRD5FV                                      
 CRDP0   LDX #NSHIP                                      
         JSR RCMOSD                                      
-        STD PD1,U                                       
+        STD proc.d1,U                                       
         LDB FREEPL+1                                    
         ANDB #$F                                        
         BEQ CRDP00                      ; NO FREE PLAY  
-        CLR PD2,U                                       
-CRDP00  LDB PD2,U                                       
+        CLR proc.d2,U                                       
+CRDP00  LDB proc.d2,U                                       
         BNE CRDP1                       ; 2 CREDIT OPTION SELECTED
         LDX #$3858                                      
         BRA CRDP2                                       
@@ -143,7 +143,7 @@ CRDP1   LDX #$5958
         TFR B,A                                         
         LDB #2                                          
         JSR CRDSB                                       
-        LDA PD1,U                                       
+        LDA proc.d1,U                                       
         LDX #$1958                                      
 CRDP2   LDB #1                                          
         JSR CRDSB                                       
@@ -159,9 +159,9 @@ CRDP3A  LDB #1
         LDA CREDIT                                      
         CMPA #2                                         
         BLO CRDP4                                       
-        LDA PD2,U                                       
+        LDA proc.d2,U                                       
         BNE CRDP4A                                      
-CRDP4   LDA PD1,U                                       
+CRDP4   LDA proc.d1,U                                       
 CRDP4A  CLRB                                            
         BSR CRDSB1                                      
         NAP ($80,CRDP5)                                 
@@ -174,23 +174,23 @@ CRDP50  LDB #2
         LDX #$3514                                      
         LDA #NPSM                                       
         JSR WRD7FV                                      
-        LDB PD1,U                                       
+        LDB proc.d1,U                                       
         LDA CREDIT                                      
         CMPA #4                                         
         BLO CRDP5A                                      
-        TST PD2,U                                       
+        TST proc.d2,U                                       
         BEQ CRDP5A                                      
-        LDB PD2,U                                       
+        LDB proc.d2,U                                       
 CRDP5A  TFR B,A                         ; SAME FOR BOTH PLAYERS
         BSR CRDSB1                                      
-CRDP6   DEC PD3,U                       ; TIMER         
+CRDP6   DEC proc.d3,U                       ; TIMER         
         LBEQ HALL                       ; TIME OUT      
         LDA CREDIT                                      
-        CMPA PD4,U                                      
+        CMPA proc.d4,U                                      
         BEQ CRDP7                                       
-        STA PD4,U                                       
+        STA proc.d4,U                                       
         LDA #08                                         
-        STA PD3,U                                       
+        STA proc.d3,U                                       
 CRDP7                                                   
         NAP ($80,CRDP3)                                 
 ;                                                       
@@ -301,10 +301,10 @@ SECRET  LDA #$40
         MAKP (CBOMB)                                    
         LDU CRPROC                                      
         LDD #$1040                                      
-        STD PD,U                                        
-SECR0   DEC PD+1,U                                      
+        STD proc.data,U                                        
+SECR0   DEC proc.data+1,U                                      
         BEQ SECX                        ; MAXIMUM TIMEOUT
-        DEC PD,U                                        
+        DEC proc.data,U                                        
         BEQ SECR1                                       
 SEC55                                                   
         NAP (60,SECR0)                                  
@@ -312,7 +312,7 @@ SECR1   LDA PIA21
         ANDA #$40                                       
         BEQ SECX                                        
         LDA #1                                          
-        STA PD,U                                        
+        STA proc.data,U                                        
         BRA SEC55                                       
 SECX    LDA CREDIT                                      
         BEQ HALL                                        
@@ -403,29 +403,29 @@ LHA3__  EXG X,Y
 ;                                                       
         LDU CRPROC                                      
         LDA #$2                         ; START WITH INDEX 2
-        STA PD,U                                        
+        STA proc.data,U                                        
         LDD #$0C56                                      
-        STD PD+3,U                                      
+        STD proc.data+3,U                                      
         LDY #CMSCOR                                     
-        STY PD+5,U                                      
+        STY proc.data+5,U                                      
         LDA #13                                         
-        STA PD+7,U                                      
+        STA proc.data+7,U                                      
         JMP HSCOLM                      ; PRINT THIS MATRIX OF THE TABLE
 PRTODY  LDU CRPROC                                      
         LDA #1                                          
-        STA PD,U                        ; START WITH 1 FOR TODAYS
+        STA proc.data,U                        ; START WITH 1 FOR TODAYS
         LDD #$0CD0                                      
-        STD PD+3,U                                      
+        STD proc.data+3,U                                      
         LDY #TODAYS                                     
-        STY PD+5,U                                      
+        STY proc.data+5,U                                      
         LDA #2                                          
-        STA PD+7,U                                      
+        STA proc.data+7,U                                      
         JMP HSCOLM                                      
 HSCOLM  LDA #3                          ; 3 COLUMNS     
-        STA PD+2,U                      ; SET IT HARD   
+        STA proc.data+2,U                      ; SET IT HARD   
         CLR TXFLAV                                      
-HSCOL0  LDA PD+7,U                      ; NUMBER PER COLUMN
-        STA PD+1,U                      ; MAKE THAT NUMBER LEFT IN THIS COLUMN
+HSCOL0  LDA proc.data+7,U                      ; NUMBER PER COLUMN
+        STA proc.data+1,U                      ; MAKE THAT NUMBER LEFT IN THIS COLUMN
 HSCOL3                                                  
         NAP (1,HSCOL6) ; TIME BREAK HERE
 HSCOL6  LDA TEXCOL                      ; GET CURRENT COLOR
@@ -434,11 +434,11 @@ HSCOL6  LDA TEXCOL                      ; GET CURRENT COLOR
         BLS HSCOL1                                      
         LDA #$11                                        
 HSCOL1  STA TEXCOL                                      
-        LDX PD+3,U                      ; GET ADDRESS   
-        LDB PD,U                        ; GET PLAYERS INDEX
+        LDX proc.data+3,U                      ; GET ADDRESS   
+        LDB proc.data,U                        ; GET PLAYERS INDEX
         LDA #HSINDX                     ; INDEX MESSAGE 
         JSR WRD5V                       ; PRINT IT      
-        LDY PD+5,U                      ; POINT AT PLAYERS INITIALS
+        LDY proc.data+5,U                      ; POINT AT PLAYERS INITIALS
         LDB #3                          ; ITERATE 3 TIMES
 HSCOL2  EXG X,Y                                         
         JSR RCMOSA                      ; GET AN INITIAL
@@ -446,31 +446,31 @@ HSCOL2  EXG X,Y
         JSR PR35V                       ; PRINT IT OUT  
         DECB                                            
         BNE HSCOL2                      ; INITIALS ARE OUT THERE
-        LDX PD+3,U                      ; GET CURSOR POINTER AGAIN
+        LDX proc.data+3,U                      ; GET CURSOR POINTER AGAIN
         LEAX $E00,X                     ; POSITION FOR SCORE
         LDU #WRD5V                      ; USE 3 BY 5 SCORE ROUTINE
         JSR PRSCOR                      ; PRINT OUT THE GUYS SCORE
         LDU CRPROC                                      
-        LDY PD+5,U                      ; GET CMOS POINTER
+        LDY proc.data+5,U                      ; GET CMOS POINTER
         LEAY SCRSIZ,Y                                   
-        STY PD+5,U                                      
-        LDX PD+3,U                      ; GET CURRENT CURSOR
+        STY proc.data+5,U                                      
+        LDX proc.data+3,U                      ; GET CURRENT CURSOR
         LEAX 7,X                        ; MOVE 7 PIXELS 
-        STX PD+3,U                                      
-        LDA PD,U                        ; KICK INDEX    
+        STX proc.data+3,U                                      
+        LDA proc.data,U                        ; KICK INDEX    
         ADDA #1                                         
         DAA                                             
-        STA PD,U                                        
-        DEC PD+1,U                      ; ONE LESS GUY IN THIS COLUMN
+        STA proc.data,U                                        
+        DEC proc.data+1,U                      ; ONE LESS GUY IN THIS COLUMN
         BNE HSCOL3                                      
         LEAX $3000,X                    ; MOVE TO NEXT COLUMN
         LDA #7                          ; HEIGHT PER ENTRY
-        LDB PD+7,U                      ; ENTRIES PER COLUMN
+        LDB proc.data+7,U                      ; ENTRIES PER COLUMN
         MUL                                             
         NEGB                            ; OPPOSITE OF TOTAL HEIGHT
         LEAX B,X                        ; TO RESTORE THAT HEIGHT
-        STX PD+3,U                      ; RESTORED      
-        DEC PD+2,U                      ; ONE LESS COLUMN
+        STX proc.data+3,U                      ; RESTORED      
+        DEC proc.data+2,U                      ; ONE LESS COLUMN
         BNE HSCOL0                      ; DO ANOTHER    
         CMPY #TODAYS+SCRSIZ                ; ARE WE IN TODAYS
         LBLS PRTODY                     ; NOPE...GO AND DO TODAYS
@@ -479,16 +479,16 @@ PRDONE
         MAKP (LOGCOL) ; DONE...START THE COLORS
         LDU CRPROC                                      
         LDA #8                                          
-        STA PD,U                                        
-HALX1   DEC PD,U                                        
+        STA proc.data,U                                        
+HALX1   DEC proc.data,U                                        
         BEQ HALX                                        
         NAP (60,HALX1)                                  
 HALX    LDA #120                                        
-        STA PD,U                                        
+        STA proc.data,U                                        
 HALX2   LDA PIA21                                       
         ANDA #$8                                        
         BEQ LOGO                                        
-        DEC PD,U                                        
+        DEC proc.data,U                                        
         BEQ LOGO                                        
         NAP (30,HALX2)                                  
 SGMSP   LDX #$0E10                      ; TOP OF SCREEN 
@@ -534,47 +534,47 @@ LOGO    JSR GNCIDA
 ;                                                       
 ; OUTPUT OPERATOR MESSAGE                                                
 ; PD=MESS PTR,PD2=SCREEN ADDR,PD4=BYTE CNT.,PD5=PASS FLAG                                                
-OOM     CLR PD6,U                                       
+OOM     CLR proc.d6,U                                       
         JSR ATMCK                       ; MESSAGE O.K.???
         BEQ OOM0                                        
         LDX #OMST                                       
-        INC PD6,U                       ; ERROR FLAG    
+        INC proc.d6,U                       ; ERROR FLAG    
         BRA OOM00                                       
 OOM0    LDX #OPMESS                                     
-OOM00   STX PD,U                                        
+OOM00   STX proc.data,U                                        
         LDX #OPL1                       ; LOCATION OF LINE 1
         LDB #$20                                        
         JSR GETMEX                                      
-        STX PD2,U                                       
+        STX proc.d2,U                                       
         LDA #25                                         
-        STA PD4,U                                       
-        STA PD5,U                                       
+        STA proc.d4,U                                       
+        STA proc.d5,U                                       
         LDA #$AA                                        
         STA TEXCOL                                      
         CLR TXFLAV                                      
-OOML    LDX PD,U                                        
-        LDA PD6,U                       ; ERROR?        
+OOML    LDX proc.data,U                                        
+        LDA proc.d6,U                       ; ERROR?        
         BEQ OOML0                       ; NO            
         LDA ,X+                                         
         BRA OOML00                                      
 OOML0   JSR RCMOSA                                      
-OOML00  STX PD,U                                        
-        LDX PD2,U                                       
+OOML00  STX proc.data,U                                        
+        LDX proc.d2,U                                       
         JSR PR57V                                       
-        STX PD2,U                                       
-        DEC PD4,U                                       
+        STX proc.d2,U                                       
+        DEC proc.d4,U                                       
         BEQ OOFIN                                       
 OOML1                                                   
         NAP (3,OOML)                                    
-OOFIN   LDA PD5,U                                       
+OOFIN   LDA proc.d5,U                                       
         BEQ OOFX                                        
-        CLR PD5,U                                       
+        CLR proc.d5,U                                       
         LDA #25                                         
-        STA PD4,U                                       
+        STA proc.d4,U                                       
         LDX #OPL2                                       
         LDB #$30                                        
         JSR GETMEX                                      
-        STX PD2,U                                       
+        STX proc.d2,U                                       
         CLR TXFLAV                                      
         BRA OOML1                                       
 OOFX    equ *                                           
@@ -603,7 +603,7 @@ LOG20   JSR GNCIDA
         JSR WRD5FV                                      
         NAP (40,LOG2)                                   
 LOG2    equ *                                           
-        LDX PD+10,U                     ; GET START ADDRESS
+        LDX proc.data+10,U                     ; GET START ADDRESS
         LEAY $8824,X                                    
         LDA #7                          ; SET COLOR 9 TO RED
         STA PCRAM+9                                     
@@ -620,7 +620,7 @@ OMST    FCC "WILLIAMS ELECTRONICS INC"
         FCC "     "                                     
 ;                                                       
 GETMEX  LDA #$25                        ; ASSUME ERROR  
-        TST PD+6,U                                      
+        TST proc.data+6,U                                      
         BNE GETME3                                      
         JSR RCMOSA                      ; GET THE BYTE  
         CMPA #$10                                       
@@ -634,8 +634,8 @@ GETME3  TFR D,X
                                                        
 ; OPERATOR MESS COLORER                                                
                                                        
-OPMCOL  INC PD,U                                        
-        LDA PD,U                                        
+OPMCOL  INC proc.data,U                                        
+        LDA proc.data,U                                        
         ANDA #$7                                        
         LDX #OPMTAB                                     
         LDA A,X                                         
@@ -647,8 +647,8 @@ OPMTAB  FCB $7,$87,$FF,$FF,$C7,$C7,$FF,$FF
 ; PD,U=COLOR INDEX                                                
 ;                                                       
 LOGCOL  LDX #LCTAB                                      
-        STX PD,U                                        
-LOGLP   LDX PD,U                                        
+        STX proc.data,U                                        
+LOGLP   LDX proc.data,U                                        
         LDY #PCRAM+1                                    
 LOGL0   LDA ,X+                                         
         BNE LOGL1                                       
@@ -657,12 +657,12 @@ LOGL0   LDA ,X+
 LOGL1   STA ,Y+                                         
         CMPY #PCRAM+9                                   
         BNE LOGL0                                       
-        LDX PD,U                                        
+        LDX proc.data,U                                        
         LEAX 1,X                                        
         LDA ,X                                          
         BNE LOGL2                                       
         LDX #LCTAB                                      
-LOGL2   STX PD,U                                        
+LOGL2   STX proc.data,U                                        
         NAP (3,LOGLP)                                   
 ;                                                       
 ; LOGO COLORING TABLE                                                
@@ -692,65 +692,65 @@ SHKTAB  FCB $7,$F,$17,$1E,$25,$2C,$2B,$2A
 ; SUPER PROCESS                                                
 ; PD+8=TABLE X,PD+40=RET ADD,PD10=SADDR                                                
 ; A=COLS/DELAY;X=SADD;B=DELAY/SLEEP                                                
-OTSGM   STX PD+10,U                     ; START ADDR    
-        STA PD1,U                       ; COLS/DELAY    
-        STB PD+13,U                                     
+OTSGM   STX proc.data+10,U                     ; START ADDR    
+        STA proc.d1,U                       ; COLS/DELAY    
+        STB proc.data+13,U                                     
         PULS X                                          
-        STX PD+14,U                     ; RET ADDR      
+        STX proc.data+14,U                     ; RET ADDR      
         LDX #SGMTAB                                     
-        STX PD+8,U                                      
-        CLR PD+12,U                                     
-OTSGM1  LDX PD+8,U                                      
+        STX proc.data+8,U                                      
+        CLR proc.data+12,U                                     
+OTSGM1  LDX proc.data+8,U                                      
         LDY ,X++                        ; LETTER ADDR   
         BEQ OTSGMX                      ; THE END       
         LDA ,X+                                         
-        STD PD2,U                       ; COLOR         
+        STD proc.d2,U                       ; COLOR         
         LDA ,X+                                         
-        STA PD,U                        ; FLAVOR MASK   
+        STA proc.data,U                        ; FLAVOR MASK   
         LDD ,X++                        ; SCREEN ADDR OFFSET
-        ADDD PD+10,U                                    
-        STX PD+8,U                                      
+        ADDD proc.data+10,U                                    
+        STX proc.data+8,U                                      
         TFR D,X                                         
         JMP OUTLET                                      
-OTSGMX  JMP [PD+14,U]                   ; RETURN        
+OTSGMX  JMP [proc.data+14,U]                   ; RETURN        
 ;                                                       
 ; OUTPUT LETTER                                                
 ; X=SCREEN ADDR TOP LEFT                                                
 ; Y=LETTER DATA TABLE                                                
 ; PD=FLAVOR MASKL;PD1=DELAY;PD3=REPCNT                                                
 ; PD12=DELAY TEMP                                                
-OUTLET  CLR PD3,U                                       
-        STX PD4,U                                       
+OUTLET  CLR proc.d3,U                                       
+        STX proc.d4,U                                       
 OUTL0   LDA ,Y                                          
         BEQ OUTLX                       ; END           
         BPL OUTL1                                       
         BITA #$40                                       
         BNE OUTL1                                       
         ANDA #$3F                                       
-        STA PD3,U                                       
+        STA proc.d3,U                                       
         LEAY 1,Y                                        
         BRA OUTL0                                       
 OUTL1   PSHS Y                                          
         JSR OUTCOL                                      
-        LDA PD3,U                                       
+        LDA proc.d3,U                                       
         BEQ OUTL2                                       
-        DEC PD3,U                                       
+        DEC proc.d3,U                                       
         BEQ OUTL2                                       
         LDY ,S                                          
 OUTL2   LEAS 2,S                                        
-        COM PD,U                                        
+        COM proc.data,U                                        
         BPL OUTL2A                                      
-        INC PD4,U                                       
-OUTL2A  STY PD6,U                                       
-        DEC PD+12,U                                     
+        INC proc.d4,U                                       
+OUTL2A  STY proc.d6,U                                       
+        DEC proc.data+12,U                                     
         BPL OUTL3                                       
-        LDA PD1,U                                       
-        STA PD+12,U                                     
+        LDA proc.d1,U                                       
+        STA proc.data+12,U                                     
         LDX #OUTL3                                      
-        LDA PD+13,U                                     
+        LDA proc.data+13,U                                     
         JMP SLEEP                                       
-OUTL3   LDX PD4,U                                       
-        LDY PD6,U                                       
+OUTL3   LDX proc.d4,U                                       
+        LDY proc.d6,U                                       
         BRA OUTL0                                       
 OUTLX   JMP OTSGM1                                      
 ;                                                       
@@ -769,8 +769,8 @@ OUTC1   LDA ,Y+
         BRA OUTCX                                       
 OUTC2   ANDA #$3F                                       
         BEQ OUTCX                                       
-OUTC3   LDB PD,U                                        
-        ANDB PD2,U                                      
+OUTC3   LDB proc.data,U                                        
+        ANDB proc.d2,U                                      
         ORCC #$10                       ; SEI           
         CLR RWCNTL                      ; ENABLE RAM READ
         ORB ,X                                          
@@ -794,18 +794,18 @@ OUTCX   LDA ,S+
 HALO    STY XTEMP                       ; SAVE BOTTOM RIGHT IN MEMORY
         PULS Y                          ; GET RETURN ADDRESS
         LDU CRPROC                                      
-        STX PD,U                        ; SAVE UPPER LEFT
-        STY PD+6,U                      ; RETURN ADDRESS
+        STX proc.data,U                        ; SAVE UPPER LEFT
+        STY proc.data+6,U                      ; RETURN ADDRESS
         CLRB                            ; START ON EVEN FLAVOR
 HALO0   BSR VFILL                       ; FILL A VERTICAL LINE
         TSTB                            ; MOVE TO NEXT FLAVOR
         BEQ HALO1                       ; EVEN FLAVOR..MOVE TO ODD
         LDU CRPROC                                      
-        STD PD+2,U                                      
-        STX PD+4,U                                      
+        STD proc.data+2,U                                      
+        STX proc.data+4,U                                      
         NAP (1,HALO50)                                  
-HALO50  LDD PD+2,U                                      
-        LDX PD+4,U                                      
+HALO50  LDD proc.data+2,U                                      
+        LDX proc.data+4,U                                      
         LEAX $100,X                     ; ODD FLAVOR MOVE TO NEXT BYTE
         LDB #$FF                        ; SETUP FOR EVEN FLAVOR
 HALO1   INCB                            ; TO NEXT FLAVOR
@@ -815,20 +815,20 @@ HALO1   INCB                            ; TO NEXT FLAVOR
         BLO HALO0                       ; WE STILL IN RANGE...DO ANOTHER COLUMN
 ;                                                       
         LDU CRPROC                                      
-        LDX PD,U                        ; RESTORE ORIGINAL CURSOR
+        LDX proc.data,U                        ; RESTORE ORIGINAL CURSOR
 HALO2   LDA #$4B                        ; HALF A LINE DOWN
         STA XTEMP                                       
         JSR HFILL                       ; DO A HORIZONTAL ROW
-        STX PD+4,U                                      
+        STX proc.data+4,U                                      
         NAP (1,HAL_55)                                  
 HAL_55  LDA #$8C                                        
         STA XTEMP                                       
-        LDB PD+5,U                                      
+        LDB proc.data+5,U                                      
         LDA #$4B                                        
         TFR D,X                                         
         JSR HFILL                                       
         NAP (1,HALO55)                                  
-HALO55  LDX PD+4,U                                      
+HALO55  LDX proc.data+4,U                                      
         LEAX 1,X                        ; MOVE TO NEXT ROW
         EXG X,D                                         
         LDA #$0E                                        
@@ -836,7 +836,7 @@ HALO55  LDX PD+4,U
         EXG X,D                                         
         BLO HALO2                       ; NOT THIS PASS 
         LDU CRPROC                                      
-        JMP [PD+6,U]                    ; RETURN        
+        JMP [proc.data+6,U]                    ; RETURN        
 VFILL   PSHS X,D                        ; SAVE POINTER, COLOR, FLAVOR
 VFILL1  BSR WCHK                        ; SEE IF THERE IS WHITE OR BLACK
         BNE VFILL2                      ; ITS WHITE....BOUNDARY FOUND

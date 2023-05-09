@@ -3,8 +3,12 @@
 ; TTL   <<<<<  S T A R G A T E >>>>>
 
         ORG ATRORG
+file_start
 ; ATTRACT
 ; PICKUP MODE
+
+
+;;; Routine: PICKUP
 PICKUP
         LDA #$FF
         STA STATUS
@@ -37,7 +41,7 @@ PICKUP
         CLR ATRSW2
         CLR ATRSW3
         JSR PHSTV                       ; PHONY LANDER START
-        LDA #$80
+        LDA #st_game_over
         STA STATUS
         LDA #2
         LDU CRPROC
@@ -61,7 +65,7 @@ PH1     LDA #$FF
         STX BGLX
         JSR BGINIT
         CLR ATRSW2
-        LDA #$80
+        LDA #st_game_over
         STA STATUS
         LDU CRPROC
         JSR SCNR
@@ -72,8 +76,8 @@ PH1     LDA #$FF
         LDA #$14
         STA LNDCNT
         LDX #PHSTAB                     ; GET COMMANDS
-        STX PD,U
-PHS1    LDX PD,U
+        STX proc.data,U
+PHS1    LDX proc.data,U
 PHS1A   LDD ,X++
         BEQ PH8                         ; ALL OVER
         CMPA    #$FF                    ; CHECKPOINT
@@ -84,7 +88,7 @@ PHS1A   LDD ,X++
         CMPD -2,X
         BNE PH8                         ; ERROR
         BRA PHS1A
-PHS1B   STX PD,U
+PHS1B   STX proc.data,U
         PSHS D
         BITB #$20
         BEQ PHS2
@@ -141,13 +145,13 @@ PHSTAB  FCB $30,$02
 ; PD2,U=TIMER
 
 FIGHT   LDX #FITAB
-        STX PD,U
+        STX proc.data,U
         LDA #$FF
         STA STATUS
         JSR GNCDAV                               ; KILL EVERYBODY
         LDA #3
         JSR DIMV                                 ; COOL THE LITES
-FITST   LDY PD,U
+FITST   LDY proc.data,U
         LDX ,Y++                                 ; GET BGL
         CMPX #$FFFF                              ; OVER??
         LBEQ ENEMY                               ; ONTO NEXT THING
@@ -189,7 +193,7 @@ FITSS1  CLR ,X+
         ADDD #1
         STD NPLAD
         STD PLADIR
-FITST0  LDA #$80
+FITST0  LDA #st_game_over
         STA STATUS
         PULS U,Y
         LDA ,Y+                                  ; GET ENEMY #
@@ -199,25 +203,25 @@ FITST0  LDA #$80
         LEAY 2,Y
         LDA ,Y+                                  ; OUTPUT MESSAGE #
         LDX ,Y++                                 ; MESSAGE ADDR
-        STY PD,U
+        STY proc.data,U
         JSR WRD5V
         LDA #3
         JSR BRTV                                 ; ON LITES
         JSR ONCOLV
         LDU CRPROC
         LDD #$300
-        STD PD2,U
+        STD proc.d2,U
         LDA #1
-        STA PD4,U                                ; UP/DOWN TIMER
-        STA PD5,U                                ; ACCEL TIMER
+        STA proc.d4,U                                ; UP/DOWN TIMER
+        STA proc.d5,U                                ; ACCEL TIMER
         LDA SEED
         LSRA
-        STA PD6,U                                ; REV TIMER
-FITLP   LDX PD2,U                                ; FIGHT TIME-OUT CHECK
+        STA proc.d6,U                                ; REV TIMER
+FITLP   LDX proc.d2,U                                ; FIGHT TIME-OUT CHECK
         LDA #16
         STA STRCNT                               ; KEEP THE STARS GOING
         LEAX    -1,X
-        STX PD2,U
+        STX proc.d2,U
         LBEQ    FDTIM
         LDA STATUS                               ; CHECK DEATH
         CMPA #$DA
@@ -227,7 +231,7 @@ FITLP   LDX PD2,U                                ; FIGHT TIME-OUT CHECK
         BLS FIT1A
         CMPA #$C0
         BHS FIT1AA
-        DEC PD4,U                                ; UP/DOWN TIMER
+        DEC proc.d4,U                                ; UP/DOWN TIMER
         BEQ FIT1B
         JSR RAND                                 ; MAKE A MOVE??
         CMPA #$FC
@@ -250,13 +254,13 @@ FIT1X   STB ATRSW3
         LSRA
         LSRA
         NOP
-        STA PD4,U
-FIT2    DEC PD5,U                                ; ACCEL CHANGE??
+        STA proc.d4,U
+FIT2    DEC proc.d5,U                                ; ACCEL CHANGE??
         BNE FIT3                                 ; NO
         JSR RAND
-        LDB ATRSW2
+        LDB     ATRSW2
         CMPA #$80
-        BHI FIT2A
+        BHI  FIT2A
         ORB #2
         BRA FIT2X
 FIT2A   ANDB #$FD
@@ -264,36 +268,36 @@ FIT2X   STB ATRSW2
         LDA SEED
         LSRA
         LSRA
-        STA PD5,U
+        STA proc.d5,U
 FIT3    JSR RAND                                 ; LASER ???
         CMPA    #$0C
         BHI FIT4
         NEWP (LFIRE,LTYPE)
-FIT4    DEC PD6,U                                ; REV???
+FIT4    DEC proc.d6,U                                ; REV???
         BNE FITX
         MAKP    ( REV )
         LDA SEED
         ORA #$10
-        STA PD6,U
+        STA proc.d6,U
 FITX    
         NAP (1,FITLP)
                                                  ; TIME OUT
-FDTIM   JSR GNCDAV
-        LDA #$8                                  ; PLAYER IS DEAD, NO COLLISIONS WITH PROCESSES DEAD
-        ORA STATUS
-        STA STATUS
-        LDA #2
-        JSR DIMV
-        LDA #$FF
-        STA STATUS
-        JMP FITST
+FDTIM   JSR     GNCDAV
+        LDA     #st_player_dead                                  ; PLAYER IS DEAD, NO COLLISIONS WITH PROCESSES DEAD
+        ORA     STATUS
+        STA     STATUS
+        LDA     #2
+        JSR     DIMV
+        LDA     #$FF
+        STA     STATUS
+        JMP     FITST
                                                  ; DEAD
 FDIE    
         MAKP(DIEDIE)
         NAP ($6C,FDTIM)
                                                  ;START OVER AGAIN
 FIGHTX  LDX #FITAB
-        STX PD,U
+        STX proc.data,U
         JMP FITST
                                                  ; DYING PROCESS
 DIEDIE  LDX NPLAXC
@@ -382,52 +386,52 @@ ENEMY   JSR SCRCLR
         CLRB
         STD BGL
         STD BGLX
-        LDA #$DB
+        LDA #st_init
         STA STATUS
         LDU CRPROC
         LDX #EMTAB                                  ; ENEMIES
-        STX PD,U
-ENEMY1  LDY PD,U
+        STX proc.data,U
+ENEMY1  LDY proc.data,U
         LDD ,Y
         BEQ ENEMY2
         JSR GETEM
-        STY PD,U
+        STY proc.data,U
         NAP (8,ENEMY1)
 
 ENEMY2  
         NAP (01,ENEM2A)
 ENEM2A  LDX #EMESTB                                 ; MESSAGES
-        STX PD,U
-ENEM3A  LDY PD,U
+        STX proc.data,U
+ENEM3A  LDY proc.data,U
         LDA ,Y+
         BEQ ENEM4
         LDX ,Y++
-        STY PD,U
+        STY proc.data,U
         JSR WRD5FV
         NAP (4,ENEM3A)
 ENEM4   LDA #30
-        STA PD2,U
-ENM4AA  CLR PD3,U                                   ; FLAVOR
+        STA proc.d2,U
+ENM4AA  CLR proc.d3,U                                   ; FLAVOR
         LDX #$2F76                                  ; REFRESH CURSOR
-        STX PD4,U
+        STX proc.d4,U
         LDX #SGRTAB
-        STX PD6,U
+        STX proc.d6,U
 ENEM4A  LDX #EMESTB                                 ; REFRESH MESSAGES
-        STX PD,U
-        DEC PD2,U
+        STX proc.data,U
+        DEC proc.d2,U
         LBEQ HALVCT                                 ; OVER...
-ENEM4B  LDY PD,U
+ENEM4B  LDY proc.data,U
         LDA ,Y+
         CMPA #SGAM
         BEQ ENEM4A
         LDX ,Y++
-        STY PD,U
+        STY proc.data,U
         JSR WRD5FV
         NAP ($4,ENEM4C)
-ENEM4C  LDA PD3,U
+ENEM4C  LDA proc.d3,U
         STA TXFLAV
-        LDX PD4,U
-        LDY PD6,U
+        LDX proc.d4,U
+        LDY proc.d6,U
         CMPY    #SGRTE
         BEQ ENM4AA
         LDA ,Y+
@@ -435,9 +439,9 @@ ENEM4C  LDA PD3,U
         STB TEXCOL
         JSR PR57V
         LDA TXFLAV
-        STA PD3,U
-        STX PD4,U
-        STY PD6,U
+        STA proc.d3,U
+        STX proc.d4,U
+        STY proc.d6,U
         NAP (2,ENEM4B)
 
 ; REFRESH TABLE
@@ -456,11 +460,11 @@ GETEM   PSHS    X,U
         JSR GETOB
         LDD [,Y++]
         STD OPICT,X
-        STD PD2,U
-        STX PD,U
+        STD proc.d2,U
+        STX proc.data,U
         LDD ,Y++
-        STD PD4,U
-        CLR PD6,U
+        STD proc.d4,U
+        CLR proc.d6,U
         CLRA
         CLRB
         STD OXV,X
@@ -484,25 +488,25 @@ GETEM   PSHS    X,U
 ; PD=OBJ,PD2=PICT,PD4=ANI#,PD5=TIME/FRAME,PD6=CURRENT#
 ;
 
-ANA LDA PD4,U
+ANA LDA proc.d4,U
         CMPA    #1
         LBEQ    SUCIDE                      ; DIE NO ANIMATION
-ANA0    LDX PD,U
+ANA0    LDX proc.data,U
         LDD OPICT,X
         CMPD    #NULOB
         BEQ ANASLP
-        LDA PD6,U
+        LDA proc.d6,U
         INCA
-        CMPA    PD4,U
+        CMPA    proc.d4,U
         BLO ANA1
         CLRA
-ANA1    STA PD6,U
+ANA1    STA proc.d6,U
         LDB #OBJL
         MUL
-        LDY PD2,U
+        LDY proc.d2,U
         LEAY    D,Y
         STY OPICT,X
-ANASLP  LDA PD5,U
+ANASLP  LDA proc.d5,U
         LDX #ANA0
         JMP SLEEP
 
@@ -600,4 +604,6 @@ EMESTB  FCB YLAM
         FCB SGAM
         FDB $2F78
         FCB 0
+
+file_size equ * - file_start
 

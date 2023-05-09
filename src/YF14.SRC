@@ -63,7 +63,7 @@ YLSQ0
 		LDA	XTEMP	                    ; Y SPACING
 		ADDA	#4
 		STA	XTEMP
-		STA	PD2,U	                    ; Y SPACING
+		STA	proc.d2,U	                    ; Y SPACING
 		LDB	XTEMP+1
 		SEX
 		STD	OXV,X
@@ -110,7 +110,7 @@ YLBOMB	PSHS X
 		BMI	YLBX	                ; NOT HEADED FOR PLAYER
 		LDA	YLSTIM	                ; NEW TIMER
 		JSR	RMAX
-		STA	PD6,U
+		STA	proc.d6,U
 		LDA	BMBCNT
 		CMPA #15
 		BHI	YLBX	                ; TOO MANY ALREADY
@@ -163,18 +163,18 @@ YLKIL	DEC	YLCNT	                ; DEAD GUY
 ; PD=OBJECT,PD2=ALT OFFSET
 ; PD3=DIVE OFFSET, PD4=ACCEL, PD5=DIVE TIME
 ; PD6=SHOT TIMER
-YLPP	LDX	PD,U
+YLPP	LDX	proc.data,U
         LDD	OPICT,X
         CMPD	#NULOB	        ; APPEARING?
         BNE	YLPP1
         NAP	(6,YLPP)	        ; WAIT TO FINISH
-YLPP1	LDX	PD,U
+YLPP1	LDX	proc.data,U
         LDA	OBJY,X	            ; ON SCREEN?
         BNE	YLPS	            ; TARGET ENGAGED
 YLPP2	JSR	GETALT	            ; FLY IN FORMATION
 		CLRB
 		SUBA	OY16,X
-		SUBA	PD2,U
+		SUBA	proc.d2,U
 		CMPA	#-10
 		BGT	YLPP3
 		LDB	#-1
@@ -191,20 +191,20 @@ YLPS	LDA	#$0F	            ; RANDOM SLEEP
 		JMP	SLEEP	            ; RANDOM SLEEP TIME
 
 ; START A DIVE
-YLPS1	LDX	PD,U	            ; GET OBJECT PTR
+YLPS1	LDX	proc.data,U	            ; GET OBJECT PTR
 		LDA	SEED
 		ANDA	#$1F
 		SUBA	#$F
-		STA	PD3,U	            ; DIVE Y OFFSET
+		STA	proc.d3,U	            ; DIVE Y OFFSET
 		LDA	LSEED
 		ANDA	#$F
 		ADDA	#$2
-		STA	PD5,U	            ; DIVE TIMER
+		STA	proc.d5,U	            ; DIVE TIMER
 		LDA	YLSTIM	            ; SHOT TIMER
-		STA	PD6,U
+		STA	proc.d6,U
 		LDA	YLAC
 		JSR	RMAX
-		STA	PD4,U				; ACCELERATION
+		STA	proc.d4,U				; ACCELERATION
 ; X VELOCITY
 		LDD	PLABX
 		CMPD	OX16,X
@@ -219,10 +219,10 @@ YLPS2	SEX
 		STD	OXV,X
 
 ; Y ACCELL
-YLPS2L	LDX	PD,U
-		LDB	PD4,U	            ; GET ACCELL
+YLPS2L	LDX	proc.data,U
+		LDB	proc.d4,U	            ; GET ACCELL
 		LDA	PLAYC
-		ADDA	PD3,U	        ; DIVE OFFSET
+		ADDA	proc.d3,U	        ; DIVE OFFSET
 		CMPA	OY16,X
 		BHI	YLPS5
 		NEGB
@@ -239,10 +239,10 @@ YLPS5	SEX
 		RORB
 		ADDD	OYV,X
 		STD	OYV,X
-		DEC	PD6,U	            ; TIME TO SHOOT
+		DEC	proc.d6,U	            ; TIME TO SHOOT
 		BNE	YLPS6
 		JSR	YLBOMB	            ; BOMB THE GUY
-YLPS6	DEC	PD5,U				; NEW DIVE?
+YLPS6	DEC	proc.d5,U				; NEW DIVE?
 		BEQ	YLPS1
 		JSR	GYLPIC
 		NAP	(4,YLPS2L)
@@ -258,7 +258,7 @@ RIPC0	LDA	RIPOFF	            ; ALREADY ACTIVE??
 		BNE	RIPDIE	            ; THEN NO NEED TO LIVE.
 		INC	RIPOFF	            ; EXCLUDE PLEASE
 		LDA	#$3
-		STA	PD,U
+		STA	proc.data,U
 RIPC2	
 		NAP	(8,RIPC1)
 RIPC1	LDA	PIA21
@@ -266,11 +266,11 @@ RIPC1	LDA	PIA21
 		BEQ	RIPC4
 		CMPA	#$E2	        ; STILL OLD COMBO??
 		BEQ	RIPC2	            ; THEN DON'T COUNT
-		DEC	PD,U
+		DEC	proc.data,U
 		BNE	RIPC2
 		BRA	RIPC3
 RIPC4	LDA	#$3
-		STA	PD,U
+		STA	proc.data,U
 RIPC5	
 		NAP	(8,RIPC6)
 RIPC6	LDA	PIA21
@@ -278,15 +278,15 @@ RIPC6	LDA	PIA21
 		LBEQ	RIPV1	        ; DONE!
 		CMPA	#$51	        ; OLD COMBO??
 		BEQ	RIPC5
-		DEC	PD,U	    		; LESS TIME
+		DEC	proc.data,U	    		; LESS TIME
 		BNE	RIPC5
 RIPC3	CLR	RIPOFF
 RIPDIE	JMP	SUCIDE
 
-.OPTR	EQU	PD	    			; OBJECT POINTER
+.OPTR	EQU	proc.data	    			; OBJECT POINTER
 .COAST	EQU	.OPTR+2				; NUMBER OF WAKEUPS TILL NEXT UPDATE
 .DELA	EQU	.COAST+1
-.RET	EQU	PD+6	            ; PLACE TO HOLD CALLER
+.RET	EQU	proc.data+6	            ; PLACE TO HOLD CALLER
 
 ; 
 ; 	FIREBOMBER	(TM) (R) (C) (P) (BS) (ETC)
@@ -480,7 +480,7 @@ BOTFI1	STD	XTEMP	                ; SAVE THE Y
 		STA	OTYP,X					; MAKE NON-HYPERABLE	 (IS THIS BIT OK???????)
 		STX	OPTR	                ; NOW PUT IT ON LIST
 		LDA	XTEMP2	                ; GET ACCELERATION
-		STA	PD+2,U	                ; AND PASS IT
+		STA	proc.data+2,U	                ; AND PASS IT
 BFIRX	LDA	FBFREQ	                ; TIME TILL NEXT BALL ELIGABLE
 		COMA
 		LDU	CRPROC	                ; GET BACK TO DADDY
@@ -552,13 +552,13 @@ FBXV	LDB	LSEED	                    ; GET A RADNUB
 FBALL	LDD	#SSHSND
 		JSR	SNDLD	                    ; MAKE A LAUNCH SOUND
 		LDA	#$20	                    ; TIMER
-		STA	PD+3,U
+		STA	proc.data+3,U
 FBAL11	
 		NAP	(3,FBAL22)
-FBAL22	LDX	PD,U	                    ; GET THE OBJECT
+FBAL22	LDX	proc.data,U	                    ; GET THE OBJECT
 		JSR	FBDIST	                    ; CHECK ITS ON SCREENESS
 		BHI	FBAL4	                    ; GONE!
-		DEC	PD+3,U	                    ; TIMER
+		DEC	proc.data+3,U	                    ; TIMER
 		BEQ	FBAL4	                    ; KILL THE SUCKER
 		LDA	SEED
 		ANDA	#$7	                    ; 8 POSSIBLE CHANGES
@@ -569,7 +569,7 @@ FBAL22	LDX	PD,U	                    ; GET THE OBJECT
 		BLS	FBAL3	                    ; NOPE
 		SUBD	#80	                    ; BRING IT BACK INTO THE TABLE
 FBAL3	STD	OPICT,X	                    ; STORE NEW IMAGE
-		LDB	PD+2,U	                    ; GET ACCEL
+		LDB	proc.data+2,U	                    ; GET ACCEL
 		SEX
 		ADDD	OYV,X
 		STD	OYV,X
@@ -609,14 +609,14 @@ FBKILL	DEC	FBCNT	                    ; 1 LESS FIRE BOMBER
 FBKIL1	STD	OPICT,X	                    ; MAKE PHONEY PICTURE
 		TFR	X,Y	                        ; MOVE THE PROCESS
 		MAKP (BOOM)	                    ; DO IT.
-		STY	PD,X	                    ; AND PASS IT THE OBJECT
+		STY	proc.data,X	                    ; AND PASS IT THE OBJECT
 		RTS								; AND RETURN
 
 BOOM	LDA	#3							; DO IT 4 TIMES
-		STA	PD+2,U
-!BOOM1	LDX	PD,U	                    ; GET OBJECT
+		STA	proc.data+2,U
+!BOOM1	LDX	proc.data,U	                    ; GET OBJECT
 		JSR	XSVCT	                    ; DO AN EXPLODE
-		DEC	PD+2,U
+		DEC	proc.data+2,U
 		BEQ	!BOOM2
 		NAP	(5,!BOOM1)
 !BOOM2	LDD	OFREE	

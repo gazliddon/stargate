@@ -4,9 +4,9 @@
     ; LIST
     ; TTL   <<<<<  S T A R G A T E  >>>>>
 
-.OPTR   EQU PD
-.VEL    EQU PD+2
-.SHOT   EQU PD+3
+.OPTR   EQU proc.data
+.VEL    EQU proc.data+2
+.SHOT   EQU proc.data+3
 
         ORG DNORG
         JMP DYNSRT
@@ -114,7 +114,7 @@ DNLPP6  STA .SHOT,U                         ; AND SAVE IT DOWN
         LEAY    ,X                          ; PUT OBJECT IN Y
         MKPROB  (MISILE,MIS0,MISKIL,MISBLP)
         BEQ DNLOP9                          ; FAIL!
-        STY PD+2,U                          ; PASS OUR OBJECT.
+        STY proc.data+2,U                          ; PASS OUR OBJECT.
         INC MISCNT                          ; INDICATE ONE MORE
         LDD #MISSND
         JSR SNDLD                           ; SEND OUT A MISSLE SOUND
@@ -166,7 +166,7 @@ DNPIC3  DEC .VEL,U                          ; VELOCITY TIMER
 DNPIC4  LDA #19
         STA .SHOT,U
         NAP ($10,DNWAK1)                    ; FAR OFF SCREEN...             
-DNWAK1  LDX PD,U                            ; GET OBJECT.
+DNWAK1  LDX proc.data,U                            ; GET OBJECT.
         JMP DNWAKE
 
 DYNKIL  DEC DYNCNT
@@ -175,8 +175,8 @@ DYNKIL  DEC DYNCNT
         KILP    ($120,TIHSND)   
         RTS
 
-MISILE  LDY PD+2,U                          ; GET OBJECT FIRING US.
-        LDX PD,U                            ; AND GET OUR OBJECT
+MISILE  LDY proc.data+2,U                          ; GET OBJECT FIRING US.
+        LDX proc.data,U                            ; AND GET OUR OBJECT
         LDD OX16,Y                          ; GET OUR X COORD.
         SUBD    PLABX                       ; SEE WHICH SIDE PLAYER IS ON
         BPL MISS11                          ; HE'S TO OUR LEFT
@@ -193,15 +193,15 @@ MISS22  STD OX16,X
         STD OXV,X
         STD OYV,X
         INCA
-        STA PD+2,U                          ; INSTANT VELOCITY CHANGE
+        STA proc.data+2,U                          ; INSTANT VELOCITY CHANGE
         STX OPTR
         STX .OPTR,U
  
 MSLOOP  JSR MSPICT                          ; DO THE PICTURE NUMBER
-        DEC PD+2,U                          ; VELOCITY DIVIDER
+        DEC proc.data+2,U                          ; VELOCITY DIVIDER
         BNE MSLOP1                          ; NOT THIS TIME
         LDA #4
-        STA PD+2,U
+        STA proc.data+2,U
         BSR XCHK                            ; CHECK THE X RANGE.
         BLS NEWY                            ; IN HITTING DISTANCE....
         BSR YCHK                            ; X NOT GOOD BE CAREFUL ABOUT Y

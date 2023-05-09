@@ -416,15 +416,15 @@ ADJST0  JSR  UPDOWN             ; CHECK FOR UP/DOWN
 
 INCDEC  PULS  D
         LDU  CRPROC
-        STD  PD+6,U
+        STD  proc.data+6,U
         LDA  #$20
-        STA  PD,U
+        STA  proc.data,U
         LDA  PIA2               ; CHECK FOR THRUST,FIRE
         RORA                    ; FIRE??
         BCS  INCME
         RORA                    ; THRUST
         BCS  DECME
-IDRET   JMP  [PD+6,U]
+IDRET   JMP  [proc.data+6,U]
 
 INCME  JSR  INC1                ; ONE INCREMENT
 INCME0  
@@ -432,10 +432,10 @@ INCME0
 INCME1  LDA  PIA2
         RORA
         BCC  IDRET              ; LET GO
-        DEC  PD,U               ; DELAY
+        DEC  proc.data,U               ; DELAY
         BNE  INCME0
         LDA  #5
-        STA  PD,U
+        STA  proc.data,U
         BRA  INCME
 
 DECME   JSR  DEC1
@@ -444,10 +444,10 @@ DECME0
 DECME1  LDA  PIA2
         BITA  #2
         BEQ  IDRET
-        DEC  PD,U
+        DEC  proc.data,U
         BNE  DECME0
         LDA  #5
-        STA  PD,U
+        STA  proc.data,U
         BRA  DECME
 
 INC1    JSR  LSTATE             ; GET THE STATE LOADED
@@ -509,25 +509,25 @@ FROBOF  PSHS  X,D
 
 UPDOWN  PULS  D
         LDU  CRPROC
-        STD  PD+6,U             ; SAVE RETURN ADDRESS
+        STD  proc.data+6,U             ; SAVE RETURN ADDRESS
         LDA  #$30               ; TYPOMATIC FIRST DELAY
-        STA  PD,U               ; INDICATE VIRGIN SCAN
+        STA  proc.data,U               ; INDICATE VIRGIN SCAN
         LDA  PIA2               ; CHECK FOR DOWN
         BMI  DOWNER             ; PRESSED...CONTINUE
         LDA  PIA3
         RORA
         BCS  UPPER
-UDRET   JMP  [PD+6,U]           ; NO ACTION...RETURN
+UDRET   JMP  [proc.data+6,U]           ; NO ACTION...RETURN
 
 DOWNER  JSR  DOWN1              ; GO DOWN ONE (WHATEVER THAT MEANS)
 DOWN2  
         NAP  (1,DOWN3)
 DOWN3   LDA  PIA2               ; CHECK IF STILL PRESSED
         BPL  UDRET              ; DONE WITH THIS PASS...NO LONGER PRESSED
-        DEC  PD,U               ; TIME ME
+        DEC  proc.data,U               ; TIME ME
         BNE  DOWN2              ; SLEEP ANOTHER FRAME BABE 
         LDA  #8                 ; FAST RATE
-        STA  PD,U
+        STA  proc.data,U
         BRA  DOWNER             ; NOW DO ANOTHER STEP.
 
 UPPER   JSR  UP1
@@ -536,10 +536,10 @@ UPPER1
 UPPER2  LDA  PIA3
         RORA
         BCC  UDRET              ; LET GO
-        DEC  PD,U
+        DEC  proc.data,U
         BNE  UPPER1
         LDA  #8
-        STA  PD,U
+        STA  proc.data,U
         BRA  UPPER
 
 DOWN1   JSR  LSTATE             ; GET US OUR STATE
@@ -668,11 +668,11 @@ ADVS33  RTS
 
 SLIDE   LDU  CRPROC
         LDA  #$25               ; START X
-        STD  PD,U               ; SAVE ECHO POINTER
+        STD  proc.data,U               ; SAVE ECHO POINTER
         PULS  D
-        STD  PD+6,U
-        STX  PD+4,U
-        STY  PD+2,U
+        STD  proc.data+6,U
+        STX  proc.data+4,U
+        STY  proc.data+2,U
         LDA  #$25
         JSR  WCMOSA
         LDA  #OPCNTM
@@ -685,9 +685,9 @@ SLIDE1  LDA  PIA0
 SLIDE5  LDA  PIA2               ; CHECK FOR THRUST OF FIRE
         RORA                    ; FIRE??
         BCC  SLIDE3             ; NOPE
-        LDX  PD+4,U             ; GET MEMORY POINTER
+        LDX  proc.data+4,U             ; GET MEMORY POINTER
         JSR  RCMOSA             ; FETCH THE BYTE
-        LDX  PD+4,U             ; RESTORE POINTER
+        LDX  proc.data+4,U             ; RESTORE POINTER
         INCA                    ; ADD ONE
         CMPA  #$3C              ; NO FARTHER RIGHT THAN 38
         BLS  SLIDE4
@@ -695,15 +695,15 @@ SLIDE5  LDA  PIA2               ; CHECK FOR THRUST OF FIRE
         BRA  SLIDE4
 SLIDE3  RORA
         BCC  SLIDE6             ; NOTHING PRESSED...LOOP
-        LDX  PD+4,U
+        LDX  proc.data+4,U
         JSR  RCMOSA
-        LDX  PD+4,U
+        LDX  proc.data+4,U
         DECA
         CMPA  #$10
         BHS  SLIDE4
         LDA  #$10
 SLIDE4  JSR  WCMOSA
-        STA  PD,U               ; ALSO MAKE X OF ECHO POINTER
+        STA  proc.data,U               ; ALSO MAKE X OF ECHO POINTER
         JSR  REDISP
         NAP  ($10,SLIDE5)
 SLIDE6  LDA  PIA0               ; CHECK FOR ADVANCE
@@ -716,17 +716,17 @@ SLIDE8
 SLIDE9  LDA  PIA0
         BITA  #2
         BNE  SLIDE8
-        JMP  [PD+6,U]
+        JMP  [proc.data+6,U]
 
 REDISP  CLR  TXFLAV
-        LDX  PD,U               ; UPPER LEFT TO ECHO
+        LDX  proc.data,U               ; UPPER LEFT TO ECHO
         LEAX  -$100,X
         LDA  #90
         LDB  #9
         JSR  BLKCLR             ; CLEAR THE BLOCK
-        LDX  PD,U               ; CURSOR
+        LDX  proc.data,U               ; CURSOR
         CLR  TXFLAV
-        LDY  PD+2,U             ; DATA POINTER
+        LDY  proc.data+2,U             ; DATA POINTER
         LDB  #25
 RDSP1   EXG  X,Y
         JSR  RCMOSA
@@ -901,22 +901,22 @@ OPTST_  JSR  OPCHK          ; FORM CHECK BYTE
 ;   PD+4 = ADDRESS TO STORE LETTER
 ;   PD+6 = RETURN
 GETLET  LDU  CRPROC
-        STD  PD,U           ; SAVE COUNT
-        STX  PD+2,U
-        STY  PD+4,U
+        STD  proc.data,U           ; SAVE COUNT
+        STX  proc.data+2,U
+        STY  proc.data+4,U
         PULS  D             ; GET RETURN ADDRESS
-        STD  PD+6,U
+        STD  proc.data+6,U
 GETL__  
         NAP  (4,GETL_1)
 GETL_1  LDA  PIA2
         RORA
         BCS  GETL__         ; STOP TYPOMATIC PROBLEMS
         MAKP  (TIMPRC)
-        LDD  PD+6,U
-        STD  PD+6,X         ; PASS RETURN ADDRESS
-        LDD  PD,U
-        STD  PD,X
-        STU  PD+2,X         ; PASS US TO KILL
+        LDD  proc.data+6,U
+        STD  proc.data+6,X         ; PASS RETURN ADDRESS
+        LDD  proc.data,U
+        STD  proc.data,X
+        STU  proc.data+2,X         ; PASS US TO KILL
         STX  GETLRM         ; SAVE HIS ID
         LDA  #$99           ; SET COLOR TO WHITE
         STA  TEXCOL  
@@ -936,22 +936,22 @@ GETLT2  JSR  LUPDN          ; SCAN FOR LETTER CHANGE
         LDA  PIA2           ; CHECK FOR FIRE
         RORA
         BCC  GETLT1         ; NOT PRESSED..LOOP
-        LDA  PD+1,U         ; GET ALPHA 'BIT'
+        LDA  proc.data+1,U         ; GET ALPHA 'BIT'
         ADDA  #$A           ; TIME FOR CHASE = 1/4
-        STA  PD+1,U
+        STA  proc.data+1,U
 GETLT3  
         NAP  (2,GETLT4)
 GETLT4  LDA  PIA2           ; STILL DOWN??
         RORA
         BCC  GETLT5         ; NOPE
-        DEC  PD+1,U         ; ONE LESS COUNT
+        DEC  proc.data+1,U         ; ONE LESS COUNT
         BEQ  GETLT5
-        LDA  PD+1,U         ; CHECK FOR 80
+        LDA  proc.data+1,U         ; CHECK FOR 80
         CMPA  #$80
         BNE  GETLT3
-GETLT5  LDA  PD+1,U         ; RESTORE ALPHA BIT
+GETLT5  LDA  proc.data+1,U         ; RESTORE ALPHA BIT
         ANDA  #$80
-        STA  PD+1,U
+        STA  proc.data+1,U
         BSR  LLDY           ; GET THE CURRENT LETTER
         CMPA  #$5E          ; IS IT A RUB
         BEQ  GETRUB
@@ -959,42 +959,42 @@ GETLT5  LDA  PD+1,U         ; RESTORE ALPHA BIT
         STA  GETLST+2
         BSR  NOFROB         ; TAKE THE FROB AWAY
         BSR  LLDY           ; GET CURRENT LETTER
-        LDX  PD+2,U         ; GET POINTER
+        LDX  proc.data+2,U         ; GET POINTER
         STX  GETLST         ; SAVE CURRENT ECHO POINTER
         JSR  PR57V          ; PUT THE LETTER OUT
-        STX  PD+2,U         ; THIS MAKES NEW POINTER
+        STX  proc.data+2,U         ; THIS MAKES NEW POINTER
         JSR  PUSHY          ; PUSH THE Y POINTER TO NEXT
-        DEC  PD,U           ; ONE LESS LETTER TO DO
+        DEC  proc.data,U           ; ONE LESS LETTER TO DO
         BNE  GETLT0
         LDX  GETLRM         ; KILL THE TIMER PROCESS
         JSR  KILL
-        JMP  [PD+6,U]
+        JMP  [proc.data+6,U]
 
 GETRUB  BSR  NOFROB         ; MAKE LIKE WE'RE NOT HERE.
         BSR  CLRREG
         LDA  #$3A
         JSR  LSTY           ; STORE A SPACE AT THE CURRENT SPOT
         LDX  GETLST
-        STX  PD+2,U
+        STX  proc.data+2,U
         LDB  GETLST+2
         STB  TXFLAV
-        INC  PD,U           ; ONE MORE CHARACTER TO GET.
-        LDY  PD+4,U         ; GET THE Y
+        INC  proc.data,U           ; ONE MORE CHARACTER TO GET.
+        LDY  proc.data+4,U         ; GET THE Y
         LEAY  -1,Y          ; MOVE BACK ONE ASSUMING RAM
         CMPY  #$C000        ; CMOS??
         BLO  GETRB1         ; NOPE
         LEAY  -1,Y
-GETRB1  STY  PD+4,U
+GETRB1  STY  proc.data+4,U
         JMP  GETLLL         ; NOW GO AND GET THE LAST CHARACTER AGAIN.
 
 CLRREG  PSHS  D
-        LDX  PD+2,U         ; GET POINTER TO REGION
+        LDX  proc.data+2,U         ; GET POINTER TO REGION
         LDD  #$407          ; WIDTH,HEIGHT
         JSR  BLKCLR         ; CLEAR THE BLOCK
         PULS  D,PC
 
 PRFROB  LDA  #$99  
-PRFRB1  LDX  PD+2,U         ; GET POINTER
+PRFRB1  LDX  proc.data+2,U         ; GET POINTER
         STA  8,X 
         STA  $108,X
         STA  $208,X
@@ -1004,32 +1004,32 @@ PRFRB1  LDX  PD+2,U         ; GET POINTER
 NOFROB  CLRA
         BRA  PRFRB1
 
-LLDY    LDY  PD+4,U         ; GET Y POINTER
+LLDY    LDY  proc.data+4,U         ; GET Y POINTER
         CMPY  #$C000
         BHS  LDCMOS         ; CMOS
         LDA  ,Y             ; ELSE LOAD THE NUMBER
         RTS
 LDCMOS  PSHS  X
-        LDX  PD+4,U         ; LOAD INTO X
+        LDX  proc.data+4,U         ; LOAD INTO X
         JSR  RCMOSA         ;  LOAD IT
         PULS  X,PC          ; AND RETURN
 
-LSTY    LDY  PD+4,U         ; GET POINTER
+LSTY    LDY  proc.data+4,U         ; GET POINTER
         CMPY  #$C000        ; CMOS??
         BHS  LSCMOS
         STA  ,Y
         RTS
 LSCMOS  PSHS  X
-        LDX  PD+4,U
+        LDX  proc.data+4,U
         JSR  WCMOSA
         PULS  X,PC
 
-PUSHY   LDY  PD+4,U
+PUSHY   LDY  proc.data+4,U
         LEAY  1,Y
         CMPY  #$C000
         BLO  PUSHY1         ; NOT CMOS..DONE
         LEAY  1,Y
-PUSHY1  STY  PD+4,U
+PUSHY1  STY  proc.data+4,U
         RTS
 
 LUPDN   LDA  PIA2           ; SCAN FOR DOWN
@@ -1063,7 +1063,7 @@ LUP1    JSR  DELAY1
 LUPP1   PSHS  A             ; SAVE A PLEASE
         BSR  LLDY           ; GET THE CURRENT VALUE
         INCA                ; PUSH TO NEXT
-        TST  PD+1,U         ; SEE IF ALPHA ONLY
+        TST  proc.data+1,U         ; SEE IF ALPHA ONLY
         BEQ  LUPP2          ; YES
         TST  GETLST         ; RUB ALLOWED??
         BEQ  LUP1__         ; NOPE.
@@ -1091,7 +1091,7 @@ LUPP2_  CMPA  #$3B          ; 1 AFTER SPACE (ALPHA)
 LUPP3   JSR  LSTY           ; STORE THE NEW ONE.
         JSR  CLRREG         ; CUT CLEAR OUT THE REGION
         LDB  TXFLAV         ; SAVE THE FLAVOR
-        LDX  PD+2,U         ; GET CURSOR
+        LDX  proc.data+2,U         ; GET CURSOR
         JSR  PR57V
         STB  TXFLAV         ; RESTORE FLAVOR
 LUPBYE  PULS  A,PC          ; AND RETURN
@@ -1099,7 +1099,7 @@ LUPBYE  PULS  A,PC          ; AND RETURN
 LDN1    PSHS  A
         JSR  LLDY           ; GET THE CURRENT VALUE
         DECA
-        TST  PD+1,U         ; ALPHA ONLY??
+        TST  proc.data+1,U         ; ALPHA ONLY??
         BEQ  LDN2
         CMPA  #$30          ; COMPARE TO ZERO
         BHS  LDN1_  
@@ -1132,7 +1132,7 @@ DELAY2  LEAX  -1,X
         BNE  DELAY2
         RTS
 
-TIMPRC  TST  PD+1,U         ; DIAGNOSTIC CALL??
+TIMPRC  TST  proc.data+1,U         ; DIAGNOSTIC CALL??
         BNE  TIMADV
 TIMPR0  
         NAP  ($FF,TIMPR1)  ; 4 SECONDS OF SLEEP
@@ -1140,9 +1140,9 @@ TIMPR1
         NAP  ($FF,TIMPR6)
 TIMPR6  
         NAP  ($82,TIMPR7)
-TIMPR7  DEC  PD,U
+TIMPR7  DEC  proc.data,U
         BNE  TIMPR0  ; 8 SECONDS PER LETTER
-TIMPR2  LDX  PD+2,U
+TIMPR2  LDX  proc.data+2,U
         LEAU  ,X  ; PUT IN U PLEASE
         JSR  LLDY  ; LOAD THE CURRENT CHARACTER
         CMPA  #$5E  ; RUB???
@@ -1151,7 +1151,7 @@ TIMPR2  LDX  PD+2,U
         JSR  LSTY  ; AND STORE IT
 TIMA__  LDU  CRPROC
         JSR  KILL
-        JMP  [PD+6,U]
+        JMP  [proc.data+6,U]
 TIMADV  LDA  PIA0
         BITA  #2
         BNE  TIMPR2 ;  CAN IT ON ADVANCE

@@ -53,7 +53,7 @@ FROB    EQU  ptable.FROB
 
         RMB  ptable.size * 300
 
-  ORG  WRPORG
+        ORG  WRPORG
 
         JMP  ROCK0  ; VECTOR COMES IN AT ENTRY.
 
@@ -141,7 +141,7 @@ STORSB  CLRA
 
 ROCK0   LDU  CRPROC
         PULS  X       ; GET RETURN ADDRESS
-        STX  PD+6,U
+        STX  proc.data+6,U
         LDX  #PCRAM+1
         LDY  #PCSAV
         LDU  #PCTAB
@@ -198,7 +198,7 @@ BYEBYE  LDD  ,X++
         CMPY  #PCRAM+9
         BNE  BYEBYE
         LDU  CRPROC  ; GET PROCESS IN CASE OF BASHING
-        JMP  [PD+6,U] ; RETURN
+        JMP  [proc.data+6,U] ; RETURN
 
 ROKUP2  CMPX  TABPTR  ; AT END???
         BEQ  UPDATE
@@ -267,7 +267,7 @@ NWRNG1  STD  FROBPT
 
 RCKSND  FCB  $FF,$20,2,$F2,$60,$01,$F2,0
 
-RANDM  LDD  SDDD
+RANDM   LDD  SDDD
         RORA
         RORB            ; B NOW HAS HIGH HALF OF NEW SDDD
         LDA  HSDDD      ; FOR LOW SEVEN BITS
@@ -280,6 +280,6 @@ RANDM  LDD  SDDD
         RORA
         STA  LSDDD
         LDB  LSDDD      ; RETURN IN B
-NWRTS  RTS
+NWRTS   RTS
 
  ; END
