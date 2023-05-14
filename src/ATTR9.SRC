@@ -107,10 +107,9 @@ PHS3    ANDB    #$1
         JMP SLEEP
 PH8     BRA FIGHT
 
-; PHONY CATCH COMMANDS
-; B7=DOWN,B5=LASER,B4=REV,B1=THRUST,B0=UP
-; FF=CKPNT--LNDCNT,MANCTR
-
+;;; PHONY CATCH COMMANDS
+;;; B7=DOWN,B5=LASER,B4=REV,B1=THRUST,B0=UP
+;;; FF=CKPNT--LNDCNT,MANCTR
 PHSTAB  FCB $30,$02
         FCB $0C,$A2
         FCB $FF,$13,$00
@@ -139,11 +138,10 @@ PHSTAB  FCB $30,$02
         FCB $98,$02
         FCB $00,$00
         RMB 20
-;
-; FIGHTING MODE
-; PD,U=TABLE PTR
-; PD2,U=TIMER
 
+;;; FIGHTING MODE
+;;; PD,U=TABLE PTR
+;;; PD2,U=TIMER
 FIGHT   LDX #FITAB
         STX proc.data,U
         LDA #$FF
@@ -304,13 +302,11 @@ DIEDIE  LDX NPLAXC
         JSR PXVCT                                ; BLOW HIM
         JMP SUCIDE
 
-;
-; FIGHT TABLE
-; BGL,ENEMY#,ENEMY START ROUTINE,MESS#,MESS ADDR
-;
+////////////////////////////////////////////////////////////////////////////////
+// FIGHT TABLEs
 
-;FIREBOMBERS
-
+;;;FIREBOMBERS fight tables
+;;; BGL,ENEMY#,ENEMY START ROUTINE,MESS#,MESS ADDR
 FITAB   FDB $B000                               ; BGL
         FCB 8                                   ; #
         FDB FBSTRT                              ; START ROUTINE

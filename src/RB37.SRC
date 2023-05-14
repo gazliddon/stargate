@@ -1,51 +1,69 @@
 ;  TTL	<<<<<  S T A R G A T E  >>>>>
 
-; SCANNING PROCESS
-; MAINTAINANCE OF ACTIVE,INACTIVE OBJECT LISTS
-; SCANNER DISPLAY
+;;; Moves objects between active and inactive lists depending if the object
+;;; on screen or not
+;;; Also draws the scanner
+;;; * 0 - ISCAN - Moves off screen objs to innactive list
+;;; * 1 - 
+;;; * 2 - OSCAN / SHSCAN
+;;; * 3 -
+;;; * 4 - SCNR
+;;; * 5 -
+;;; * 6 -
+;;; * 7 -
+SCPROC      
+            ; Move any offscreen objs to the innactive list
+            jsr   ISCAN
+            NAP   (2,!awake)
+!awake      
+            ; move any on-acreen inactive objs to the active list
+            jsr   OSCAN
+            jsr   SHSCAN
+            NAP   (2,!awake2)
+!awake2     jsr   SCNR
+            NAP   (4,SCPROC)
 
-SCPROC  JSR ISCAN
-        NAP ( 2,SCP1 )
-SCP1    JSR OSCAN
-        JSR SHSCAN
-        NAP (2,SCP2)
-SCP2    JSR SCNR
-        NAP (4,SCPROC)
-;
-; SCAN ACTIVE OBJECTS FOR OFF SCREEN AREA
-;
-OSCAN
-        LDD BGL
-        SUBD #100*32
-        STD XTEMP
-        LDX #OPTR
-        BRA OSCLP
-OSC1
-        LDD OX16,X
-        SUBD XTEMP
-        CMPD #500*32
-        BLO OSCLP                       ; IN SCREEN AREA
-        LDU OLINK,X                     ; NO,MOVE TO INACTIVE LIST
-        STU ,Y
-        LDU IPTR
-        STU OLINK,X
-        STX IPTR
-        LEAX ,Y                         ; X TO NEXT
-OSCLP   LEAY ,X
-        LDX ,X
-        BNE OSC1
-        RTS
-;
-; SCAN INACTIVE OBJECTS FOR ON SCREEN
-;
-ISCAN   LDD BGL
-        SUBD #100*32                    ; 100 PIXEL LEFT BUFFER
-        STD XTEMP
-        LDX #IPTR
-        BRA ISCLP
-ISC1    LDA STATUS                      ; OBJECTS ACTIVE??
-        BITA #$20
-        BNE SCYV5                       ; NOPE....NO VELOCITY STUFF...JUST CHECK IF ACTIVE
+;;; Scan all active objects
+;;; move any offscreen into an inactive list
+;;; called every 8 frames
+OSCAN       ldd   BGL                        ; get screen left
+            subd  #100*32
+            std   XTEMP
+
+            ldx   #OPTR               ; X points to obj list ptr
+            bra   !loop
+
+!doit       ldd   OX16,X
+            subd  XTEMP
+            cmpd  #500*32
+            blo   !loop             ; IN SCREEN AREA
+            ldu   OLINK,X           ; NO,MOVE TO INACTIVE LIST
+            stu   ,Y
+            ldu   IPTR              ; insert at head of innactive obj list
+            stu   OLINK,X
+            stx   IPTR
+            leax  ,Y                ; X TO NEXT
+
+!loop       leay  ,X                ; Y = X
+            ldx   ,X                ; get ptr to next obj
+            bne   !doit             ; process next object
+            rts
+
+;;; Scan innactive objects for any that are now on screen
+;;; and move to the active objects list
+ISCAN       LDD BGL                     ; get screen left
+            SUBD #100*32                    ; 100 PIXEL LEFT BUFFER
+            STD XTEMP
+            LDX #IPTR
+            BRA ISCLP
+
+ISC1        LDA STATUS                      ; OBJECTS ACTIVE??
+            BITA #$20
+            BNE SCYV5                       ; NOPE....NO VELOCITY STUFF...JUST CHECK IF ACTIVE
+
+; Objects are active so
+; Add 8 times velocity to the inactive object
+; as we're only updating inacctive objects every 8 frames
         LDD OYV,X
         ASLB
         ROLA
@@ -61,7 +79,9 @@ ISC1    LDA STATUS                      ; OBJECTS ACTIVE??
         LDA #YMAX
 SCYV3   CMPA #YMAX
         BLS SCYV4
+
 SCYV6   LDA #YMIN
+
 SCYV4   STD OY16,X                      ; ADD 8 TIMES VELOCITY
         LDD OXV,X                       ; UPDATE X POSITION
         ASLB
@@ -72,27 +92,32 @@ SCYV4   STD OY16,X                      ; ADD 8 TIMES VELOCITY
         ROLA
         ADDD OX16,X
         STD OX16,X
-SCYV5   LDD OX16,X                      ; RELOAD IN CASE WE GET HERE BY BRANCH
-        SUBD XTEMP
-        CMPD #500*32                    ; IN SCREEN AREA
-        BHS ISCLP                       ; NO
-        LDU OLINK,X                     ; YES, TRANSFER TO ACTIVE
-        STU ,Y
-        LDU OPTR
-        STU OLINK,X
-        STX OPTR
+
+; now check if this object is onscreen
+SCYV5   LDD   OX16,X                      ; RELOAD IN CASE WE GET HERE BY BRANCH
+        SUBD  XTEMP
+        CMPD  #500*32                    ; IN SCREEN AREA
+        BHS  ISCLP                       ; NO
+
+; Move object active list
+; where's the delink?
+        LDU   OLINK,X                     ; YES, TRANSFER TO ACTIVE
+        STU   ,Y
+        LDU   OPTR
+        STU   OLINK,X
+        STX   OPTR
         CLRA                            ; MAKE SURE OFF SCREEN AFTER HYPER
         CLRB
-        STD OBJX,X
-        LEAX ,Y
-ISCLP   LEAY ,X
+        STD   OBJX,X
+        LEAX  ,Y
+
+ISCLP   LEAY ,X                         ; get the next object and loop
         LDX ,X
         BNE ISC1
         RTS
-;
-;
-; SCANNER
-; OFF OLDE BOZOS+PLAYER
+
+;;; SCANNER
+;;; OFF OLDE BOZOS+PLAYER
 SCNR    LDU #0
         LDB #8
         LDX #SETAB
@@ -210,9 +235,7 @@ SCNR20  STD [,U++]
 SCNR3   LDX ,X                          ; DO THE REST
         BNE SCNR10
         RTS
-;
-; MINI TERRAIN DATA TABLE
-;
+;;; MINI TERRAIN DATA TABLE
 MTERR   FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
         FCB 31,$88,$00,31,$88,$00,30,$88,$00,28,$88,$00
         FCB 26,$88,$00,28,$88,$00,30,$88,$00,31,$80,$08
@@ -245,13 +268,12 @@ MTERR   FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
         FCB 31,$B0,$0B,31,$BB,$00,31,$B0,$0B,32,$BB,$00
         FCB 31,$0B,$B0,31,$B0,$0B,31,$BB,$00,31,$0B,$B0
         FCB 31,$BB,$00,31,$BB,$00,30,$0B,$B0,29,$0B,$B0
-;
-; WRITE AN OBJECT TO SCREEN
-; Y=OBJECT DESCRIPTOR ADDR
-; D=SCREEN ADDR
-; ALL SAVED
-; REENTRANT
-;
+
+;;; WRITE AN OBJECT TO SCREEN
+;;; Y = OBJECT DESCRIPTOR ADDR
+;;; D = SCREEN ADDR
+;;; ALL SAVED
+;;; REENTRANT
 CWRIT   PSHS A,B,X,Y,U
         TFR D,X
         LDD OBJW,Y                      ; GET WIDTH,LENGTH
@@ -288,15 +310,16 @@ CWRT3   LDB 1,S                         ; GET HEIGHT
         BNE CWRT1
 CWRTX   LEAS 2,S                        ; GET MAP +2 PHONIES
         PULS A,B,X,Y,U,PC
-;
-; COFF
-; Y=OBJECT DESCRIPTOR ADDR
-; D=SCREEN ADDR
-;
+
+;;; COFF
+;;; Y = OBJECT DESCRIPTOR ADDR
+;;; D = SCREEN ADDR
 COFF    PSHS A,B,X,U
         TFR D,X
         LDD OBJW,Y                      ; GET WIDTH ,HEIGHT
-COFFA   LDU #0
+
+; Clear block
+COFFA   LDU #0                          ; clear col
         PSHS B                          ; SAVE HT
         BITB #1                         ; ODD LENGTH?
         BNE COFF1                       ; YES
@@ -310,6 +333,7 @@ COFF0   STU B,X
         DECA
         BNE COFF00
         BRA COFFX
+
 ; ODD BYTE COUNT
 COFF1   DECB
         CLR B,X
@@ -324,15 +348,13 @@ COFF3   LDB ,S                          ; GET HT
         BNE COFF1
 COFFX   LEAS 1,S                        ; PULL HEIGHT
         PULS A,B,X,U,PC
-;
-; BLOCK CLEAR
-; X=ADDR, D=W,H
-;
+
+;;; BLOCK CLEAR
+;;; X=ADDR, D=W,H
 BLKCLR  PSHS A,B,X,U
         BRA COFFA
-;
-; SCREEN CLEAR
-;
+
+;;; SCREEN CLEAR
 SCRCLR  PSHS D,X,Y,U
         LDU #$9C00
         LDX #0
@@ -502,52 +524,55 @@ RCHK    PSHS D
 !skip   PULS D,PC
 
 ;;; SCORE TRANSFER
-SCRTRN  LDA SAMEXC                      ; TERRAIN BLOW UP OR WARP IN EFFECT??
-        BEQ SCTR0
-        RTS
-SCTR0   LDA CURPLR
-SCRTR0  LDX #N0V
-        LDB STATUS
-        BMI SCT0
-        CMPA CURPLR
-        BNE SCT0
-        LDX #N0AV
-SCT0    PSHS A,X
-        DECA
-        BNE SCT1
-        LDX #P1DISP
-        LDU #.P1SCR
-        BRA SCT2
-SCT1    LDX #P2DISP
-        LDU #.P2SCR
-SCT2    CLR XTEMP                       ; BLANKING FLAG
-        LDB #7
-SCTLP   LDA ,U+                         ; GET
-        LDY 1,S                         ; GET BASE OF CHARSTORAGE
-        BITB #1                         ; PHASE
-        BNE SCT3
-        LEAU -1,U
-        LSRA
-        LSRA
-        LSRA
-        LSRA
-SCT3    ANDA #$F
-        BNE SCT3A
-        CMPB #2                         ; LAST 2
-        BLS SCT3A
-        TST XTEMP                       ; BLANKING?
-        BEQ SCT4
-SCT3A   INC XTEMP
-        ASLA
-        ASLA
-        LEAY A,Y
-        EXG X,D
-        JSR CWRIT                       ; ON DIGIT PICTURE
-SCT40   EXG X,D
-SCT4    LEAX DIGLTH,X
-        DECB
-        BNE SCTLP                       ; DO THE REST
-        PULS A,Y,PC
+SCRTRN      LDA SAMEXC                      ; Skip if TERRAIN BLOW UP OR WARP IN EFFECT??
+            BEQ !no_sploding
+            RTS
+
+!no_sploding
+            LDA CURPLR
+SCRTR0      LDX #N0V
+            LDB STATUS
+            BMI SCT0
+            CMPA CURPLR
+            BNE SCT0
+            LDX #N0AV
+SCT0        PSHS A,X
+            DECA
+            BNE SCT1
+            LDX #P1DISP
+            LDU #.P1SCR
+            BRA SCT2
+SCT1        LDX #P2DISP
+            LDU #.P2SCR
+SCT2        CLR XTEMP                       ; BLANKING FLAG
+            LDB #7
+SCTLP       LDA ,U+                         ; GET
+            LDY 1,S                         ; GET BASE OF CHARSTORAGE
+            BITB #1                         ; PHASE
+            BNE SCT3
+            LEAU -1,U
+            LSRA
+            LSRA
+            LSRA
+            LSRA
+SCT3        ANDA #$F
+            BNE SCT3A
+            CMPB #2                         ; LAST 2
+            BLS SCT3A
+            TST XTEMP                       ; BLANKING?
+            BEQ SCT4
+SCT3A       INC XTEMP
+            ASLA
+            ASLA
+            LEAY A,Y
+            EXG X,D
+            JSR CWRIT                       ; ON DIGIT PICTURE
+SCT40       EXG X,D
+SCT4        LEAX DIGLTH,X
+            DECB
+            BNE SCTLP                       ; DO THE REST
+            PULS A,Y,PC
+
 ;;; SCREEN SWITCHING
 P1SW    PSHS D,X                        ; SAVE REGISTERS
 P1SW0   LDX #IRQ
@@ -700,6 +725,8 @@ IRQX    ORCC #$FF
         PULS X,Y,D,U,PC,CC,DP
 
 ;;; INVERTED IRQ FOR SCREEN FLIP
+;;; Block copy of IRQ but handles flipped
+;;; screen for cocktail cabs
 IRQB    LDA #RAM>>8
         TFR A,DP
         LDA #$34
@@ -754,11 +781,11 @@ IB01    JSR SNDSEQ
         JSR SHELL
         JSR VELO
         JMP IRQX
-;
-; SHELL OUTPUT
-; OBJCOL=OUTPUT ROUTINE
-; ODATA=TIMER
-; ODATA+1=DEAD OR NOT
+
+;;; SHELL OUTPUT
+;;; OBJCOL=OUTPUT ROUTINE
+;;; ODATA=TIMER
+;;; ODATA+1=DEAD OR NOT
 SHELL   LDA STATUS
         BITA #$20
         BNE SHELLX
@@ -794,7 +821,8 @@ SHELL1  LDY OBJX,X                      ; ERASE ADDR
 SHELLP  LDX ,X
         BNE SHELL1
 SHELLX  RTS
-; BOMB OUTPUT
+
+;;; BOMB OUTPUT
 BMBOUT  LDU BAX
         BCC SHB1                        ; ODD?
         LEAU 6,U
@@ -820,7 +848,8 @@ SHBD
         STD $100,Y
         STA $102,Y
         BRA SHELLP
-; FIREBALL MINI
+
+;;; FIREBALL MINI
 FBOUT   LDD #0
         STD ,Y
         STA 2,Y
@@ -841,9 +870,8 @@ SHFB1   ANDA #$F0
         ANDB #$0F
         STB 1,U
         BRA SHELLP
-;
-; OUTPUT YLLAB BOMB
-;
+
+;;; OUTPUT YLLAB BOMB
 YLBOUT  LDU OBJX,X
         LDD #$0099
         STA ,Y                          ; ERASE OLDIE
@@ -862,8 +890,8 @@ YLBT1   LDA #$09
 YLBP1   FCB 2,1
         FDB YLBD10,YLBD10,ON34,OFF34
 YLBD10  FDB $FFFF
-;
-; BOMB COLLISION
+
+;;; BOMB COLLISION
 BKIL    LDD #$25
         JSR SCORE
         DEC BMBCNT
@@ -884,9 +912,7 @@ BKIL    LDD #$25
         JSR XSVCT
         LDD #AHSND
         JMP SNDLD
-;
-; REVERSE
-;
+;;; REVERSE
 REV     LDA REVFLG
         BNE REVX
         INC REVFLG
@@ -903,9 +929,8 @@ REV2    LDA PIA21
         NAP (5,REVX1)
 REVX1   CLR REVFLG
 REVX    JMP SUCIDE
-;
-; SMART BOMB
-;
+
+;;; SMART BOMB
 SBOMB   LDA SBFLG
         BNE SBMBX2
         LDX PLRX
@@ -946,9 +971,8 @@ SBX1A   LDA PIA21
         NAP (10,SBX2A)
 SBX2A   CLR SBFLG
 SBMBX2  JMP SUCIDE
-;
-; HYPERSPACE
-;
+
+;;; HYPERSPACE
 HYPER   LDA STATUS
         BITA #$FD
         LBNE HYPX                       ; NO GO
@@ -1684,9 +1708,8 @@ LDSP3   JSR CWRIT                       ; WRITE OUT YOUR SHIPS
         DEC ,S
         BNE LDSP3
 LDSPX   PULS A,PC
-;
-; DISPLAY TOP OF SCREEN
-;
+
+;;; DISPLAY TOP OF SCREEN
 TDISP   PSHS D,X,Y,U
         LDD #$4020
         LDX #SCANER
@@ -1707,61 +1730,62 @@ TD1     JSR SCRTR0
         BNE TD1
         JSR MESINV                      ; INITIALIZE MESSAGE REGION
         PULS D,X,Y,U,PC
-;
-; SMART BOMB DISPLAY
-;
-SBDISP  PSHS X,Y,D,U
-        LDA SAMEXC                      ; CHECK IF OK TO WRITE
-        BNE SBDX
-        LDX #P1SBD
-        LDA .P1SBC
-        BSR SBDSP
-        LDA PLRCNT
-        DECA
-        BEQ SBDX
-        LDX #P2SBD
-        LDA .P2SBC
-        BSR SBDSP
-SBDX    PULS X,Y,D,U,PC
-SBDSP   PSHS A
-        LDD #$2405
-        JSR BLKCLR
-        LDA ,S
-        CMPA #17
-        BLS SBDSP1
-        LDA #17
-SBDSP1  CMPA #10
-        BLO SBDSP2
-        SUBA #10
-        STA ,S
-        LDY #SB10P
-        TFR X,D
-        JSR CWRIT
-        LEAX $0802,X
-SBDSP2  LDA ,S
-        BEQ SBDSPX
-        LDY #SBPIC
-        TFR X,D
-SBDSP3  JSR CWRIT
-        ADDA #4
-        DEC ,S
-        BNE SBDSP3
-SBDSPX  PULS A,PC
-; PLAYER SHIP 10DISPLAY
+
+;;; SMART BOMB DISPLAY
+SBDISP      PSHS X,Y,D,U
+            LDA SAMEXC                      ; CHECK IF OK TO WRITE
+            BNE SBDX
+            LDX #P1SBD
+            LDA .P1SBC
+            BSR SBDSP
+            LDA PLRCNT
+            DECA
+            BEQ SBDX
+            LDX #P2SBD
+            LDA .P2SBC
+            BSR SBDSP
+SBDX        PULS X,Y,D,U,PC
+SBDSP       PSHS A
+            LDD #$2405
+            JSR BLKCLR
+            LDA ,S
+            CMPA #17
+            BLS SBDSP1
+            LDA #17
+SBDSP1      CMPA #10
+            BLO SBDSP2
+            SUBA #10
+            STA ,S
+            LDY #SB10P
+            TFR X,D
+            JSR CWRIT
+            LEAX $0802,X
+SBDSP2      LDA ,S
+            BEQ SBDSPX
+            LDY #SBPIC
+            TFR X,D
+SBDSP3      JSR CWRIT
+            ADDA #4
+            DEC ,S
+            BNE SBDSP3
+SBDSPX      PULS A,PC
+
+;;; PLAYER SHIP 10DISPLAY
 PL10P   FCB 4,3
         FDB PL10D
 PL10D   FCB $BB,$0B,$BB
         FCB $9B,$9B,$96
         FCB $99,$90,$99
         FCB $9B,$96,$96
-; PLAYER SHIP DISPLAY ONES UNITS
+
+;;; PLAYER SHIP DISPLAY ONES UNITS
 PL1P    FCB 4,3
         FDB PL1D00
 PL1D00  FCB $BB,$BB,$B6
         FCB $00,$BE,$66
         FCB $00,$F0,$6F
         FCB $00,$00,$F0
-; SMART BOMB #10# DISP
+;;; SMART BOMB #10# DISP
 SB10P   FCB 7,5
         FDB SB10D
 SB10D   FCB $99,$00,$00,$00,$99
@@ -2169,6 +2193,7 @@ PACH10  STA proc.data ,U
         JMP BOZ2                        ; EXIT BACK
 PACH1X  LDX #OPTR
         JMP BOZ1
+
 ; BLIP SCAN SUBROUTINE
 PCH110  LDD OX16,X                      ; FIND OFFSET
         SUBD XTEMP                      ; SUBTRACT SCANNER LEFT
@@ -2218,9 +2243,8 @@ BLPX    STD [,U++]
 PCH13   LDX ,X                          ; DO THE REST
         BNE PCH110
         RTS
-;
-; NO LOW PRIORITY SOUNDS IN ATTR
-;
+
+;;; NO LOW PRIORITY SOUNDS IN ATTR
 SNDPCH  PSHS X,D,CC
         CLR THFLG
         TFR D,X
@@ -2230,9 +2254,8 @@ SNDPCH  PSHS X,D,CC
 SNDPCX  CMPA #$F0
         LBHS $705
         PULS X,D,CC,PC                  ; NOGO
-;
-; ATTR SWITCH SCAN PATCH
-;
+
+;;; ATTR SWITCH SCAN PATCH
 SWPCH   LDB STATUS
         BPL SWPCHX
         LSRB
@@ -2247,18 +2270,16 @@ SWPCH   LDB STATUS
         JMP $78C
 SWPCHX  LDB PIA2
         JMP $787
-;
-; NO SCORE IN ATTR PATCH
-;
+
+;;; NO SCORE IN ATTR PATCH
 SCRPCH  PSHS A,B,X,U,Y
         TST STATUS
         BMI SCRPCX                      ; ATTR NO SCORE
         ORCC #1
         JMP $143E
 SCRPCX  PULS A,B,X,U,Y,PC
-;
-; SMART BOMB DONT KILL NULLOBS PATCH
-;
+
+;;; SMART BOMB DONT KILL NULLOBS PATCH
 SBPCH   LDD OPICT,X
         CMPD #NULOB
         LBEQ SBMB2
@@ -2305,10 +2326,8 @@ SWP4_   LDX SWPR4_
         JMP SWP3
 ;
 SWP3_   JMP SWPX                        ; JUMP PAST SWITCH PROCESSING
-;
-;
+
 ; IRQ SWITCH PATCH
-;
 SWWPC9
         BNE SWWPC0                      ;  NO ROOM IN FIRST COUNTER
         STD SWPROC

@@ -1,7 +1,3 @@
-    macro write_rom(id,size) {
-        ; dklj dlsk ldsl
-    }
-
 	;; Set a byte in physical memeory 
 	macro poke(a,b) {
 		org 0
@@ -14,24 +10,26 @@
 		put a
 	}
 
-	macro MAKP(addr) {
-		JSR	MAKEP
-		fdb addr
-	}
+////////////////////////////////////////////////////////////////////////////////
+// Game macros
 
+;;; Create a process with a run address of addr
+macro MAKP(addr) {
+    JSR	MAKEP
+    fdb addr
+}
+
+;;; Sleep for time frames and then run from wakeup
 macro NAP(time,wakeup) {
         LDA    #time                ;TIME
         LDX    #wakeup              ;WAKEUP ADDR
         JMP    SLEEP
 }
 
-;
-;M A C R O S
-;
-macro SHL     (a,b,c) {
+macro SHL(a,b,c) {
         JSR    GETSHL
         FDB    a, b, c
-        }
+}
 
 macro KILP (a,b) {
         JSR    KILPOS
@@ -44,12 +42,11 @@ macro KILO(a,b) {
         FDB  a, b
         }
 
-; *INIT OBJECT
-; OBI     MACRO  \1,\2,\3
-;         JSR    OBINIT
-;         FDB    \1,\2,\3
-;         ENDM 
-
+;;; *INIT OBJECT
+;;; OBI     MACRO  \1,\2,\3
+;;;         JSR    OBINIT
+;;;         FDB    \1,\2,\3
+;;;         ENDM 
 macro OBI(a,b,c) {
         JSR    OBINIT
         FDB    a,b,c
@@ -80,14 +77,6 @@ macro 	DIE()  {
 ;         JMP    SLEEP
 ;         ENDM 
 
-; *
-; *MAKE A NEW PROCESS
-; *
-; NEWP    MACRO  \1,\2
-;         LDX    #\1              ;ADDR
-;         LDA    #\2              ;TYPE
-;         JSR    MKPROC
-;         ENDM 
 
 macro NEWP(addr, type) {
         LDX    #addr  ;ADDR
@@ -115,9 +104,13 @@ macro NEWP(addr, type) {
 ;         ENDM 
 ;         PAGE 
 
-macro MKPROB(a,b,c,d) {
+;;; a = process routine
+;;; b = object pic
+;;; c = collision vector
+;;; d = blip
+macro MKPROB(process,object_pic,collion_vec,blip) {
      JSR    MPROB
-     FDB    a,b,c,d
+     FDB    process,object_pic,collion_vec,blip
 }
 
 ;MAKE A PROCESS AND OBJECT

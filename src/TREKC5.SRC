@@ -55,8 +55,7 @@ PSIZZ   equ ptable2.size
 PTABE   EQU  *
         RMB  PSIZZ*4
 
-    ORG  BLOWV  ; ROM SPACE FOR BLOW UP
-
+        ORG  BLOWV  ; ROM SPACE FOR BLOW UP
         JMP  ROCK0  ; GO TO ENTRY POINT
 
 PIECES  FCB  $11
@@ -67,7 +66,7 @@ PIECES  FCB  $11
         FCB  $66
         FCB  $77
         FCB  $88
-ENDPIC  EQU  *
+ENDPIC
 
 DISTAB  FCB  $07,$F8
         FCB  $01,$FE
@@ -78,14 +77,14 @@ DISTAB  FCB  $07,$F8
         FCB  $01,$FE
         FCB  $07,$F8
 
-SNDTAB  FDB  SCHSN_
+SNDTAB  FDB  SCHSN
         FDB  AHSN_
         FDB  LHSN_
         FDB  LASSN_
         FDB  TIMSN_
         FDB  AHSN_
 
-SCHSN_  FCB  $E8,$01,$08,$17,$00
+SCHSN   FCB  $E8,$01,$08,$17,$00
 AHSN_   FCB  $E8,$01,$18,$11,$00
 LHSN_   FCB  $E8,$01,$0A,$06,$00
 LASSN_  FCB  $E8,$01,$08,$14,$00
@@ -189,28 +188,28 @@ GETVEL  LDA  HSDDD
         STD  TERXV
         RTS
 
-ROCK0   LDU  CRPROC
-        PULS  X             ; GET RETURN ADDRESS
-        STX  proc.data+6,U         ; AND SAVE
-        LDX  IRQHK+1
-        STX  IRQSV
-        LDX  #BLOIRQ        ; USE OUR IRQ
-        STX  IRQHK+1
-        LDD  HSEED          ; RANDMOMIZE IT
-        STD  SDDD
-        LDD  #PIECES
-        STD  FROBPT
-        LDA  #NRINGS
-        STA  TEMP3
-        LDA  #$30           ; SMALL DELAY UNTIL FIRST RING
-        STA  TEMP2
-        LDA  #1
-        STA  TEMP6
-        LDA  #$FF
-        STA  PCRAM+7
-        LDX  #PTABLE        ; LETS WALK THROUGH AND INIT THE TABLE
-        LDY  #STBL          ; START AT BEGINNING
-BTER0   BSR  GETVEL         ; FILL IN VELOCITY RAM AND PICK RANDOM PT CT.
+ROCK0   ldu     CRPROC
+        puls    X                     ; GET RETURN ADDRESS
+        stx     proc.data+6,U          ; AND SAVE
+        ldx     IRQHK+1
+        stx     IRQSV
+        ldx     #BLOIRQ                ; USE OUR IRQ
+        stx     IRQHK+1
+        ldd     HSEED                  ; RANDMOMIZE IT
+        std     SDDD
+        ldd     #PIECES
+        std     FROBPT
+        lda     #NRINGS
+        sta     TEMP3
+        lda     #$30                   ; SMALL DELAY UNTIL FIRST RING
+        sta     TEMP2
+        lda     #1
+        sta     TEMP6
+        lda     #$FF
+        sta     PCRAM+7
+        ldx     #PTABLE                ; LETS WALK THROUGH AND INIT THE TABLE
+        ldy     #STBL                  ; START AT BEGINNING
+BTER0   BSR  GETVEL                    ; FILL IN VELOCITY RAM AND PICK RANDOM PT CT.
 BTER1   LDD  TERXV
         STD  XV,X
         LDD  TERYV

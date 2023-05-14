@@ -1,4 +1,30 @@
-; HARDWARE CONSTANTS
+//     Stargate Memory Map
+//     -------------------
+//     0000-8FFF ROM
+//     0000-97FF Video  RAM Bank switched with ROM
+//     9800-BFFF RAM
+//     C000-CFFF I/O
+//     D000-FFFF ROM
+
+//     IO
+//     --
+//     c000-C00F color_registers  (16 bytes of BBGGGRRR)
+//     c804 widget_pia_dataa (widget = I/O board)
+//     c805 widget_pia_ctrla
+//     c806 widget_pia_datab
+//     c807 widget_pia_ctrlb
+//           bits 5-3 = 110 = player 2
+//           bits 5-3 = 111 = player 1
+//     c80c rom_pia_dataa
+//     c80d rom_pia_ctrla
+//     c80e rom_pia_datab
+//           bits 0-5 = 6 bits to sound board
+//           bits 6-7 plus CA2 and CB2 = 4 bits to drive the LED 7 segment
+//                    Blaster only: bits 6-7 are for selecting the sound board
+//     c80f rom_pia_ctrlb
+//     C900 rom_enable_scr_ctrl  Switch between video ram and rom at 0000-97FF
+
+; Stargate Hardware Registers
 CRAM      EQU    $C000      ;;; HW Reg: Colour RAM
 WDOG      EQU    $CBFF      ;;; HW Reg: Watch dog address
 WDATA     EQU    $39        ;;; HW Reg: Watch value
@@ -23,19 +49,19 @@ struct Pia {
     ctrl_b : byte,
 }
 
-ROM_PIA     equ $c80c
-WIDGET_PIA  equ $c804
+ROM_PIA     equ $c80c           ;;; ROM PIA base address
+WIDGET_PIA  equ $c804           ;;; Widget PIA base address
 
 ;;; ROM PIA Port A Data
 ;;;
-;;; * 0x01 : B0 : AUTO UP
-;;; * 0x02 : B1 : ADVANCE
+;;; * 0x01 : B0 : Auto up
+;;; * 0x02 : B1 : Advance
 ;;; * 0x04 : B2 : RCOIN
 ;;; * 0x08 : B3 : HSRESET
-;;; * 0x10 : B4 : LCOIN
-;;; * 0x20 : B5 : CCOIN
-;;; * 0x40 : B6 : SLAM
-;;; * 0x80 : B7 : SOUND HANDSHAKE
+;;; * 0x10 : B4 : Left coin
+;;; * 0x20 : B5 : Center Coin
+;;; * 0x40 : B6 : Slam door tilt
+;;; * 0x80 : B7 : Sound board handshake
 PIA0        EQU    ROM_PIA + Pia.data_a
 
 ;;; ROM PIA Port A Ctrl
@@ -48,7 +74,7 @@ PIA0        EQU    ROM_PIA + Pia.data_a
 ;;; * 0x20 : B5 : CA2
 ;;; * 0x40 : B6 : IRQ A
 ;;; * 0x80 : B7 : IRQ B
-PIA0_ctrl   equ    ROM_PIA + Pia.ctrl_a              ;;; Rom PIA port A control
+PIA0_ctrl   equ    ROM_PIA + Pia.ctrl_a
 
 ;;; ROM PIA Port B Data
 ;;;
@@ -61,7 +87,9 @@ PIA0_ctrl   equ    ROM_PIA + Pia.ctrl_a              ;;; Rom PIA port A control
 ;;; * 0x40 : B6 : LED
 ;;; * 0x80 : B7 : LED
 PIA1        equ    ROM_PIA + Pia.data_b
-SOUND       equ    PIA1    ;;; Alias for ROM PIA data port B
+
+;;; Alias for ROM PIA data port B
+SOUND       equ    PIA1
 
 ;;; ROM PIA Port B Ctrl
 ;;;
@@ -77,15 +105,16 @@ PIA1_ctrl   equ    ROM_PIA + Pia.ctrl_b
 
 ;;; Widget PIA Port A Data
 ;;;
-;;; * 0x01 : B0 : FIRE
-;;; * 0x02 : B1 : THRUST
-;;; * 0x04 : B2 : SMART BOMB
-;;; * 0x08 : B3 : HYPERSPACE
-;;; * 0x10 : B4 : START 2
-;;; * 0x20 : B5 : START 1
-;;; * 0x40 : B6 : REV
-;;; * 0x80 : B7 : DOWN
+;;; * 0x01 : B0 : Fire
+;;; * 0x02 : B1 : Thrust
+;;; * 0x04 : B2 : Smart Bomb
+;;; * 0x08 : B3 : Hyperspace
+;;; * 0x10 : B4 : 2 players start
+;;; * 0x20 : B5 : 1 player start
+;;; * 0x40 : B6 : Reverse
+;;; * 0x80 : B7 : Down
 PIA2        EQU    WIDGET_PIA + Pia.data_a
+
 ;;; Widget PIA Port A Ctrl
 ;;;
 PIA2_ctrl   equ    WIDGET_PIA + Pia.ctrl_a
@@ -108,12 +137,13 @@ PIA3        equ    WIDGET_PIA + Pia.data_b
 
 ;;; Widget PIA Port B ctrl
 ;;;
-;;; * 0x01 : B0 : CB1
-;;; * 0x02 : B1 : CB1
+;;; * 0x01 : B0 : CB1_0
+;;; * 0x02 : B1 : CB1_1
 ;;; * 0x04 : B2 : Data Direction
-;;; * 0x08 : B3 : CB2 - Output switch mux control 1=player1,0=player2
-;;; * 0x10 : B4 : CB2
-;;; * 0x20 : B5 : CB2
+;;; * 0x08 : B3 : CB2_0 : %111 = Player 1
+;;; * 0x10 : B4 : CB2_1 : %110 = Player 2
+;;; * 0x20 : B5 : CB2_2 :
 ;;; * 0x40 : B6 : IRQ A
 ;;; * 0x80 : B7 : IRQ B
 PIA3_ctrl   equ    WIDGET_PIA + Pia.ctrl_b
+

@@ -72,6 +72,7 @@ CLRDEF    EQU $11                       ; COLOR 1 IS DEFAULT
 
     ORG TEXORG
 
+;;; Text number graphics tables
 N0      FDB $0308,NUMBR0                ; NUMBER 0
         FDB $0308,NUMBR1                ; NUMBER 1
         FDB $0308,NUMBR2                ; NUMBER 2
@@ -83,8 +84,11 @@ N0      FDB $0308,NUMBR0                ; NUMBER 0
         FDB $0308,NUMBR8                ; NUMBER 8
         FDB $0308,NUMBR9                ; NUMBER 9
 
-;    EXTERNALLY REFERENCED VECTORS
-; 
+nsize   equ * - N0
+
+;;; EXTERNALLY REFERENCED VECTORS
+
+print_jump_vectors
         JMP PRINIT
         JMP PRNT35
         JMP PRN35F
@@ -103,8 +107,7 @@ N0      FDB $0308,NUMBR0                ; NUMBER 0
         JMP WORD57
         JMP WRD57F
 
-N0W
-        FDB $0308,NUM0                  ; NUMBER 0
+N0W     FDB $0308,NUM0                  ; NUMBER 0
         FDB $0308,NUM1                  ; NUMBER 1
         FDB $0308,NUM2                  ; NUMBER 2
         FDB $0308,NUM3                  ; NUMBER 3

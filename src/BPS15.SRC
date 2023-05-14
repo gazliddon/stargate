@@ -22,30 +22,35 @@
 ; UFO PROCESS START
 ; PD=OBJECT,PD2=SHOT TIMER,PD5=18 FRAME (3 X 6) VELOCITY DIVIDER
 ; PD4 COUNTS NUMBER OF ITERS LEFT IN IMAGE LOOP
-
 UFOST_  LDA SEED                                ; START BAITER MASTER????
         CMPA    #$C0
         LBLS    BMST
+    ; Request A UFO
+    ; proc addr = UFOLP
+    ; obj pic = UFNP1
+    ; kill routine = UFOKIL
+    ; blip col = $3333
         MKPROB  (UFOLP,UFNP1,UFOKIL,$3333)
-        BEQ UFOSTX
-        INC UFOCNT
-        LDA #3                                  ; INITIALIZE VELOCITY DIVIDER
-        STA proc.d5,U
-        LDD SEED
+        BEQ !exit                              ; No procs / objs available
+
+    ; Woo! Made one, increase the global number of UFOs
+        INC     UFOCNT
+        LDA     #3                                  ; INITIALIZE VELOCITY DIVIDER
+        STA     proc.d5,U
+        LDD     SEED
         ANDA    #$1F
         ADDD    BGL
-        STD OX16,X
+        STD     OX16,X
         LSRB
         ADDB    #YMIN
-        STB OY16,X
-        LDA #8
-        STA proc.d2,U                               ; INIT SHOT TIMER
-        BSR UFONV0
-        JMP APVCT
-UFOSTX  RTS
+        STB     OY16,X
+        LDA     #8
+        STA     proc.d2,U                               ; INIT SHOT TIMER
+        BSR     UFONV0
+        JMP     APVCT
+!exit   RTS
 
-; UFO PROCESS
-
+;;; UFO PROCESS
 UFOLP   LDX proc.data,U
         LDD OPICT,X
         CMPD    #NULOB
@@ -59,7 +64,7 @@ UFOLP   LDX proc.data,U
         BEQ UFO1
         LDD #USHSND
         JSR SNDLD
-UFO1    DEC proc.d5,U                               ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
+UFO1    DEC proc.d5,U                           ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
         BNE UFO2                                ; NOT THIS TIME
         LDA #3                                  ; RESET DIVIDER
         STA proc.d5,U
@@ -86,89 +91,104 @@ UFOPIC  LDY OPICT,X                             ; GET CURRENT IMAGE
 UFOPL1  STY OPICT,X                             ; AND SET IN PLACE
         RTS                                     ; KAY.BYE
 
-;
 ; UFO VELOCITY
-;
-
-UFONV   LDA SEED
+;;; Ufo may seek player depending on UFOSK
+;;; UFOSK is set according to the wave data
+UFONV   
+        LDA     SEED
         CMPA    UFOSK
-        BLS UFONVX
-UFONV0  LDD #$4001
-        STD XTEMP
-        LDD OX16,X
+        BLS     UFONVX
+
+;;; Makes the UFO seek the player
+UFONV0  LDD     #$4001
+        STD     XTEMP
+        LDD     OX16,X
         SUBD    PLABX
-        BMI UFONV1
-        NEG XTEMP
+        BMI     UFONV1
+        NEG     XTEMP
 UFONV1  ADDD    #20*32                          ; X CLOSE?
         CMPD    #40*32
-        BLS UFONV3                              ; YES, DONT SEEK
-        LDB XTEMP
+        BLS     UFONV3                              ; YES, DONT SEEK
+        LDB     XTEMP
         SEX
         ADDD    PLAXV
-        STD OXV,X
-UFONV3  LDA OY16,X
+        STD     OXV,X
+UFONV3  LDA     OY16,X
         SUBA    PLAYC
-        BMI UFONV4
-        NEG XTEMP+1
+        BMI     UFONV4
+        NEG     XTEMP+1
 UFONV4  ADDA    #10
         CMPA    #20                             ; Y CLOSE?
-        BLS UFONVX                              ; YES, QUIT
+        BLS     UFONVX                              ; YES, QUIT
         CLRB
-        LDA XTEMP+1
+        LDA     XTEMP+1
         ADDD    PLAYV
         ASRA                                    ; DIVIDE    BY 2
         RORB
         STD OYV,X
 UFONVX  RTS
 
-; UFOKILL
+;;; UFOKILL
 UFOKIL  DEC UFOCNT
         KILP    ($120,UFHSND)
         RTS
-;
-; MAKE A PROCESS+OBJECT
-; RET=PROCESS,RET+2=OBJECT PICT,RET+4=COLL VECTOR,RET+6=BLIP
-; U RETURNED WITH PROCESS, X=OBJECT
-; X-PD,U                                         ;0-OXV,X OYV,X
-; RET EQ IF NOTHING LEFT
 
-MPROB_  PSHS    D,Y
-        LDX OFREE
-        BEQ MPRER                               ; NONE LEFT
-        LDX FREE
-        BEQ MPRER
-        CLRA
-        LDU 4,S
-        PULU    X
-        JSR MKPROC
-        LEAY    ,X
-        JSR GETOB
-        PULU    D
-        STD OPICT,X
-        PULU    D
-        STD OCVECT,X
-        PULU    D
-        STD OBJCOL,X
-        STU 4,S                                 ; NEW RET ADDR
-        LEAU    ,Y
-        STU OBJID,X
-        STX proc.data,U
-        CLRA
-        CLRB
-        STD OYV,X
-        STD OXV,X
-        LDA #1
-        PULS    D,Y,PC
-MPRER   LDU 4,S                                 ; CLEAN UP STACK
+;;; Make a process+object
+;;; RET=PROCESS,RET+2=OBJECT PICT,RET+4=COLL routine,RET+6=BLIP
+;;; U RETURNED WITH PROCESS, X=OBJECT
+;;; X-PD,U                                         ;0-OXV,X OYV,X
+;;; RET EQ IF NOTHING LEFT
+MPROB_  pshs    D,Y
+        ; quit if there are no procs or objs on the free list
+        ldx     OFREE
+        beq     !error                               ; NONE LEFT
+        ldx     FREE
+        beq     !error
+
+        ; Okay! Make a proc
+        clra                          ; user type = 0
+        ldu     4,S                   ; User stack -> at passed params
+        pulu    X                     ; X -> run process routine
+        jsr     MKPROC                ; X -> proc data
+        leay    ,X                    ; Y -> proc
+
+
+        ; Okay! Lets make an object!
+        jsr     GETOB                 ; X -> object
+        pulu    D                     ; Copy the pic param into the object struct
+        std     OPICT,X               
+        pulu    D                     ; Copy collission parm into the object struct
+        std     OCVECT,X
+        pulu    D
+        std     OBJCOL,X              ; Object blip
+        stu     4,S                   ; NEW RET ADDR
+
+        ; U -> proc
+        leau    ,Y
+        stu     OBJID,X               ; Save the process ptr into the objid
+
+        ; Save the object ptr into the proc
+        stx     proc.data,U
+
+        ; x -> object
+        clra
+        clrb
+        std     OYV,X                 ; zero the obj vels
+        std     OXV,X
+
+        lda     #1                    ; make sure the zero flag is 1
+        puls    D,Y,PC                ; return
+
+;;; No procs left, clear up stack and return with z flag set
+!error 
+        LDU 4,S                       ; CLEAN UP STACK
         LEAU    8,U
         STU 4,S
-        CLRA                                    ; RETURN EQ, NONE LEFT
+        CLRA                          ; Return with Z flag = 1
         PULS    D,Y,PC
-;
+
 ; START BAITER MASTER
 ; PD=OBJ,PD2=IMAGE#,PD4=BASE IMAGE TABLE,PD6=SHOT TIMER
-;
-
 BMST    
         MKPROB (BM,BMRP0,BMKIL,$3333)
         BEQ BMSTX
@@ -861,7 +881,6 @@ RIPST1  ADDA    #$2E                        ; GET OUT OF READABLE ASCII
         JMP ,U
 
 ;   BRA RIPST0  THIS IS WHAT WOULD HAVE FOLLOWED A CONVENTIONAL JSR.
-
 RIPEND  
         NAP (1,RIPEN1)
 RIPEN1  LDA PIA21

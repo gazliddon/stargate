@@ -57,9 +57,8 @@
         JMP SGSTRT
         FCC " COPYRIGHT (C) 1981 WILLIAMS ELECTRONICS INC."
         FCC " ALL RIGHTS RESERVED "
-;
-;  REPLAY HOOK
-;
+
+;;;  REPLAY HOOK
 RPHKK   INC PLAS,X
         INC PSBC,X
         PSHS X
@@ -71,10 +70,9 @@ RPHKK   INC PLAS,X
         BCS RPHK1
         STA PINV,X
 RPHK1   JMP IVDISP                      ; DISPLAY INVISO
-;
-; INITIIALIZE
-;
-; PIA INIT TAB
+
+;;; INITIIALIZE
+;;; PIA INIT TAB
 PIATAB  FDB $0034,$FF35,$0034,$003E
         FDB PIA0,PIA1,PIA2,PIA3
 ;
@@ -157,9 +155,8 @@ ST1A    LDA CREDIT
         LDX #ST1SND
         LDA #1                          ; # TO START
         BRA ST2B
-;
-; TWO PLAYER START
-;
+
+;;; TWO PLAYER START
 ST2     LDA STATUS
         BPL ST2X
         LDA FREEPL+1
@@ -174,23 +171,25 @@ ST2A    LDA CREDIT
         LDA #2
 ST2B    BSR START
 ST2X    JMP SUCIDE
-;
-; START GAME
-; X=SOUND,A =# TO START
+
+;;; START GAME
+;;; X=SOUND,A =# TO START
 START   LDU #CHKS1-$4E
         STA PLRCNT
         TFR X,D
         JSR SNDLD
         CLR CUNITS
         CLR BUNITS
-        JSR GNCIDE                      ; KILL ALL
-        JSR SCRCLR                      ; CLEAN SCREEN
+        JSR GNCIDE                      ; Kill all procs
+        JSR SCRCLR                      ; Clear screen
+
         LDY #0                          ; CALCULATE HIDDEN CHECKSUM
-        CLRA
-STR__1  ADDA ,Y
+        CLRA                            ; seems to sum every 16th byte from 0 - $8fff
+!loop   ADDA ,Y
         LEAY $10,Y
         CMPY #$9000
-        BLO STR__1
+        BLO !loop
+
         STA $4E,U
         LDA #$7F
         STA STATUS
@@ -636,6 +635,7 @@ PDTHH6  LDX NPLAXC
         TST OFREE
         BEQ PDTHH7                      ; NO OBJS LEFT
         JSR PXVCT
+
 PDTHH7  CLR SNDTMR                      ; OFF SOUND
         LDB #$13
         JSR SNDOUT
@@ -678,6 +678,7 @@ PLE2    LDA #$FF
         LDA #GOM
         LDX #$3D80
         JSR WRD7FV
+
         CLR SNDTMR                      ; OFF SOUNDS
         LDB #$13
         JSR SNDOUT
@@ -721,7 +722,7 @@ ASTRES  LDX ASTPT                       ; GET FROM FIXED INDIRECT (ADDRESS OF AS
         JSR MKPROC
         LDU #TLIST
         LEAY ,U
-        STU proc.data ,X                        ; INIT PTR
+        STU proc.data ,X                ; INIT PTR
 ASTS1   CLR ,U+                         ; CLEAR LIST
         CMPU #TLEND
         BNE ASTS1
@@ -749,9 +750,9 @@ ASTS1C  LDB HSEED
         DEC XTEMP
         BNE ASTS1C
 ASTSX   RTS
-;
-; TRANSFER PARAMETERS PENEMY-ELIST
-; X=PLAYER INDEX
+
+;;; TRANSFER PARAMETERS PENEMY-ELIST
+;;; X=PLAYER INDEX
 PTRANS  PSHS X,U
         LDU #ELIST2
         LEAX PENEMY+ELIST2-ELIST,X
@@ -760,11 +761,10 @@ PTRLP   LDA ,X+
         CMPU #ELEND
         BNE PTRLP
         PULS X,U,PC
-;
-; PLAYER RESTORE
-; GET ENEMY COUNTS+PARAMS
-;
-; ENEMY COUNTS
+
+;;; PLAYER RESTORE
+;;; GET ENEMY COUNTS+PARAMS
+;;; ENEMY COUNTS
 PLRES   LDU PLRX
         LEAU PENEMY,U
         LDX #ELIST
@@ -851,11 +851,12 @@ FBBYE   LDA DYNCNT                      ; ANY DYNAMOS???
 DYNBYE  CLR TIMER                       ; NO ENEMY HYPERING
         RTS
 ;
-; GAME EXEC
-; CHECKS END OF WAVE
-; STAGES ATTACKS
-; DISPATCHES SPOILERS
-; PD=INTRAWALL CNTR,PD2=BOZ0 FLAG
+;;; GAME EXEC
+;;; CHECKS END OF WAVE
+;;; STAGES ATTACKS
+;;; DISPATCHES SPOILERS
+;;; PD=INTRAWALL CNTR,PD2=BOZ0 FLAG
+
 GEXEC   LDU CRPROC
         LDA #40                         ; DELTA COUNTER
         STA proc.data ,U
@@ -877,7 +878,7 @@ GEX888  LDY AFALLP                      ; WAIT FOR FALLING DUDE
         JSR PCHEK
         BNE GEX999
         NAP (15,GEX888)
-ENDWAV  equ *
+ENDWAV
 GEX999  LDA #$77
         STA STATUS
         JSR GNCIDE
@@ -990,65 +991,65 @@ GEX6A   LDA STATUS                      ;  NO BOZO IF PLAYER IS DEAD
         JSR GETWV0
         JSR PTRANS
         JSR BOZOV                       ;  WISE UP THE LANDERS
-; MEN MESSAGES
-GEX60   LDA ASTCNT                      ;  MEN LEFT???
-        BEQ GEX66                       ;  NO
-        LDA MANCTR                      ;  IS HE HOLDING ANY??
-        BNE GEX66                       ;  THEN HE'S OK
-        JSR LEDTRG                      ;  ANY ON GROUND??
-        BEQ GEX66                       ;  YEP....NO TROUBLE
-        LDX #BLOMES                     ;  SEE IF THE MESSAGE IS THERE.
-        CMPX MESSST
-        BEQ GEXT0                       ;  YEP...DON'T RE-SEND
-        LDD #$18FF                      ;  BLINK RATE,COLOR
-        STD MESSBL                      ;  GIVE IT TO THE MESSAGE UTILITY
-        JSR MESLDV                      ;  SEND THE MESSAGE.
-GEXT0   LDA #$FF                        ;  FLASH THE TERRAIN TO INDICATE TROUBLE
-        STA PCRAM+7
-        NAP (5,GEXT1)
-GEXT1   LDA #$FF
-        STA PCRAM+7
-        NAP (4,GEXT2)
-GEXT2   CLR PCRAM+7
-        NAP (6,GEX0)
-GEX66   LDX #BLOMES                     ;  IS THE CURRENT MESSAGE DANGER??
-        CMPX MESSST
-        BNE GEX666
-        LDA #1
-        STA MESSTM                      ;  MAKE THE TIME GO AWAY!
-GEX666  LDA PIA21                       ;  CHECK FOR RIPOFF MESSGE
-        CMPA #$E2                       ;  DN-REV-START1-THRUST ONLY
-        BNE GEX777
-        JSR RIPV
+
+;;; MEN MESSAGES
+GEX60       lda     ASTCNT                      ;  MEN LEFT???
+            beq     GEX66                       ;  NO
+            lda     MANCTR                      ;  IS HE HOLDING ANY??
+            bne     GEX66                       ;  THEN HE'S OK
+            jsr     LEDTRG                      ;  ANY ON GROUND??
+            beq     GEX66                       ;  YEP....NO TROUBLE
+            ldx     #BLOMES                     ;  SEE IF THE MESSAGE IS THERE.
+            cmpx    MESSST
+            beq     GEXT0                       ;  YEP...DON'T RE-SEND
+            ldd     #$18FF                      ;  BLINK RATE,COLOR
+            std     MESSBL                      ;  GIVE IT TO THE MESSAGE UTILITY
+            jsr     MESLDV                      ;  SEND THE MESSAGE.
+GEXT0       lda     #$FF                        ;  FLASH THE TERRAIN TO INDICATE TROUBLE
+            sta     PCRAM+7
+            NAP     (5,GEXT1)
+
+GEXT1       lda     #$FF
+            sta     PCRAM+7
+            NAP     (4,GEXT2)
+GEXT2       clr     PCRAM+7
+            NAP     (6,GEX0)
+GEX66       ldx     #BLOMES                     ;  IS THE CURRENT MESSAGE DANGER??
+            cmpx    MESSST
+            bne     GEX666
+            lda     #1
+            sta     MESSTM                      ;  MAKE THE TIME GO AWAY!
+GEX666      lda     PIA21                       ;  CHECK FOR RIPOFF MESSGE
+            cmpa     #$E2                       ;  DN-REV-START1-THRUST ONLY
+            bne     GEX777
+            jsr     RIPV
 GEX777
-        NAP (15,GEX0)
+            NAP    (15,GEX0)
 
-BLOMES  FCB  $F0,CLEAR+BLINK,$FF,TBLOM                ;  TERRAIN IN TROUBLE MESSAGE
-;
-; CHECK END OF WAVE
-;
-WVCHK   LDA LNDCNT                      ; END OF WAVE
-        ADDA LNDRES
-        ADDA TIECNT
-        ADDA PRBCNT
-        ADDA SWCNT
-        ADDA SCZCNT
-        ADDA YLCNT
-        ADDA FBCNT
-        ADDA DYNCNT
-        RTS
+BLOMES      FCB  $F0,CLEAR+BLINK,$FF,TBLOM                ;  TERRAIN IN TROUBLE MESSAGE
 
-;     MANCHK - X = PLAYER SAVE AREA.....RESTORES MEN IF THE RIGHT WAVE.
+;;; CHECK END OF WAVE
+WVCHK       lda  LNDCNT                      ; END OF WAVE
+            adda LNDRES
+            adda TIECNT
+            adda PRBCNT
+            adda SWCNT
+            adda SCZCNT
+            adda YLCNT
+            adda FBCNT
+            adda DYNCNT
+            rts
 
-MANCHK  PSHS D,X                        ; SAVE THE STUFF WE BASH
-        LDA #5
-        LDB PWAV,X
-        DECB
-        BSR REM
-        BNE MANCKX
-        LDA #10
-        STA PTARG,X
-MANCKX  PULS D,X,PC                     ; DONE
+;;;     MANCHK - X = PLAYER SAVE AREA.....RESTORES MEN IF THE RIGHT WAVE.
+MANCHK      PSHS D,X                        ; SAVE THE STUFF WE BASH
+            LDA #5
+            LDB PWAV,X
+            DECB
+            BSR REM
+            BNE MANCKX
+            LDA #10
+            STA PTARG,X
+MANCKX      PULS D,X,PC                     ; DONE
 ;
 ; FIND REMAINDER
 ; A=DIVISOR,B=DIVIDEND
@@ -1298,77 +1299,89 @@ RIPTAB  FCB $01,$0C,$28,$26,$1A,$1B,$25,$0C,$1B,$25
         FCB $15,$25,$0C,$1B,$20,$15,$0F
         FCB $01,$0C,$B8,$13,$1E,$1E,$0C,$24,$1B,$19,$1A,$26
         FCB $25,$0C,$24,$17,$25,$17,$24,$28,$17,$16,$00,$17,$22,$30
+
 ; ************************
 ; STAR GATE JAZZ
 ; ************************
-;
-; COLOR TERRAIN+ CURRENT GATE
-;
-CTERR   LDA BGL
-        LDX #TERCTB
-        LSRA
-        LSRA
-        LSRA
-        ANDA #$7F                       ; DITCH LAST BIT
-        LDB A,X
-        STB PCRAM+7                     ; TERRAIN COLOR
-        LSRA
-        LDX #GATCTB                     ; GET YUR GATE COLR
-        LDB A,X
-        LDA A,X
-        STD GATCL1
-        STD GATCL2
-        STD GATCL3
-        LDB proc.data ,U
-        INCB
-        CMPB #2
-        BLS CTERR1
-        CLRB
-CTERR1  STB proc.data ,U                        ; TRINARY COUNTER
-        LDX #GATCL1
-        ASLB                            ; X2
-        ABX
-        LDD #$AAAA                      ; LASER COLOR CYCLER
-        STD ,X
-        NAP (4,CTERR)
-; GATE COLOR TABLE COLOR #S
+
+;;; COLOR TERRAIN+ CURRENT GATE
+;;; U = current proc
+CTERR   lda    BGL                      ; get the x pos of the terrain
+        ldx    #TERCTB
+        lsra                            ; div by 8
+        lsra
+        lsra
+        anda   #$7F                     ; DITCH LAST BIT
+        ldb    A,X
+        stb    PCRAM+7                  ; TERRAIN COLOR
+        lsra
+        ldx    #GATCTB                  ; GET YUR GATE COLR
+        ldb    A,X
+        lda    A,X
+        std    GATCL1
+        std    GATCL2
+        std    GATCL3
+        ldb    proc.data ,U
+        incb
+        cmpb   #2
+        bls    CTERR1
+        clrb
+CTERR1  stb    proc.data ,U                        ; TRINARY COUNTER
+        ldx    #GATCL1
+        aslb                            ; X2
+        abx
+        ldd   #$AAAA                      ; LASER COLOR CYCLER
+        std   ,X
+        NAP   (4,CTERR)
+
+;;; GATE COLOR TABLE COLOR #S
 GATCTB  FDB $22BB,$BBBB,$BBBB,$8888
         FDB $8888,$8888,$2222,$2222
-; TERRAIN COLORING COLOR GUN DATA
+
+;;; TERRAIN COLORING COLOR GUN DATA
 TERCTB  FDB $C7C7,$C7C7,$C7C7,$8747
         FDB $4707,$0707,$0707,$0707
         FDB $0707,$0F1F,$1717,$1717
         FDB $1717,$1717,$1757,$9787
-;
-; STAR GATE START
-;
-SGSTRT  STA XTEMP
-        LDA #$55
-        LDB SEED
-        ANDB #3
-        BNE SGS0
-        INCB
-SGS0    MUL
-        TFR B,A
-        TFR D,U                         ; INIT X
-SGS1
-        OBI (SGPIC,SGCOL,$1F00)
-        STU OX16,X                      ; FIXED X
-        JSR RAND
-        ANDA #$1F
-        ADDA #$5C
-        STA OY16,X
-        LDA #$11
-        STA OTYP,X                      ; NON HYP NON SB
-        CLRA
-        CLRB
-        STD OXV,X
-        STD OYV,X
-        STX OPTR
-        LEAU $5000,U
-        DEC XTEMP
-        BNE SGS1
-        RTS
+
+;;; STAR GATE START
+;;; creates multiple stargates $50 pixels apart?
+;;; not seen this in the game, not sure if it was used?
+;;; A = number of stargates
+SGSTRT  sta   XTEMP                 ; loop count
+        lda   #$55
+        ldb   SEED
+        andb  #3
+        bne   !skip
+        incb
+!skip   mul
+        tfr   B,A
+        tfr   D,U                         ; U = initial X
+
+!loop
+        ; Crate a stargate object
+        OBI   (SGPIC,SGCOL,$1F00)         ; get object x = obj
+        stu   OX16,X                      ; FIXED X
+
+        jsr   RAND                        ; ypos = $5c + rand($1f)
+        anda  #$1F
+        adda  #$5C
+        sta   OY16,X                      ; store a X hi
+
+        lda   #$11
+        sta   OTYP,X                      ; NON HYP NON SB
+
+        clra                              ; velocities = 0
+        clrb
+        std   OXV,X
+        std   OYV,X    
+
+        stx   OPTR
+        leau $5000,U                     ; add $50 pixels to x pos
+        dec  XTEMP
+        bne  !loop
+
+        rts
 ;
 ; STAR GATE COLLISION
 ;
@@ -1429,7 +1442,7 @@ SGCHK0  JSR MESLDV
         BRA SGC1
 ;
 WARP    JSR GNCIDE                      ; KILL EVERYONE!
-        JSR SCRCLR                      ; CLEAR THE SCREEN
+        JSR SCRCLR        ; CLEAR THE SCREEN
         JSR PLSAV                       ; SAVE THE PLAYERS ASTRONAUTS ANYWAYS.
         NAP (1,WARP1)                   ; TAKE A NAP BEFORE CLOUDING UP THAT RAM
 WARP1   INC SAMEXC                      ; NOW....LOCK HIM OUT HARD

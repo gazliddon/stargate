@@ -1,13 +1,12 @@
 ;
 ;  PRAYAH 1: P L O G L A M S T A H T
-;
+; A lot of sound stuff in this file
         org 0
 
-;  OFF OBJECT
-;  X=OBJECT
-
+;;; Deletes an object
+;;; Y = object
 OFSHIT  pshs    X,U,D,Y
-        ldd     OBJX,X
+        ldd     OBJX,X               ; D = pixel tl x,y
         ldy     OPICT,X
         jsr     [OBJDEL,Y]
         puls    X,U,D,Y,PC
@@ -15,9 +14,11 @@ OFSHIT  pshs    X,U,D,Y
 ;;;  EXECUTIVE LOOP
 EXEC    LDX #ACTIVE
         STX CRPROC
-EXEC0   LDA TIMER
-        BEQ EXEC0
+
+!wait   LDA TIMER
+        BEQ !wait
         CLR TIMER
+
         LDB STATUS
         BITB #$69
         BEQ EXEC00
@@ -94,7 +95,7 @@ SWP3    ANDB STATUS
         BRA SWP
 SWPX
 
-;;;  PROCESS DISPATCH
+;;; PROCESS DISPATCH
 DISP    LDU #ACTIVE
         BRA DISP2
 DISP1   DEC proc.time,U
@@ -102,7 +103,7 @@ DISP1   DEC proc.time,U
         STU CRPROC
         JMP [proc.addr,U]
 
-;;;  SLEEP; A=SLEEP TIME X 16MSEC; X=WAKEUP ADDR
+;;; SLEEP; A=SLEEP TIME X 16MSEC; X=WAKEUP ADDR
 SLEEP   LDU CRPROC
         STA proc.time,U
         STX proc.addr,U
@@ -189,7 +190,7 @@ MKPROC  PSHS A,Y,U
 MKP1    STX proc.addr,U
         STA proc.type,U
         LDA #1
-        STA proc.time,U                     ; INIT TIME
+        STA proc.time,U                 ; INIT TIME
         LDX [CRPROC]
         STU [CRPROC]
         STX ,U                          ; LINK IN
@@ -210,25 +211,36 @@ GNC1    LDX ,X
         BRA GNC1
 GNCX    PULS A,X,PC
 
-;;;   INIT OBJECT;    BSR GETOB;    [RET]>OPICT;    [RET+]>OCVECT;    [RET+2]>OBJCOL;    U>OBJID;    RET<RET+6
-OBINIT  BSR GETOB
+;;; Create and initialize an object, and attaches to the current process in U
+;;; This is only called by the OBI macro 
+;;; * Params
+;;;    * U       Current process
+;;;    * [S+0]   OPICT  - image used by obj
+;;;    * [S+2]   OCVECT - obj collision routine
+;;;    * [S+4]   OBJCOL - scanner blip colour
+;;; * Returns
+;;;    * X = obj
+;;; * Preserves U,D,Y
+OBINIT  BSR GETOB                     ; X -> Object
         PSHS U,D,Y
-        STU OBJID,X
-        LDU 6,S
-        PULU D,Y
+        STU OBJID,X                   ; Parent this object to current process
+        LDU 6,S                       ; U = params
+        PULU D,Y                      ; D = obj pict, Y = obj collision routine
         STD OPICT,X
         STY OCVECT,X
-        PULU D
+        PULU D                        ; D = obj colour, U now points to stack without params
         STD OBJCOL,X
-        STU 6,S
+        STU 6,S                       ; Store param ptr 
         PULS U,D,Y,PC
-;  GET OBJECT LIST CELL IN X; OBJX=0; CALLER MUST >STX OPTR< AFTER INITIALIZATION OF PARAMETERS
 
+;;;  GET OBJECT LIST CELL IN X; OBJX=0; CALLER MUST >STX OPTR< AFTER INITIALIZATION OF PARAMETERS
 GETOB   PSHS U,D
         LDX OFREE
-        BNE GETOB1                      ; NOT OUT
+        BNE !have_objs                      ; NOT OUT
         JSR ERROR
-GETOB1  LDD OLINK,X
+
+!have_objs
+        LDD OLINK,X
         STD OFREE
         LDD OPTR
         STD OLINK,X
@@ -236,8 +248,8 @@ GETOB1  LDD OLINK,X
         STD OBJX,X
         STA OTYP,X                      ; CLEAR TYPE
         PULS U,D,PC
-;  KILL OBJECT CELL IN X
 
+;;;  KILL OBJECT CELL IN X
 KILLOB  PSHS X,Y,U
         LDU #OPTR
 KILO1   CMPX ,U                         ; MATCH?
@@ -256,8 +268,8 @@ KILO3   CMPX ,U
         LDU ,U
         BNE KILO3
         JSR ERROR
-;   KILL A SHELL;  X =SHELL
 
+;;;   KILL A SHELL;  X =SHELL
 KILSHL  PSHS X,Y,U
         LDU #SPTR
         BRA KILO3
@@ -784,7 +796,8 @@ RCOIN   LDX #RCCNT
         BRA COIN                        ;  CENTER
 CCOIN   LDX #CCCNT
         LDY #COINC
-;  COIN ROUTINE; X=DEBOUNCE COUNTER; B=ROUTINE
+
+;;;  COIN ROUTINE; X=DEBOUNCE COUNTER; B=ROUTINE
 COIN    LDA SLMCNT
         BNE SLAMX
         LDA ,X
@@ -828,8 +841,8 @@ LSHSND  FCB $C0,$01,$08,$03,0                ; LANDER SHOOT
 SSHSND  FCB $C0,$01,$30,$09,0                ; SCHITZO SHOOT
 USHSND  FCB $C0,$01,$08,$03,0                ; UFO SHOOT
 SWSSND  FCB $C0,$01,$18,$0C,0                ; SWARM SHOOT
-;  SOUND OUTPUT; B=SND TO MAKE
 
+;;;  SOUND OUTPUT; B=SND TO MAKE
 SNDOUT  PSHS A,B,CC
         ORCC #$FF
         LDA #$3F
@@ -838,23 +851,25 @@ SNDOUT  PSHS A,B,CC
         ANDB #$3F                       ; DONT TURN ON LEDS
         STB SOUND
         PULS A,B,CC,PC
-;  SOUND LOADER; D=ADDR OF SOUND
-;  SNDLD PSHS X,D,CC;  CLR THFLG RESET THRUST
+
+;;;  SOUND LOADER; D=ADDR OF SOUND
+;;;  SNDLD PSHS X,D,CC;  CLR THFLG RESET THRUST
 SNDLD   JMP SNDPCH                      ;  *****************ATTR SOUND PATCH
         NOP                             ;  *****************WASTE A BYTE
         TFR D,X
         LDA ,X
         CMPA SNDPRI
-        BLO SNDLDX                      ; PRIORITY NOT HI ENOUGH
+        BLO !skip                       ; PRIORITY NOT HI ENOUGH
         STA SNDPRI
         LEAX -2,X
         ORCC #$10                       ; (SEI)
         STX SNDX
+
         LDD #$0101
         STD SNDTMR                      ; INIT TIMER,REPCNT
-SNDLDX  PULS X,D,CC,PC
-;  SOUND SEQUENCER
+!skip   PULS X,D,CC,PC
 
+;;;  SOUND SEQUENCER
 SNDSEQ  LDA SNDTMR
         BEQ SNDS00
         DEC SNDTMR
@@ -887,13 +902,15 @@ SNDS0   STA SNDREP
 SNDS1   LDD 1,X
         STA SNDTMR
 SNDSX1  BSR SNDOUT
-SNDSX   equ *
-;  SWITCH SCAN; TRIGGER=LAST 2 ZERO, NOW 1 GAME SWITCH; TRIGGER=LAST 1 ZERO, NOW 2 1 COINS
+SNDSX
+
+;;;  SWITCH SCAN; TRIGGER=LAST 2 ZERO, NOW 1 GAME SWITCH; TRIGGER=LAST 1 ZERO, NOW 2 1 COINS
 SSCAN   LDA PIA0
         BITA #$40
         BEQ SSC00
         LDA #60
         STA SLMCNT
+
 ;  COIN + SLAM DEBOUNCERS
 SSC00   LDA SLMCNT
         BEQ SSC0A
@@ -931,8 +948,7 @@ SW0     ADDB #4
 
         org 0x7ad
 
-;  SCAN COIN SWITCHES
-
+;;;  SCAN COIN SWITCHES
 CSCAN   LDA PIA01
         ORA PIA02
         COMA
@@ -954,8 +970,8 @@ CSC1    LEAX -1,X                       ; 1 MSEC DELAY
         LDU #SWTAB1-4                   ; HANDLE IT
         BSR SWITCH
 CSCX    RTS
-;  GET PLAYER STATE INDEX
 
+;;;  GET PLAYER STATE INDEX
 PLINDX  PSHS A
         LDA CURPLR
 PLND1   LDX #PLDATA
@@ -966,8 +982,7 @@ PLINX   PULS A,PC
 PLDX    PSHS A
         BRA PLND1
 
-;  RANDOM NUMBER GENERATOR
-
+;;; RANDOM NUMBER GENERATOR
 RAND    PSHS B
         LDB SEED
         LDA #3
@@ -986,8 +1001,8 @@ RAND    PSHS B
         STB SEED
         LDA SEED
         PULS B,PC
-;  INITIALIZE PROCESS DATA STRUCTURE
 
+;;;  INITIALIZE PROCESS DATA STRUCTURE
 PINIT   PSHS X,D
         CLRD()
         LDX #PTAB
@@ -1016,8 +1031,8 @@ INITC   LDA ,X+
         DECB
         BNE INITC
         RTS
-;  INITIALIZE OBJECT LIST
 
+;;;  INITIALIZE OBJECT LIST
 OINIT   PSHS CC,X,D
         ORCC #$FF                       ;  OFF INTERRUPTS
         LDX #OLIST
@@ -1032,8 +1047,8 @@ OINIT1  LEAX OSIZE,X
         STD OPTR
         STD SPTR
         PULS CC,X,D,PC
-;   MONOCHROMATIZER ROUTINE Y = OBJECT PICTURE ADDRESS;  U = MONOCHROMATIC PICTURE ADDRESS;  COLOR: $F
 
+;;;   MONOCHROMATIZER ROUTINE Y = OBJECT PICTURE ADDRESS;  U = MONOCHROMATIC PICTURE ADDRESS;  COLOR: $F
 MONO    PSHS U,X,D                      ;  SAVE REGISTERS
         LDD OBJW,Y                      ;  GET PICTURE SIZE
         STD OBJW,U                      ;  COPY TO MONO DESCRIPTOR
@@ -1078,7 +1093,7 @@ MONO5   ANDA #$BB                       ;  CHANGE COLOR TO $B
         STD ,U++                        ;  SAVE TWO BYTES MONO, ADVANCE POINTER
         CMPU 4,S                        ;  CHECK FOR END OF OBJECT
         BLO MONO1                       ;  NO?, CONTINUE
-        RTS                             ; YES?,                 ; RETURN
+        RTS                             ;  YES?,                 ; RETURN
 ;  RANDOM MAX ROUTINE; A = RAND <=A
 RMAX    PSHS A
         JSR RAND
@@ -1731,8 +1746,7 @@ STSHX   LDU 6,S                         ;  GET RETURN ADDR
         CLRA
         PULS D,Y,U,PC
 
-;  SCAN SHELL LIST FOR INACTIVES
-
+;;;  SCAN SHELL LIST (bullets) FOR INACTIVES
 SHSCAN  LDX #SPTR
         BRA SHSCLP
 SHSC1   LDA ODATA+1,X
