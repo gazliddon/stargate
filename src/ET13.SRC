@@ -20,11 +20,11 @@ SCFLG     RMB 1                             ; SCROLL DIRECTION 0=RT.,$FF=LFT.
 
 ; VECTORS
 
-        ORG BGORG
-        JMP BGI                           ; INIT TERRAIN
-        JMP BGO                           ; OUTPUT TERRAIN
-        JMP BGE_label                     ; ERASE TERRAIN
-        JMP LEDEX                         ; PLAYER EXPLOSION
+            ORG BGORG
+BGINIT_vec  JMP BGI                           ; INIT TERRAIN
+BGOUT_vec   JMP BGO                           ; OUTPUT TERRAIN
+BGERAS_vec  JMP BGE_label                     ; ERASE TERRAIN
+PXVCT_vec   JMP LEDEX                         ; PLAYER EXPLOSION
 
 ; TERRAIN INITIALIZE
 

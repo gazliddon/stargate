@@ -1,28 +1,35 @@
 ; TTL    <<<<<  S T A R G A T E >>>>>
 ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
 
+
+
 HSTK      EQU    $BFFF                ;;; Stack top
 
 ; Score display constants
 YMAX        equ    240
 YMIN        equ    44                 ;;; MIN Y COORD
+
+
+// I think these are screen addresses
 P1ORG       equ    7*$100
 P1LAS       equ    P1ORG+19
 P1SBD       equ    P1ORG+26
 P1DISP      equ    P1ORG+35
 P1IVD       equ    P1ORG+32
+SCANER      equ    P1ORG+37*$100+SCANH
 P2ORG       equ    P1ORG+102*$100
 P2LAS       equ    P2ORG+19
 P2SBD       equ    P2ORG+26
 P2DISP      equ    P2ORG+35
 P2IVD       equ    P2ORG+32
-PLIN        equ    YMIN-1
-SCANH       equ    8
-SCANER      equ    P1ORG+37*$100+SCANH
 DIGLTH      equ    $400
 MESSUL      equ    YMIN-5+(SCANER&$FF00)
 MESSLR      equ    YMIN+(P2DISP-$200&$FF00)
 
+PLIN        equ    YMIN-1
+SCANH       equ    8
+
+////////////////////////////////////////////////////////////////////////////////
 ;MAIN PROGRAM VECTORS
 
 TSCORG      EQU    $E940                  ;;; Org: HIGH SCORE BULLSHIT
@@ -34,8 +41,9 @@ HSCHKV      EQU    HIGHRS+3               ;;; CHECK IF HS TABLE LOOKS BASHED
 HSBUTV      EQU    HSCHKV+3               ;;; HIGH SCORE RESET BUTTON
 
 TSTORG      EQU    $F480                  ;;; TEST MODE
-AUD         EQU    TSTORG
-AUD1        EQU    AUD+3
+AUD         EQU    TSTORG                 ;;; AUDIT: COUNT=A, COUNTER=B (1-7)
+AUD1        EQU    AUD+3                  ;;; AUDIT: COUNT=1, COUNTER=B (1-7)
+
 PWRUPV      EQU    AUD1+3
 ADVSW       EQU    PWRUPV+3
 AUTOCY      EQU    ADVSW+3
@@ -69,8 +77,8 @@ PXVCT       EQU    BGINIT+9               ; PLAYER EXPLOSION
 
 SWTAB       EQU    $5F80
 SWTAB1      EQU    SWTAB+32
-
 PLENDV      EQU    SWTAB1+24
+
 LDISPV      EQU    PLENDV+3
 SBDSPV      EQU    LDISPV+3
 GETWVV      EQU    SBDSPV+3
@@ -112,6 +120,8 @@ WRD5FV      EQU    WRD5V+3                ;;; PRINT MESSAGE STARTING 5 HIGH, EVE
 WRD7V       EQU    WRD5FV+3               ;;; PRINT MESSAGE STARTING 7 HIGH.
 WRD7FV      EQU    WRD7V+3                ;;; PRINT MESSAGE STARTING 7 HIGH, EVEN FLAVOR.
 N0AV        EQU    WRD7FV+3               ;;; THIS TABLE IS 40 BYTES
+
+////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 ;   MESSAGE NUMBER EQUATES
@@ -282,55 +292,55 @@ HUMPV     EQU    DYNPV+2
 ;
             ORG    CMOS+$100            ; WRITABLE CMOS
 
-CREDST      RMB    2                    ; CREDITS BACKUP
-SLOT1       RMB    6                    ; LEFT COIN TOTAL
-            RMB    6                    ; CENTER COIN TOTAL
-            RMB    6                    ; RIGHT COIN TOTAL
-            RMB    6                    ; TOTAL PAID CREDITS
-            RMB    6                    ; TOTAL REPLAYS
-            RMB    6                    ; FLIGHT TIME IN MINS
-            RMB    6                    ; TOTAL SHIPS PLAYED
-            RMB    6                    ; TOTAL GAMES PLAYED
-WARPS       RMB    6                    ; NUMBER OF WARPS
-SCRSIZ      EQU    14                   ; NUMBER OF NIBBLES IN A SCORE ENTRY
+CREDST      RMB    2                    ;;; CREDITS BACKUP
+SLOT1       RMB    6                    ;;; LEFT COIN TOTAL
+            RMB    6                    ;;; CENTER COIN TOTAL
+            RMB    6                    ;;; RIGHT COIN TOTAL
+            RMB    6                    ;;; TOTAL PAID CREDITS
+            RMB    6                    ;;; TOTAL REPLAYS
+            RMB    6                    ;;; FLIGHT TIME IN MINS
+            RMB    6                    ;;; TOTAL SHIPS PLAYED
+            RMB    6                    ;;; TOTAL GAMES PLAYED
+WARPS       RMB    6                    ;;; NUMBER OF WARPS
+SCRSIZ      EQU    14                   ;;; NUMBER OF NIBBLES IN A SCORE ENTRY
 GODINT      RMB    6
 GODSCR      RMB    48
-CMSCOR      RMB    40*SCRSIZ            ; 40 BACKED UP SCORES, 39 OF WHICH ARE VISIBLE
-TODAYS      RMB    6*SCRSIZ             ; TODAYS GREATEST
+CMSCOR      RMB    40*SCRSIZ            ;;; 40 BACKED UP SCORES, 39 OF WHICH ARE VISIBLE
+TODAYS      RMB    6*SCRSIZ             ;;; TODAYS GREATEST
 TODEND
 
-            ORG    CMOS                 ; ADEQUATE BIRTH CONTROL PROTECTION
+            ORG    CMOS                 ;;; ADEQUATE BIRTH CONTROL PROTECTION
 
-REPLAY      RMB    2                    ; REPLAY LEVEL
-NSHIP       RMB    2                    ; # OF SHIPS/1 CREDIT GAME
-N2SHIP      RMB    2                    ; # OF SHIPS/2 CREDIT GAME  0=NO TWO CREDIT GAME
-COINSL      RMB    2                    ; FOR COINAGE SELECT MODE
-SLOT1M      RMB    2                    ; LEFT COIN MULT
-SLOT2M      RMB    2                    ; CENTER COIN MULT
-SLOT3M      RMB    2                    ; RIGHT COIN MULT
-CUNITC      RMB    2                    ; COIN UNITS PER CREDIT
-CUNITB      RMB    2                    ; COIN UNITS FOR BONUS
-MINUNT      RMB    2                    ; MINIMUM REQD
-FREEPL      RMB    2                    ; FREE PLAY MODE       (ONE CREDIT GAME)
-GA1         RMB    2                    ; 10 MASTER DIFFICULTY CONTROL                  1
-            RMB    2                    ; GAME ADJUSTS - DIFFICULTY                     2
-            RMB    2                    ; DIFFICULTY CEILING                            3
-            RMB    2                    ; FIRST WAVE OF INCREASED DIFFICULTY            4
-            RMB    2                    ; LAST WAVE OF INCREASED DIFFICULTY             5
-            RMB    2                    ; NUMBER ADDED IN ADDITION TO REGULAR INCREASE  6
-            RMB    2                    ; INVISO TIME/MAN                               7
-            RMB    2                    ; # OF MEN FOR WARP                             8
-            RMB    2                    ; LAST WAVE WARP IS ALLOWED TO OCCUR IN.        9
-            RMB    2                    ; NUMBER OF LETTERS ALLOWED TO GOD             10
-SPECFN      RMB    2                    ; RESTORE FACTORY SETTINGS
-            RMB    2                    ; CLEAR AUDIT TOTALS
-            RMB    2                    ; INITIALIZE HIGH SCORE TABLE
-            RMB    2                    ; INTIATE AUTO CYCLE
-            RMB    2                    ; ENTER ATTRACT MODE MESSAGE
-            RMB    2                    ; ENTER HIGHEST SCORE NAME
+REPLAY      RMB    2                    ;;; REPLAY LEVEL
+NSHIP       RMB    2                    ;;; # OF SHIPS/1 CREDIT GAME
+N2SHIP      RMB    2                    ;;; # OF SHIPS/2 CREDIT GAME  0=NO TWO CREDIT GAME
+COINSL      RMB    2                    ;;; FOR COINAGE SELECT MODE
+SLOT1M      RMB    2                    ;;; LEFT COIN MULT
+SLOT2M      RMB    2                    ;;; CENTER COIN MULT
+SLOT3M      RMB    2                    ;;; RIGHT COIN MULT
+CUNITC      RMB    2                    ;;; COIN UNITS PER CREDIT
+CUNITB      RMB    2                    ;;; COIN UNITS FOR BONUS
+MINUNT      RMB    2                    ;;; MINIMUM REQD
+FREEPL      RMB    2                    ;;; FREE PLAY MODE       (ONE CREDIT GAME)
+GA1         RMB    2                    ;;; 10 MASTER DIFFICULTY CONTROL                  1
+            RMB    2                    ;   GAME ADJUSTS - DIFFICULTY                     2
+            RMB    2                    ;   DIFFICULTY CEILING                            3
+            RMB    2                    ;   FIRST WAVE OF INCREASED DIFFICULTY            4
+            RMB    2                    ;   LAST WAVE OF INCREASED DIFFICULTY             5
+            RMB    2                    ;   NUMBER ADDED IN ADDITION TO REGULAR INCREASE  6
+            RMB    2                    ;   INVISO TIME/MAN                               7
+            RMB    2                    ;   # OF MEN FOR WARP                             8
+            RMB    2                    ;   LAST WAVE WARP IS ALLOWED TO OCCUR IN.        9
+            RMB    2                    ;   NUMBER OF LETTERS ALLOWED TO GOD             10
+SPECFN      RMB    2                    ;;; RESTORE FACTORY SETTINGS
+            RMB    2                    ;   CLEAR AUDIT TOTALS
+            RMB    2                    ;   INITIALIZE HIGH SCORE TABLE
+            RMB    2                    ;   INTIATE AUTO CYCLE
+            RMB    2                    ;   ENTER ATTRACT MODE MESSAGE
+            RMB    2                    ;   ENTER HIGHEST SCORE NAME
 ENDADJ
 
-OPMESS      RMB    100                  ; 2 LINES OF 25 CHARS EACH.
+OPMESS      RMB    100                  ;;; 2 LINES OF 25 CHARS EACH.
 OPL1        RMB    2
 OPL2        RMB    2
 ADJSUM      RMB    2
@@ -339,7 +349,7 @@ OMESUM      RMB    2
 ;BASE PAGE RAM AREA
          ORG    $9C00
 
-RAM         EQU     $9c00
+RAM      EQU     $9c00
          SETDP   RAM>>8
 
 BGSAV       rmb 16
@@ -594,14 +604,13 @@ OSIZE       EQU    $17
 OLIST       RMB    (95)*OSIZE   ;;; Master Object list. Table that contains all of the game's visual objects
 OLEND                           ;;; Object list end
 
-;USER DEFINED OBJECT TYPES
-;0=NORMAL,HYPERABLE
-;1=LANDER PICKING UP NON-HYP
-;2(BIT 1)= APPEAR NON-HYP
-;$10=EARTHLING NON-HYP,NON SMART BOMB
-;$11=SIGN POST NON-HYP,NON SB
-
-;USER DEFINED PROCESS TYPES
+;;;USER DEFINED OBJECT TYPES
+;;;0=NORMAL,HYPERABLE
+;;;1=LANDER PICKING UP NON-HYP
+;;;2(BIT 1)= APPEAR NON-HYP
+;;;$10=EARTHLING NON-HYP,NON SMART BOMB
+;;;$11=SIGN POST NON-HYP,NON SB
+;;;USER DEFINED PROCESS TYPES
 STYPE    EQU    0    ;;; Process type: SYSTEM PROCESS
 ATYPE    EQU    1
 CTYPE    EQU    2
@@ -849,3 +858,12 @@ GETLST    RMB    3           ;;; RAM TO IMPLEMENT RUBOUT FEATURE OF INITIAL ENTR
 CHKS2     RMB    1
 SGDFLG    RMB    1           ;;; STARGATE DELAY FLAG.
 
+
+;; Various equates
+YMAXX   equ  $F6
+YMINN   equ  $0A
+XMAX    equ  $9C
+XMIN    equ  $0
+NRINGS  equ  $10
+RADIUS  equ  $800
+DELTA   equ  $60        ; STEP SIZE (IN Y DIRECTION)

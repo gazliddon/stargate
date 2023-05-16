@@ -15,7 +15,7 @@ OFSHIT  pshs    X,U,D,Y
 EXEC    LDX #ACTIVE
         STX CRPROC
 
-!wait   LDA TIMER
+!wait   LDA TIMER                   ; Wait until TIMER changes
         BEQ !wait
         CLR TIMER
 
@@ -38,6 +38,7 @@ EXEC01  STA OVCNT
         BLS EXEC1
         LDA #2
         STA OVCNT
+
 ; OVERLOAD
 ; WIPE OUT A GUY
         LDY #OPTR

@@ -265,7 +265,8 @@ STARTX  RTS
 ;
 PLSTRT  LDB #7                          ; HIT SHIP COUNTER
         JSR AUD1
-PLSTR0  JSR SCLR1
+
+PLSTR0  JSR SCLR1                       ; Clear the screen
         JSR INIT20                      ; RE:INIT THE BOYS
         JSR GNCIDE
         LDA #$7F
@@ -362,14 +363,18 @@ HIDLP   LDA ,Y+
         BEQ PLS00
         JSR PR35V
         BRA HIDLP
+
 PLS00   CLR OVCNT
         CLR TIMER
         LDA #16
         STA STRCNT
+
+
         LDA #$60
-        LDX #PLS1
+        LDX #!sleep
         JMP SLEEP
-PLS1    JSR PLRES
+
+!sleep  JSR PLRES
         CLR OVCNT
         CLR TIMER
         LDA #16
@@ -407,9 +412,8 @@ LNKCHK  LDX PLRX                        ; GET THE CURRENT PLAYER
         ADDA PENEMY+DYNCNT-ELIST,X
         ADDA PENEMY+FBCNT-ELIST,X
         RTS
-;
-;  PRINT CHALLENGE ROUND MESSAGE
-;
+
+;;;  PRINT CHALLENGE ROUND MESSAGE
 PRCHM   PSHS X,Y,D
         LDY PLRX                        ; GET THE PLAYER
         LDA PWAV,Y
@@ -561,18 +565,21 @@ INVX    CLR INVFLG
         STA STATUS
         JSR IVDISP                      ; SHOW YOUR UNITS
 INVXX   JMP SUCIDE
-;
-; PLAYER END
-;
-PLEND   LDA #DTYPE                      ; DEATH TYPE
+
+;;; PLAYER end
+PLEND   LDA #DTYPE                      ; Set this proc to player death type
         LDU CRPROC
         STA proc.type,U
-        LDA STATUS
-        BPL PLEND1
-        LDA #$D8
-        STA STATUS
+        LDA STATUS                      ; Is the game over?
+        BPL PLEND1                      ; no!
+
+; Set status to game_over, controls inactive, player invisible, player dead
+        LDA #$D8            
+        STA STATUS 
         BRA PLEND2
-PLEND1  LDB #$58
+
+; Set 
+PLEND1  LDB #$58                        
         JSR STCHK0
 PLEND2  LDD BGL
         STD BGLX                        ; NOMO SCROLL
@@ -582,9 +589,8 @@ PLEND2  LDD BGL
         JSR PLSAV
         LDD #PDSND
         JSR SNDLD
-;
-; PLAYER DEATH
-;
+
+;;; PLAYER DEATH
 PDEATH  LDY #PLAPIC
         LDA NPLAD
         BPL PDTH1
@@ -689,9 +695,7 @@ PXCTB   FCB 7,$F,$3F,$7F,$FF,$17,0
 ; WALL COLOR TABLE
 WCTAB   FCB $00,$BB,$33,$22,$11,$44,$66,$77
         FCB $00,$99,$FF,$88,$11,$77,$99,$44
-;
-; SAVE PLAYER STATE
-;
+;;; SAVE PLAYER STATE
 PLSAV   PSHS D,X,U
         LDU PLRX
         LEAU PTARG,U

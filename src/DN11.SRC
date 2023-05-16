@@ -4,7 +4,7 @@
     ; LIST
     ; TTL   <<<<<  S T A R G A T E  >>>>>
 
-.OPTR   EQU proc.data
+.DYN_OPTR   EQU proc.data
 .VEL    EQU proc.data+2
 .SHOT   EQU proc.data+3
 
@@ -134,7 +134,7 @@ DNLOP9
 
 MISSND  FCB $C0,$01,$40,$19,$1,$01,$16,$0
 
-DNPICT  LDX .OPTR,U                         ; GET OUR POINTER
+DNPICT  LDX .DYN_OPTR,U                         ; GET OUR POINTER
         LDD OX16,X                          ; ON SCREEN??
         SUBD    BGL
         ADDD    #50*32
@@ -195,7 +195,7 @@ MISS22  STD OX16,X
         INCA
         STA proc.data+2,U                          ; INSTANT VELOCITY CHANGE
         STX OPTR
-        STX .OPTR,U
+        STX .DYN_OPTR,U
  
 MSLOOP  JSR MSPICT                          ; DO THE PICTURE NUMBER
         DEC proc.data+2,U                          ; VELOCITY DIVIDER
@@ -256,7 +256,7 @@ YCHK    LDD PLAYC
 YCHK1   CMPD    #$A00
         RTS
 
-MSPICT  LDX .OPTR,U
+MSPICT  LDX .DYN_OPTR,U
         LDD OX16,X
         SUBD    BGL 
         CMPD    #300*32                     ; ON SCREEN??

@@ -1061,20 +1061,26 @@ DPK1    LDX proc.data ,U
 ;
 KILLNO  CLRA
         PULS D,PC
-;
-; TERRAIN STATUS UPDATE
-;
+
+;;; TERRAIN STATUS UPDATE
+;;; with status defaulting to zero
 STCHK   CLRB                            ; CHECK TERRAIN ACTIVE
+
+;;; TERRAIN STATUS UPDATE
+;;; B = base for status
+;;; Set terrain to innactive if ASTCNT == 0
 STCHK0  LDA ASTCNT
-STCHKA  BNE STCHK1
+
+;;; Store A to status
+;;; if Z flag is set then innactivate terrain drawing
+STCHKA  BNE !skip
         ORB #2
-STCHK1  STB STATUS
+!skip   STB STATUS
         RTS
-;
-; MAKE A REG PROCESS
-; X RET WITH PROC PTR
-; [RET]=SADDR, TYPE=STYPE, RET=RET+2
-;
+
+;;; MAKE A REG PROCESS
+;;; X RET WITH PROC PTR
+;;; [RET]=SADDR, TYPE=STYPE, RET=RET+2
 MAKEP   PSHS U,A
         LDU 3,S                         ; GET X
         PULU X
@@ -1082,12 +1088,14 @@ MAKEP   PSHS U,A
         LDA #STYPE
         JSR MKPROC
         PULS U,A,PC
-; GATE RING OFFSET TABLE OUTER-INNER,INNER-CENT; TL-TL
+
+;;; GATE RING OFFSET TABLE OUTER-INNER,INNER-CENT; TL-TL
 GOFFTB  FDB $0805,$0805,$0705,$0604
         FDB $0503,$0403,$0302,$0201
         FDB $0101,$0001,$0001,$0001
         FDB $0001,$0001,$0001,$0001
-;
+
+;;; Clean SAM RAM
 SCLEAN  LDX #RAMALS
         STX FREEP
 SCLEN1  LEAX $40,X
@@ -1102,11 +1110,9 @@ SCLEN1  LEAX $40,X
         STD TRPTR
         STA SAMEXC
         RTS
-;
-;
-; STAR GATE OUTPUT
-; OUTER RING
-;
+
+;;; STAR GATE OUTPUT
+;;; OUTER RING
 ONSG    PSHS X,CC
         ADDB #8
         TFR D,U

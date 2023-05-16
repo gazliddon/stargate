@@ -1,99 +1,5 @@
-    import ::core::SLEEP
-    import ::core::COLTAB
-    import ::core::SUCIDE
-    import ::core::KILLOP
-    import ::core::ERROR
-    import ::core::KILL
-    import ::core::SCRCLR
-    import ::core::EXEC
-    import ::core::SCLR1
-    import ::core::MSPROC
-    import ::core::MKPROC
-    import ::core::GNCIDE
-    import ::core::OBINIT
-    import ::core::GETOB
-    import ::core::OFSHIT
-    import ::core::KILLOB
-    import ::core::KILSHL
-    import ::core::OFF58
-    import ::core::ON48
-    import ::core::OFF48
-    import ::core::ON58
-    import ::core::ON34 
-    import ::core::ON64
-    import ::core::OFF64
-    import ::core::ON86
-    import ::core::OFF86
-    import ::core::ON47
-    import ::core::OFF47
-    import ::core::ON57
-    import ::core::OFF57
-    import ::core::ON59
-    import ::core::OFF59
-    import ::core::FBALON
-    import ::core::LCOIN
-    import ::core::RCOIN
-    import ::core::CCOIN
-    import ::core::PDSND
-    import ::core::ST1SND
-    import ::core::ST2SND
-    import ::core::ACSND
-    import ::core::ALSND
-    import ::core::AHSND
-    import ::core::ASCSND
-    import ::core::APSND
-    import ::core::PRHSND
-    import ::core::SCHSND
-    import ::core::UFHSND
-    import ::core::SWHSND
-    import ::core::LPKSND
-    import ::core::LSKSND
-    import ::core::LHSND
-    import ::core::TIHSND
-    import ::core::USHSND
-    import ::core::SNDLD
-    import ::core::SWSSND
-    import ::core::LSHSND
-    import ::core::SNDOUT
-    import ::core::SSHSND
-    import ::core::COLR
-    import ::core::RMAX
-    import ::core::RAND
-    import ::core::HEXBCD
-    import ::core::LFIRE
-    import ::core::BCDHEX
-    import ::core::PINIT
-    import ::core::CRINIT
-    import ::core::STINIT
-    import ::core::FISS
-    import ::core::OINIT
-    import ::core::THINIT
-    import ::core::PLINDX
-    import ::core::THOFF
-    import ::core::THOFF1
-    import ::core::POFF
-    import ::core::MONO
-    import ::core::PLDX
-    import ::core::GETSHL
-    import ::core::OSCAN
-    import ::core::SCPROC
-    import ::core::THPROC
-    import ::core::BLKCLR
-    import ::core::COFF
-    import ::core::CWRIT
-    import ::core::ISCAN
-    import ::core::SCNR
 
-
-    import ::core::PRBP1
-    import ::core::ASTP1
-    import ::core::ASTP2
-    import ::core::ASTP3
-    import ::core::ASTP4
-    import ::core::TIEP1
-    import ::core::BMBP1
-    import ::core::SWPIC1
-
+    include "imports.src"
 	include "macros.src"
 	include "memory.src"
     include "hw.src"
@@ -115,13 +21,6 @@
         include "TREKC5.SRC"
 
 	scope lorom
-        import ::core::COLTAB
-        import ::core::C5P1
-        import ::core::C25P1
-        import ::core::PLBPIC
-        import ::core::PLAPIC
-        import ::core::SLEEP
-        
         include "ET13.SRC"
         include "MESS2.SRC"
         include "BPS15.SRC"
@@ -130,16 +29,14 @@
         include "SD51.SRC"
         include "TEXT31.SRC"
         include "SAM16.SRC"
-
-    scope DN11
         include "DN11.SRC"
-
-	scope hirom
-		include "ATTR9.SRC"      
-		include "LOG11.SRC"      
+		include "ATTR9.SRC"
+		include "LOG11.SRC"
 		include "TESTB12.SRC"
 		include "TESTC8.SRC"
-		include "TEST12.SRC"     
+		include "TEST12.SRC"
+
+	; scope hirom
 
 	;; Write the roms
 	writebin "$(OUT_DIR)/01",stargate_rom_1, $1000
