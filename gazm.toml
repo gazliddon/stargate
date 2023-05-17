@@ -4,14 +4,22 @@ name = "stargate"
 [opts]
 verbose="Silent"
 mem-size = 94208
-project-file = "src/stargate.src"
-# no-async=true
+project-file = "src/stargate.gazm"
+bin-references = [
+    { file = "orig/roms/01", addr = 0x0000 },
+    { file = "orig/roms/02", addr = 0x1000 },
+    { file = "orig/roms/03", addr = 0x2000 },
+    { file = "orig/roms/04", addr = 0x3000 },
+    { file = "orig/roms/05", addr = 0x4000 },
+    { file = "orig/roms/06", addr = 0x5000 },
+    { file = "orig/roms/07", addr = 0x6000 },
+    { file = "orig/roms/08", addr = 0x7000 },
+    { file = "orig/roms/09", addr = 0x8000 },
+    { file = "orig/roms/10", addr = 0xd000 },
+    { file = "orig/roms/11", addr = 0xe000 },
+    { file = "orig/roms/12", addr = 0xf000 }, ]
 
-# [opts.debug]
-# verbose="Info"
-# mem-size = 94208
-# project-file = "src/stargate.src"
-# build-async = true
+# no-async=true
 
 [vars]
 OUT_DIR = "roms"

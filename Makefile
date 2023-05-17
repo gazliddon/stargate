@@ -4,9 +4,9 @@ DEPS_DIR := deps
 SRC_DIR := src
 REF_ROMS_DIR := stargate
 
-SRCS := stargate.src
-SYMS := $(SRCS:%.src=$(TMP_DIR)/%.sym)
-DEPS := $(SRCS:%.src=$(DEPS_DIR)/%.d)
+SRCS := stargate.gazm
+SYMS := $(SRCS:%.gazm=$(TMP_DIR)/%.sym)
+DEPS := $(SRCS:%.gazm=$(DEPS_DIR)/%.d)
 
 GAZM_DIR := ~/development/gazm/gazm
 
@@ -26,7 +26,7 @@ ASM := $(PFX) cargo run --target-dir $(TMP_DIR) --manifest-path $(GAZM_DIR)/Carg
 all: dirs gazm.toml $(SYMS)
 	@echo All Done!
 
-$(TMP_DIR)/%.sym : $(SRC_DIR)/%.src
+$(TMP_DIR)/%.sym : $(SRC_DIR)/%.gazm
 	@echo Assembling $< to $@
 	$(ASM) gazm.toml
 

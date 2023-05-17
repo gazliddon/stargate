@@ -1,40 +1,40 @@
 
-    include "imports.src"
-	include "macros.src"
-	include "memory.src"
-    include "hw.src"
-	include "SPHR56.SRC"
-    include "EQ4.SRC"
+    include "imports.gazm"
+	include "macros.gazm"
+	include "memory.gazm"
+    include "hw.gazm"
+	include "SPHR56.gazm"
+    include "EQ4.gazm"
 
 	scope core
         ;; Orgs at zero
         ;; then at 0x7ad
-		include "RA37.SRC"
+		include "RA37.gazm"
         ;; carries on from RA37 to 0x26a7
         ;; then orgs at 0x2b70
-		include "RB37.SRC"
+		include "RB37.gazm"
 
     scope trek5
-        include "TREK5.SRC"
+        include "TREK5.gazm"
 
     scope trekc5
-        include "TREKC5.SRC"
+        include "TREKC5.gazm"
 
 	scope lorom
-        include "ET13.SRC"
-        include "MESS2.SRC"
-        include "BPS15.SRC"
-        include "LMA12.SRC"
-        include "YF14.SRC"
-        include "SD51.SRC"
-        include "TEXT31.SRC"
-        include "SAM16.SRC"
-        include "DN11.SRC"
-		include "ATTR9.SRC"
-		include "LOG11.SRC"
-		include "TESTB12.SRC"
-		include "TESTC8.SRC"
-		include "TEST12.SRC"
+        include "ET13.gazm"
+        include "MESS2.gazm"
+        include "BPS15.gazm"
+        include "LMA12.gazm"
+        include "YF14.gazm"
+        include "SD51.gazm"
+        include "TEXT31.gazm"
+        include "SAM16.gazm"
+        include "DN11.gazm"
+		include "ATTR9.gazm"
+		include "LOG11.gazm"
+		include "TESTB12.gazm"
+		include "TESTC8.gazm"
+		include "TEST12.gazm"
 
 	; scope hirom
 
@@ -51,3 +51,4 @@
 	writebin "$(OUT_DIR)/10",stargate_rom_10, $1000
 	writebin "$(OUT_DIR)/11",stargate_rom_11, $1000
 	writebin "$(OUT_DIR)/12",stargate_rom_12, $1000
+
