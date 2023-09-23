@@ -5,6 +5,9 @@ name = "stargate"
 verbose="Silent"
 mem-size = 94208
 project-file = "src/stargate.gazm"
+source-mapping = "$(OUT_DIR)/stargate.map"
+syms-file = "$(OUT_DIR)/stargate.sym"
+
 bin-references = [
     { file = "orig/roms/01", addr = 0x0000 },
     { file = "orig/roms/02", addr = 0x1000 },
