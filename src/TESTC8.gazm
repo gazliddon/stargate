@@ -4,14 +4,14 @@
 ; LIST
 ; TTL <<<<< S T A R G A T E  >>>>>
 
-      ORG TSCORG                          ; PLACE TO RUN FROM
+            ORG TSCORG                          ; PLACE TO RUN FROM
 
-            JMP CKHS                          ; CHECK HIGH SCORES (POWER UP)
-            JMP ENDGAM                        ; END OF GAME HIGH SCORE PROCESSING
-            JMP GODENT                        ; ENTER GOD
-            JMP RESHSC                        ; RESET HIGH SCORES
-            JMP HSCHK                         ; CHECK HIGH SCORES AFTER FAC SET RESTORE
-            JMP HSBUT                         ; HIGH SCORE RESET BUTTON
+PUPHSC      JMP CKHS                          ; CHECK HIGH SCORES (POWER UP)
+ENDPRC      JMP ENDGAM                        ; END OF GAME HIGH SCORE PROCESSING
+GODSET      JMP GODENT                        ; ENTER GOD
+HIGHRS      JMP RESHSC                        ; RESET HIGH SCORES
+HSCHKV      JMP HSCHK                         ; CHECK HIGH SCORES AFTER FAC SET RESTORE
+HSBUTV      JMP HSBUT                         ; HIGH SCORE RESET BUTTON
 
 HSBUT   LDA #$18                          ; 3 SECONDS REQUIRED
         STA proc.data,U

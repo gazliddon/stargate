@@ -20,8 +20,7 @@ endif
 RUSTFLAGS_Darwin_arm64 := RUSTFLAGS="-C target-cpu=apple-m1"
 RUSTFLAGS_Darwin_x86_64 := RUSTFLAGS="-C target-cpu-native"
 
-PFX := $(RUSTFLAGS_$(OS)_$(ARCH))
-ASM := $(PFX) cargo run --target-dir $(TMP_DIR) --manifest-path $(GAZM_DIR)/Cargo.toml -- build
+ASM := gazm build
 
 all: dirs gazm.toml $(SYMS)
 	@echo All Done!

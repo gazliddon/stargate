@@ -19,15 +19,13 @@ TOFF1     RMB 1                             ; ALT OFFSET FLAV1
 SCFLG     RMB 1                             ; SCROLL DIRECTION 0=RT.,$FF=LFT.
 
 ; VECTORS
+                ORG BGORG
+BGINIT          JMP BGI                           ;;; INIT TERRAIN Vector
+BGOUT           JMP BGO                           ;;; OUTPUT TERRAIN Vector
+BGERAS          JMP BGE_label                     ;;; ERASE TERRAIN vector
+PXVCT           JMP LEDEX                         ;;; PLAYER EXPLOSION
 
-            ORG BGORG
-BGINIT_vec  JMP BGI                           ; INIT TERRAIN
-BGOUT_vec   JMP BGO                           ; OUTPUT TERRAIN
-BGERAS_vec  JMP BGE_label                     ; ERASE TERRAIN
-PXVCT_vec   JMP LEDEX                         ; PLAYER EXPLOSION
-
-; TERRAIN INITIALIZE
-
+;;; TERRAIN INITIALIZE
 BGI     LDX #$D004
 
         LDA STATUS
@@ -626,7 +624,4 @@ PLAD20  FDB $0000,$001A,$11A9
         FDB $1011,$9ADF,$A9F1
         FDB $1019,$1FA0,$19A0
 
-        ORG $3237
-        FCB $02 ; MATCH THE PROMS!!!!!
 
-  END 

@@ -4,36 +4,34 @@
   ; LIST
   ; TTL  <<<<< S T A R G A T E  >>>>>
   ORG  RAMALS  ; USE SAM RAM FOR STORAGE
-XSTOR   RMB  2
-YSTOR   RMB  2
-ASTOR   RMB  1
-USTOR   RMB  2
+XSTOR       RMB  2
+YSTOR       RMB  2
+ASTOR       RMB  1
+USTOR       RMB  2
 
-FROBX   EQU  $C
-ADJX    EQU  $11
-ADVALX  EQU  $59
+FROBX       EQU  $C
+ADJX        EQU  $11
+ADVALX      EQU  $59
 
-  ORG  TSBORG
-  JMP  ADJUST
-  JMP  CKCMOS
-  JMP  OPTST_
-  JMP  GETLET
-  JMP  CMOSMV
- 
-;  CMOS MOVE: DESTINATION=Y, SOURCE=X, COUNT=B
- 
-CMOSMV  PSHS  A           ; NEED A
-CMMV1   LDA  ,X+          ; GET SOURCE
-        EXG  X,Y          ; SWAP
-        JSR  WCMOSA       ; RITE IT
-        EXG  X,Y          ; SWAP BACK
-        DECB              ; DONE?
-        BNE  CMMV1        ; NO,LOOP
-        PULS  A,PC        ; RETURN CLEAN
+            ORG  TSBORG
 
+ADJV        JMP  ADJUST
+CMINIT      JMP  CKCMOS
+ATMCK       JMP  OPTST_
+GETLT       JMP  GETLET
+CMSMVV      JMP  CMOSMV
  
-;  CLEAR CMOS: CRASHES A,B,X
- 
+;;;  CMOS MOVE: DESTINATION=Y, SOURCE=X, COUNT=B
+CMOSMV      PSHS  A           ; NEED A
+CMMV1       LDA  ,X+          ; GET SOURCE
+            EXG  X,Y          ; SWAP
+            JSR  WCMOSA       ; RITE IT
+            EXG  X,Y          ; SWAP BACK
+            DECB              ; DONE?
+            BNE  CMMV1        ; NO,LOOP
+            PULS  A,PC        ; RETURN CLEAN
+
+;;;  CLEAR CMOS: CRASHES A,B,X
 CLRALL  LDX  #CMOS          ;POINT TO START
 CLRA1   CLR  ,X+
         CMPX  #CMOS+$400

@@ -5,97 +5,100 @@
 ; TTL   <<<<<  S T A R G A T E  >>>>>
 
         ORG BPSORG
-        JMP UFOST_
-        JMP PRBST_
-        JMP MMSW_
-        JMP RIPST
-        JMP MPROB_
-        JMP BMST
-        FDB UFNP1
-        FDB BMRP0
-        FDB BMSP0
-        FDB MCHYP0
-        FDB MCHRP0
-        FDB MCHGP0
 
-;
-; UFO PROCESS START
-; PD=OBJECT,PD2=SHOT TIMER,PD5=18 FRAME (3 X 6) VELOCITY DIVIDER
-; PD4 COUNTS NUMBER OF ITERS LEFT IN IMAGE LOOP
+UFOST       JMP UFOST_
+PRBST       JMP PRBST_
+MMSW        JMP MMSW_
+RIPV1       JMP RIPST_
+MPROB       JMP MPROB_
+BMSTV       JMP BMST
+BAITPV      FDB UFNP1
+BREDPV      FDB BMRP0
+PHRDPV      FDB BMSP0
+MCHYPV      FDB MCHYP0
+MCHRPV      FDB MCHRP0
+MCHGPV      FDB MCHGP0
+
+;;; __Proc__: UFO PROCESS START
+;;;
+;;;  * PD  : OBJECT
+;;;  * PD2 : SHOT TIMER
+;;;  * PD5 : 18 FRAME (3 X 6) VELOCITY DIVIDER
+;;;  * PD4 : COUNTS NUMBER OF ITERS LEFT IN IMAGE LOOP
 UFOST_  LDA SEED                                ; START BAITER MASTER????
         CMPA    #$C0
         LBLS    BMST
-    ; Request A UFO
-    ; proc addr = UFOLP
-    ; obj pic = UFNP1
-    ; kill routine = UFOKIL
-    ; blip col = $3333
-        MKPROB  (UFOLP,UFNP1,UFOKIL,$3333)
-        BEQ !exit                              ; No procs / objs available
 
-    ; Woo! Made one, increase the global number of UFOs
-        INC     UFOCNT
-        LDA     #3                                  ; INITIALIZE VELOCITY DIVIDER
-        STA     proc.d5,U
-        LDD     SEED
-        ANDA    #$1F
-        ADDD    BGL
-        STD     OX16,X
-        LSRB
-        ADDB    #YMIN
-        STB     OY16,X
-        LDA     #8
-        STA     proc.d2,U                               ; INIT SHOT TIMER
-        BSR     UFONV0
-        JMP     APVCT
-!exit   RTS
+// Request A UFO
+// proc addr = UFOLP
+// obj pic = UFNP1
+// kill routine = UFOKIL
+// blip col = $3333
+        MKPROB (UFOLP,UFNP1,UFOKIL,$3333)
+        BEQ !exit                               ; No procs / objs available
+
+// Woo! Made one, increase the global number of UFOs
+        inc     UFOCNT
+        lda     #3                              ; INITIALIZE VELOCITY DIVIDER
+        sta     proc.d5,U
+        ldd     SEED
+        anda    #$1F
+        addd    BGL
+        std     OX16,X
+        lsrb
+        addb    #YMIN
+        stb     OY16,X
+        lda     #8
+        sta     proc.d2,U                       ; INIT SHOT TIMER
+        bsr     UFONV0
+        jmp     APVCT
+!exit   rts
 
 ;;; UFO PROCESS
-UFOLP   LDX proc.data,U
-        LDD OPICT,X
-        CMPD    #NULOB
-        BEQ UFO4
-        DEC proc.d2,U
-        BNE UFO1
-        LDA UFSTIM
-        JSR RMAX
-        STA proc.d2,U
-        JSR SHOOTV
-        BEQ UFO1
-        LDD #USHSND
-        JSR SNDLD
-UFO1    DEC proc.d5,U                           ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
-        BNE UFO2                                ; NOT THIS TIME
-        LDA #3                                  ; RESET DIVIDER
-        STA proc.d5,U
-        BSR UFONV                               ; AND DO THE VELOCITY NUMBER
-UFO2    LDD OBJX,X                              ; SEE IF ON SCREEN
-        BEQ UFO4                                ; THEN TAKE A VERY LONG SNOOZE
-        LDA #6
-        STA proc.d4,U
+UFOLP   ldx     proc.data,U
+        ldd     OPICT,X
+        cmpd    #NULOB
+        beq     UFO4
+        dec     proc.d2,U
+        bne     UFO1
+        lda     UFSTIM
+        jsr     RMAX
+        sta     proc.d2,U
+        jsr     SHOOTV
+        beq     UFO1
+        ldd     #USHSND
+        jsr     SNDLD
+UFO1    dec     proc.d5,U                       ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
+        bne     UFO2                            ; NOT THIS TIME
+        lda     #3                              ; RESET DIVIDER
+        sta     proc.d5,U
+        bsr     UFONV                           ; AND DO THE VELOCITY NUMBER
+UFO2    ldd     OBJX,X                          ; SEE IF ON SCREEN
+        beq     UFO4                            ; THEN TAKE A VERY LONG SNOOZE
+        lda     #6
+        sta     proc.d4,U
 UFO5    
         NAP (1,UFO3)                            ; SHORT NAP TILL NEXT IMAGE UPDATE
-UFO3    LDX proc.data,U                                ; GET IMAGE 
-        BSR UFOPIC                              ; AND DO THE IMAGE NUMBER
-        DEC proc.d4,U
-        BNE UFO5                                ; 1 MORE ITERATION
-        BRA UFOLP
+UFO3    ldx     proc.data,U                     ; GET IMAGE 
+        bsr     UFOPIC                          ; AND DO THE IMAGE NUMBER
+        dec     proc.d4,U
+        bne     UFO5                            ; 1 MORE ITERATION
+        bra     UFOLP
 UFO4    
         NAP (6,UFOLP)
 
-UFOPIC  LDY OPICT,X                             ; GET CURRENT IMAGE
-        LEAY    OBJL,Y                          ; PUSH TO NEXT
-        CMPY    #UFNP7                          ; PAST LAST??
-        BLS UFOPL1                              ; NOPE
-        LDY #UFNP1                              ; THEN PUT FIRST IN
-UFOPL1  STY OPICT,X                             ; AND SET IN PLACE
-        RTS                                     ; KAY.BYE
+UFOPIC  ldy     OPICT,X                         ; GET CURRENT IMAGE
+        leay    OBJL,Y                          ; PUSH TO NEXT
+        cmpy    #UFNP7                          ; PAST LAST??
+        bls     UFOPL1                          ; NOPE
+        ldy     #UFNP1                          ; THEN PUT FIRST IN
+UFOPL1  sty     OPICT,X                         ; AND SET IN PLACE
+        rts                                     ; KAY.BYE
 
-; UFO VELOCITY
+;;; UFO VELOCITY
 ;;; Ufo may seek player depending on UFOSK
 ;;; UFOSK is set according to the wave data
-UFONV   
-        LDA     SEED
+UFONV   LDA     SEED
         CMPA    UFOSK
         BLS     UFONVX
 
@@ -139,13 +142,13 @@ UFOKIL  DEC UFOCNT
 ;;; X-PD,U                                         ;0-OXV,X OYV,X
 ;;; RET EQ IF NOTHING LEFT
 MPROB_  pshs    D,Y
-        ; quit if there are no procs or objs on the free list
+        // quit if there are no procs or objs on the free list
         ldx     OFREE
         beq     !error                               ; NONE LEFT
         ldx     FREE
         beq     !error
 
-        ; Okay! Make a proc
+        // Okay! Make a proc
         clra                          ; user type = 0
         ldu     4,S                   ; User stack -> at passed params
         pulu    X                     ; X -> run process routine
@@ -153,7 +156,7 @@ MPROB_  pshs    D,Y
         leay    ,X                    ; Y -> proc
 
 
-        ; Okay! Lets make an object!
+        // Okay! Lets make an object!
         jsr     GETOB                 ; X -> object
         pulu    D                     ; Copy the pic param into the object struct
         std     OPICT,X               
@@ -163,14 +166,14 @@ MPROB_  pshs    D,Y
         std     OBJCOL,X              ; Object blip
         stu     4,S                   ; NEW RET ADDR
 
-        ; U -> proc
+        // U -> proc
         leau    ,Y
         stu     OBJID,X               ; Save the process ptr into the objid
 
-        ; Save the object ptr into the proc
+        // Save the object ptr into the proc
         stx     proc.data,U
 
-        ; x -> object
+        // x -> object
         clra
         clrb
         std     OYV,X                 ; zero the obj vels
@@ -187,8 +190,8 @@ MPROB_  pshs    D,Y
         CLRA                          ; Return with Z flag = 1
         PULS    D,Y,PC
 
-; START BAITER MASTER
-; PD=OBJ,PD2=IMAGE#,PD4=BASE IMAGE TABLE,PD6=SHOT TIMER
+;;; START BAITER MASTER
+;;; PD=OBJ,PD2=IMAGE#,PD4=BASE IMAGE TABLE,PD6=SHOT TIMER
 BMST    
         MKPROB (BM,BMRP0,BMKIL,$3333)
         BEQ BMSTX
@@ -247,10 +250,7 @@ BM2     STA proc.d6,U
 BMX 
         NAP(6,BM)
 
-;
-; GET BM NEW VELOCITY
-;
-
+;;; GET BM NEW VELOCITY
 BMNV    LDA SEED                                    ; SMART OR DUMB
         CMPA    BMSK
         BLS BMNV5
@@ -282,10 +282,7 @@ BMNV3   ADDA    #10
         STD OYV,X
 BMNV5   RTS
 
-;
-; BAITER MASTER SHOOTING
-;
-
+;;; BAITER MASTER SHOOTING
 BMSHT   PSHS    X,U,D,Y
         LDA OX16,X
         SUBA    BGL
@@ -341,10 +338,7 @@ BMSHTX  PULS    X,U,D,Y,PC
 MCHKIL  DEC MCHCNT
         KILP    ($50,MCKSND)
         RTS
-;
-; KILL BAITER MASTER
-;
-
+;;; KILL BAITER MASTER
 BMKIL   DEC BMCNT
 BMKX    
         KILP    ($120,BMKSND)
@@ -354,71 +348,66 @@ BMSSND  FCB $D0,$01,$10,$18,0               ; BM SHOOT SND
 BMKSND  FCB $D0,$01,$0C,$01,$1,$08,$17,0    ; BM KILL
 MCKSND  FCB $D0,$01,$0C,$1A,$1,$08,$17,0    ; MUNCHY KILL
                                             
-; MUNCHIES
-; PD=OBJECT,PD2=IMAGE#,PD3=SLEEP TIME,PD4=BASE IMAGE TABLE
-;
-
-MCH     LDX proc.data,U                            ; GET OBJ
-        DEC proc.d3,U
-        BNE MCH10
-        LDB MCHXV                           ; CALC VEL LIMITS
+;;; MUNCHIES
+;;; PD=OBJECT,PD2=IMAGE#,PD3=SLEEP TIME,PD4=BASE IMAGE TABLE
+MCH     LDX   proc.data,U                     ; GET OBJ
+        DEC   proc.d3,U
+        BNE   MCH10
+        LDB   MCHXV                           ; CALC VEL LIMITS
         CLRA
-        PSHS    D
+        PSHS  D
         NEGB
         SEX
-        PSHS    D
-        LDA MCHYV
+        PSHS  D
+        LDA   MCHYV
         CLRB
-        PSHS    D
+        PSHS  D
         NEGA
-        PSHS    D
-
-; VEL LIMITS 0,S =-YV
-; 2,S =YV; 4,S =-XV; 6,S =XV
-
-        LDD HSEED
-        ANDA    #1
-        ADDD    PLABX
-        SUBD    OX16,X
-        STD XTEMP                                   ; DELTA X
-        LDD SEED
-        ANDA    #7
-        ADDD    PLAY16
-        SUBD    OY16,X
-        STD XTEMP2
-MCHVLP  ASR XTEMP
-        ROR XTEMP+1
-        ASR XTEMP2
-        ROR XTEMP2+1
-        LDD XTEMP
-        BPL MCHV1
-        CMPD    4,S
-        BLT MCHVLP
-        BRA MCHV2
-MCHV1   CMPD    6,S
-        BHI MCHVLP
-MCHV2   LDD XTEMP2
-        BPL MCHV3
-        CMPD    ,S
-        BLT MCHVLP
-        BRA MCHVX
-MCHV3   CMPD    2,S
-        BHI MCHVLP
-MCHVX   LEAS    8,S                                 ; CLEAR STACK
-        STD OYV,X
-        LDD XTEMP
-        ADDD    PLAXV
-        STD OXV,X
-        LDA MCHSLP                                  ; NEW SLEEP TIME
-        JSR RMAX
-        STA proc.d3,U
-MCH10   BSR MCHPIC
+        PSHS  D
+// VEL LIMITS 0,S =-YV
+// 2,S =YV; 4,S =-XV; 6,S =XV
+        ldd     HSEED
+        anda    #1
+        addd    PLABX
+        subd    OX16,X
+        std     XTEMP                           ; DELTA X
+        ldd     SEED
+        anda    #7
+        addd    PLAY16
+        subd    OY16,X
+        std     XTEMP2
+MCHVLP  asr     XTEMP
+        ror     XTEMP+1
+        asr     XTEMP2
+        ror     XTEMP2+1
+        ldd     XTEMP
+        bpl     MCHV1
+        cmpd    4,S
+        blt     MCHVLP
+        bra     MCHV2
+MCHV1   cmpd    6,S
+        bhi     MCHVLP
+MCHV2   ldd     XTEMP2
+        bpl     MCHV3
+        cmpd    ,S
+        blt     MCHVLP
+        bra     MCHVX
+MCHV3   cmpd    2,S
+        bhi     MCHVLP
+MCHVX   leas    8,S                                 ; CLEAR STACK
+        std     OYV,X
+        ldd     XTEMP
+        addd    PLAXV
+        std     OXV,X
+        lda     MCHSLP                                  ; NEW SLEEP TIME
+        jsr     RMAX
+        sta     proc.d3,U
+MCH10   bsr     MCHPIC
         NAP (6,MCH)
 
-; GET MUNCHY PICTURE
-; X=OBJ,U=PROCESS
-; PD2=IMAGE#,PD4=BASE IMAGE
-
+;;; GET MUNCHY PICTURE
+;;; X=OBJ,U=PROCESS
+;;; PD2=IMAGE#,PD4=BASE IMAGE
 MCHPIC  PSHS    D,Y
         LDA proc.d2,U                                   ; GET IMAGE #
         INCA
@@ -833,22 +822,22 @@ PRBS_1  JSR SCORE
         RTS                                 ; AND WE'RE DONE!
 
 SBSWP   
-        NAP (4,SBSWP1)                      ; DELAY TO LET THE POD STUFF MOVE.
-SBSWP1  LDA #3                              ; DO 3 OF THEM.     
-        STA proc.data+2,U
-BOOM1   LDX proc.data,U                            ; GET OBJECT
-        JSR XSVCT                           ; DO AN EXPLOSION
-        LDD PHFBP                           ; LOAD FROM PHONEY FIREBALL POINTER
-        STD OPICT,X                         ; THIS MAKES 2 PURPLE, 2 RED-YELLOW.
-        DEC proc.data+2,U
-        BEQ BOOM2
-        NAP (3,BOOM1)
-BOOM2   LDD OFREE
-        STD ,X
-        STX OFREE
-        DIE()
+            NAP (4,SBSWP1)                      ; DELAY TO LET THE POD STUFF MOVE.
+SBSWP1      LDA #3                              ; DO 3 OF THEM.     
+            STA proc.data+2,U
+BOOM1       LDX proc.data,U                            ; GET OBJECT
+            JSR XSVCT                           ; DO AN EXPLOSION
+            LDD PHFPB                           ; LOAD FROM PHONEY FIREBALL POINTER 
+            STD OPICT,X                         ; THIS MAKES 2 PURPLE, 2 RED-YELLOW.
+            DEC proc.data+2,U
+            BEQ BOOM2
+            NAP (3,BOOM1)
+BOOM2       LDD OFREE
+            STD ,X
+            STX OFREE
+            DIE()
 
-RIPST   JSR GNCIDE                          ; STOP ALL OF THE ACTION
+RIPST_   JSR GNCIDE                          ; STOP ALL OF THE ACTION
         LDA #$FF
         STA STATUS                          ; FOR REAL!
         NAP (1,RIP99)                       ; STOP SAM BIT INTERFERENCE
@@ -966,18 +955,18 @@ MSWKIL  DEC SWCNT
 ; PD=OBJECT,PD2 ACCELERATION,PD4=SHOT TIMER
 ;
 
-MSWM    LDX proc.data,U
-        LDB SWXV
-        LDY PLABX
+MSWM    LDX     proc.data,U
+        LDB     SWXV
+        LDY     PLABX
         CMPY    OX16,X
-        BHS MSWM2
+        BHS     MSWM2
         NEGB
 MSWM2   SEX
-        STD OXV,X                               ; X VELOCITY
-        BRA MSWL
-MSWLP   LDB proc.d2,U
-        LDX proc.data,U
-        LDA PLAYC                               ; GET Y ACCEL
+        STD     OXV,X                               ; X VELOCITY
+        BRA     MSWL
+MSWLP   LDB     proc.d2,U
+        LDX     proc.data,U
+        LDA     PLAYC                               ; GET Y ACCEL
         CMPA    OY16,X
         BHI MSWM3
         NEGB
@@ -1074,24 +1063,31 @@ PHPOD0  FCB $00,$0E,$88,$D8,$F8,$8E,$08,$00
 UFNP1   FCB 6,4
         FDB BAIT10,BAIT11
         FDB ON64,OFF64
+
 UFNP2   FCB 6,4
         FDB BAIT20,BAIT21
         FDB ON64,OFF64
+
 UFNP3   FCB 6,4
         FDB BAIT30,BAIT31
         FDB ON64,OFF64
+
 UFNP4   FCB 6,4
         FDB BAIT40,BAIT41
         FDB ON64,OFF64
+
 UFNP5   FCB 6,4
         FDB BAIT50,BAIT51
         FDB ON64,OFF64
+
 UFNP6   FCB 6,4
         FDB BAIT60,BAIT61
         FDB ON64,OFF64
+
 UFNP7   FCB 6,4
         FDB BAIT70,BAIT71
         FDB ON64,OFF64
+
 BAIT10  FCB $00,$03,$31,$03
         FCB $33,$11,$11,$33
         FCB $33,$00,$00,$33

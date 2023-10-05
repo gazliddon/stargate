@@ -70,44 +70,40 @@ SLASH     EQU $5E
 LASCAR    EQU $5E                       ; LAST CHARACTER
 CLRDEF    EQU $11                       ; COLOR 1 IS DEFAULT
 
-    ORG TEXORG
+        ORG TEXORG
 
 ;;; Text number graphics tables
-N0      FDB $0308,NUMBR0                ; NUMBER 0
-        FDB $0308,NUMBR1                ; NUMBER 1
-        FDB $0308,NUMBR2                ; NUMBER 2
-        FDB $0308,NUMBR3                ; NUMBER 3
-        FDB $0308,NUMBR4                ; NUMBER 4
-        FDB $0308,NUMBR5                ; NUMBER 5
-        FDB $0308,NUMBR6                ; NUMBER 6
-        FDB $0308,NUMBR7                ; NUMBER 7
-        FDB $0308,NUMBR8                ; NUMBER 8
-        FDB $0308,NUMBR9                ; NUMBER 9
+N0V         FDB $0308,NUMBR0                ; NUMBER 0
+            FDB $0308,NUMBR1                ; NUMBER 1
+            FDB $0308,NUMBR2                ; NUMBER 2
+            FDB $0308,NUMBR3                ; NUMBER 3
+            FDB $0308,NUMBR4                ; NUMBER 4
+            FDB $0308,NUMBR5                ; NUMBER 5
+            FDB $0308,NUMBR6                ; NUMBER 6
+            FDB $0308,NUMBR7                ; NUMBER 7
+            FDB $0308,NUMBR8                ; NUMBER 8
+            FDB $0308,NUMBR9                ; NUMBER 9
 
-nsize   equ * - N0
+PRINV       JMP PRINIT          ;;; INITIALIZE PRINT PARAMETERS
+PR35V       JMP PRNT35          ;;; PRINT A 3 X 5 CHARACTER
+PR35FV      JMP PRN35F          ;;; PRINT A 3 X 5 CHARACTER AT AN EVEN FLAVOR
+PR57V       JMP PRNT57          ;;; PRINT A 5 X 7 CHARACTER
+PR57FV      JMP PRN57F          ;;; PRINT A 5 X 7 CHARACTER AT AN EVEN FLAVOR
+PN35V       JMP PRNUM5          ;;; PRINT A 3 X 5 4 DIGIT NUMBER
+PN35LV      JMP PRNM5L          ;;; PRINT A 3 X 5 4 DIG. NUM. W/ LEAD ZERO BLANKING
+PN57V       JMP PRNUM7          ;;; PRINT A 5 X 7 4 DIG. NUM.
+PN57LV      JMP PRNM7L          ;;; PRINT A 5 X 7 4 DIG. NUM. W/ LEAD ZERO BLANKING
+PN25V       JMP PRNM25          ;;; PRINT A 3 X 5 2 DIG. NUM.
+PN25LV      JMP PRN25L          ;;; PRINT A 3 X 5 2 DIG. NUM. W/ LEAD ZERO BLANKING
+PN27V       JMP PRNM27          ;;; PRINT A 5 X 7 2 DIG. NUM.
+PN27LV      JMP PRN27L          ;;; PRINT A 5 X 7 2 DIG. NUM. W/ LEAD ZERO BLANKING
+WRD5V       JMP WORD35          ;;; PRINT MESSAGE STARTING 5 HIGH.
+WRD5FV      JMP WRD35F          ;;; PRINT MESSAGE STARTING 5 HIGH, EVEN FLAVOR.
+WRD7V       JMP WORD57          ;;; PRINT MESSAGE STARTING 7 HIGH.
+WRD7FV      JMP WRD57F          ;;; PRINT MESSAGE STARTING 7 HIGH, EVEN FLAVOR.
 
-;;; EXTERNALLY REFERENCED VECTORS
-
-print_jump_vectors
-        JMP PRINIT
-        JMP PRNT35
-        JMP PRN35F
-        JMP PRNT57
-        JMP PRN57F
-        JMP PRNUM5
-        JMP PRNM5L
-        JMP PRNUM7
-        JMP PRNM7L
-        JMP PRNM25
-        JMP PRN25L
-        JMP PRNM27
-        JMP PRN27L
-        JMP WORD35
-        JMP WRD35F
-        JMP WORD57
-        JMP WRD57F
-
-N0W     FDB $0308,NUM0                  ; NUMBER 0
+;;; THIS TABLE IS 40 BYTES
+N0AV    FDB $0308,NUM0                  ; NUMBER 0
         FDB $0308,NUM1                  ; NUMBER 1
         FDB $0308,NUM2                  ; NUMBER 2
         FDB $0308,NUM3                  ; NUMBER 3
@@ -117,8 +113,8 @@ N0W     FDB $0308,NUM0                  ; NUMBER 0
         FDB $0308,NUM7                  ; NUMBER 7
         FDB $0308,NUM8                  ; NUMBER 8
         FDB $0308,NUM9                  ; NUMBER 9
-; 
-;  NUMBER 0
+ 
+;;;  NUMBER 0
 NUMBR0  FDB $0101,$0101,$0101,$0100
         FDB $1100,$0000,$0000,$1100
         FDB $1111,$1111,$1111,$1100

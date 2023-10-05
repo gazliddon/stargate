@@ -179,6 +179,7 @@ GETVEL  LDA  HSDDD
         STD  TERXV
         RTS
 
+;;; __Proc__: ROCK0
 ROCK0   ldu     CRPROC
         puls    X                     ; GET RETURN ADDRESS
         stx     proc.data+6,U          ; AND SAVE

@@ -21,7 +21,7 @@
         FCB STYPE,$E8
         FDB 0
         FCB 0,0
-; SWTAB1
+SWTAB1
         FDB 0
         FCB 0,0
         FDB ADVSW
@@ -35,26 +35,26 @@
         FDB CCOIN
         FCB CTYPE,0
 ; ARBITRARILY MISC. VECTORS
-        JMP PLENDD
-        JMP LDISP
-        JMP SBDISP
-        JMP GETWV
-        JMP TDISP
-        JMP RPHKK
-        JMP INVST
-        JMP PLEND
-        JMP WVCHK
-        JMP ENDWAV
-        JMP INIT__
-        FDB RIPTAB-$7F
-        JMP PLINIT
-        JMP ONCOL
-        JMP GETWV0
-        JMP PTRANS
-        JMP INIT20
-        JMP DIM
-        JMP BRT
-        JMP SGSTRT
+PLENDV  JMP PLENDD
+ LDISPV       JMP LDISP
+ SBDSPV       JMP SBDISP
+ GETWVV       JMP GETWV
+ TDISPV       JMP TDISP
+ RPHK         JMP RPHKK
+ INVSTV       JMP INVST
+ PLNDV1       JMP PLEND
+ WVCHKV       JMP WVCHK
+ ENDWVV       JMP ENDWAV
+ INITV        JMP INIT__
+ RIPTV        FDB RIPTAB-$7F
+ PLINV        JMP PLINIT
+ ONCOLV       JMP ONCOL
+ GETW0V       JMP GETWV0
+ PTRANV       JMP PTRANS
+ INT20V       JMP INIT20
+ DIMV         JMP DIM
+ BRTV         JMP BRT
+ SGSTV        JMP SGSTRT
         FCC " COPYRIGHT (C) 1981 WILLIAMS ELECTRONICS INC."
         FCC " ALL RIGHTS RESERVED "
 
@@ -1450,7 +1450,7 @@ WARP    JSR GNCIDE                      ; KILL EVERYONE!
         JSR PLSAV                       ; SAVE THE PLAYERS ASTRONAUTS ANYWAYS.
         NAP (1,WARP1)                   ; TAKE A NAP BEFORE CLOUDING UP THAT RAM
 WARP1   INC SAMEXC                      ; NOW....LOCK HIM OUT HARD
-        JSR WARPV                       ; DO THE EFFECT STUPID. (OR IS THAT STUPID EFFECT??)
+        JSR ::trek5::WARPV              ; DO THE EFFECT STUPID. (OR IS THAT STUPID EFFECT??)
         JSR SCLEAN                      ; CLEAN UP SAMRAM
         MAKP (COLR)
         MAKP (CBOMB)
@@ -1626,7 +1626,7 @@ BRGHOB  LDA STATUS
         LDA #2
         JSR BRT
         JMP SGC3
-;
+
         org 0x8f00
 ;
 ;    MAKE ROOM FOR BRIGHTIE!

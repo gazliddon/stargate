@@ -4,14 +4,14 @@
   ; LIST
   ; TTL  <<<<<  S T A R G A T E  >>>>>
 
-  ORG  YFORG
-  JMP  FBSTR_
-  JMP  YLST_
-  JMP  RIPCHK
-  FDB  PHFBPC
-  FDB  FBMR0
-  FDB  FBALL0
-  FDB  YLPL0
+            ORG  YFORG
+FBSTRT      JMP  FBSTR_
+YLST        JMP  YLST_
+RIPV        JMP  RIPCHK
+PHFPB       FDB  PHFBPC
+FBMBPV      FDB  FBMR0
+FBALPV      FDB  FBALL0
+YLPV        FDB  YLPL0
 
 ;;; YLLABIAN START
 ;;; A = #

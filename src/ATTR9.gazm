@@ -3,12 +3,7 @@
 ; TTL   <<<<<  S T A R G A T E >>>>>
 
         ORG ATRORG
-file_start
-; ATTRACT
-; PICKUP MODE
-
-
-;;; Routine: PICKUP
+;;; __Routine:__ PICKUP
 PICKUP
         LDA #$FF
         STA STATUS
@@ -484,7 +479,7 @@ GETEM   PSHS    X,U
 ; PD=OBJ,PD2=PICT,PD4=ANI#,PD5=TIME/FRAME,PD6=CURRENT#
 ;
 
-ANA LDA proc.d4,U
+ANA     LDA proc.d4,U
         CMPA    #1
         LBEQ    SUCIDE                      ; DIE NO ANIMATION
 ANA0    LDX proc.data,U
@@ -506,11 +501,8 @@ ANASLP  LDA proc.d5,U
         LDX #ANA0
         JMP SLEEP
 
-;
-; ENEMIES
-; OPICT(2),ANIM#(1),RATE(1),ADDR(2)
-;
-
+;;; ENEMIES
+;;; OPICT(2),ANIM#(1),RATE(1),ADDR(2)
 EMTAB   FDB PRBP1V
         FCB 1,0
         FDB $6696
@@ -574,11 +566,9 @@ SCZP1V  FDB SCZP1
 PRBP1V  FDB PRBP1
 TIEP1V  FDB TIEP1
 
-;
-; ENEMY MESSAGES
-; MESS#(1),SCREEN ADDR(2)
-;
 
+;;; ENEMY MESSAGES
+;;; MESS#(1),SCREEN ADDR(2)
 EMESTB  FCB YLAM
         FDB $0C58
         FCB LNDAM
@@ -601,5 +591,4 @@ EMESTB  FCB YLAM
         FDB $2F78
         FCB 0
 
-file_size equ * - file_start
 

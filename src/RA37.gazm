@@ -1,19 +1,19 @@
-;
 ;  PRAYAH 1: P L O G L A M S T A H T
 ; A lot of sound stuff in this file
         org 0
 
 ;;; Deletes an object
 ;;; Y = object
-OFSHIT  pshs    X,U,D,Y
-        ldd     OBJX,X               ; D = pixel tl x,y
-        ldy     OPICT,X
-        jsr     [OBJDEL,Y]
-        puls    X,U,D,Y,PC
+OFSHIT      pshs    X,U,D,Y
+            ldd     OBJX,X               ; D = pixel tl x,y
+            ldy     OPICT,X
+            jsr     [OBJDEL,Y]
+            puls    X,U,D,Y,PC
+
 
 ;;;  EXECUTIVE LOOP
-EXEC    LDX #ACTIVE
-        STX CRPROC
+EXEC        LDX #ACTIVE
+            STX CRPROC
 
 !wait   LDA TIMER                   ; Wait until TIMER changes
         BEQ !wait
@@ -21,10 +21,13 @@ EXEC    LDX #ACTIVE
 
         LDB STATUS
         BITB #$69
-        BEQ EXEC00
+        BEQ !EXEC00
+
         CLR OVCNT
         BRA EXEC1
-EXEC00  ASLA
+
+!EXEC00  
+        ASLA
         ADDA OVCNT
         SUBA #4
         BPL EXEC01
@@ -61,6 +64,7 @@ EXEC03  LDU ,X
         LDU IPTR
         STX IPTR
         STU ,X                          ;  INTO INACTIVE LIST
+
 EXEC1   BSR COLCHK
         JSR XUVCT
         JSR RAND
@@ -77,7 +81,7 @@ EXEC1   BSR COLCHK
 ;  SWP$ LDA INDIAG DIAGNOSTICS *
 ;  BNE SWPX THEN NO PROCESSING *
 ;  *************************************REMOVE PATCH AND INSERT ABOVE CODE**
-;  SWITCH PROCESSING
+;;;  SWITCH PROCESSING
 SWP     LDX SWPROC
         BNE !skip
         LDX SWPROC+4
@@ -108,6 +112,7 @@ DISP1   DEC proc.time,U
 SLEEP   LDU CRPROC
         STA proc.time,U
         STX proc.addr,U
+
 DISP2   LDU ,U
         BNE DISP1
         LDS #HSTK
@@ -133,11 +138,13 @@ COLC2   JSR PLENDV
 COLCX   CLR PCFLG
         RTS
 
-;;;  SUICIDE
+;;;  __Func:__ SUICIDE
+;;; Kill the proc calling this function
 SUCIDE  LDX CRPROC
         BSR KILL
         LEAU ,X
         BRA DISP2                       ; GET NEW CRPROC
+
 ;;;  KILL OBJECT PROCESS
 KILLOP  LDX OBJID,X
 
@@ -157,21 +164,27 @@ KILP2   LDD FREE
         STX FREE                        ;  PUT HIM AT HEAD OF FREE
 KILP3   STD ,X
         LEAX ,U                         ;  SAVE CRPROC FOR SUICIDE
-        PULS D,U,PC
+        PULS D,U,PC         ; return
+
 KILPLP  LDU ,U
         BNE KILP1
         BSR ERROR
 ERROR   ORCC #$10                       ;  (SEI) ERROR TRAP
-!loop
-        BRA !loop
+!loop   BRA !loop
 
 ;;;   MAKE A SUPER PROCESS;  X = START ADDR;  A = USER TYPE;  X =RETURNED WITH DATA BLOCK POINTER
 MSPROC  PSHS A,Y,U
         LDU SPFREE
-!dowhat
-        BNE !dowhat + 3
 
+;; @BUG
+;; This looks like it would crash
+;; It should jump to ERROR and loop indefinitely 
+;; if there are now super process slots free
+;; but it will start executing the lable ERROR as if it'slots
+;; code
+!dowhat BNE !dowhat+3
         JSR ERROR                       ; ERROR TRAP
+
 !skip   LDY ,U
         STY SPFREE
         LDA #1
@@ -295,8 +308,8 @@ OFF28   PSHS X,DP
         TFR A,DP
         ANDCC #0
         BRA OFF281
-;   OFF 5X8
 
+;;;   OFF 5X8
 OFF58   PSHS X,DP
         ADDB #8
         TFR D,U
@@ -308,7 +321,8 @@ OFF58   PSHS X,DP
         PSHU X,Y,D,DP,CC
         LEAU 264,U
         BRA OFF481
-;  OUTPUT 4X8; STORED COL1-COLN; CALLED BY IRQ ONLY
+
+;;  OUTPUT 4X8; STORED COL1-COLN; CALLED BY IRQ ONLY
 ON48    PSHS X,DP
         STS TEMP48                      ;  SAVE STACK
         BCC ON480
@@ -329,27 +343,33 @@ ON281   PULS D,X,Y,DP,CC
         PSHU D,X,Y,DP,CC
         LDS >TEMP48                     ;  STACK RESTORE, EXTENDED
         PULS X,DP,PC
-;  ERASE 4X8; COLUMNAR OBJECTS 8 LONG
-;  OFF 4X8
 
+;;;__Func:__ OFF48
+;;;Erase a 4 x 8 pixel block
+;;;  * D -> Screen address
+;;; 
+;;;Uses the user stack to do clear
 OFF48   PSHS X,DP
-        ADDB #8
+; We're using the stack to clear so add 8 bytes to the destintation
+; as the stack decreases as items are pushed onto it
+        ADDB #8                 
         TFR D,U
+; Zero DD,X,Y,CC and DP
         LDD #0
         LDX #0
         LEAY ,X
         TFR A,DP
         ANDCC #0
 OFF481  PSHU X,Y,D,DP,CC
-        LEAU 264,U
+        LEAU 264,U                      ; U -> next screen column (256 + 8)
         PSHU X,Y,D,DP,CC
         LEAU 264,U
 OFF281  PSHU X,Y,D,DP,CC
         LEAU 264,U
         PSHU X,Y,D,DP,CC
         PULS X,DP,PC
-;  ON 5X8
 
+;  ON 5X8
 ON58    PSHS X,DP
         STS TEMP48
         BCC ON580
@@ -699,8 +719,8 @@ FBAL2   PULS X,Y,A
         PSHU X,Y,A
         LDS TEMP48
         PULS X,PC
-;   ACRED: ADDS A CREDITS TO TOTAL CREDITS; 99 MAX
 
+;;;   ACRED: ADDS A CREDITS TO TOTAL CREDITS; 99 MAX
 ACRED   PSHS A,X                        ; SAVE
         ADDA CREDIT                     ; GET PRESENT
         DAA                             ; HUMANIZE
@@ -948,7 +968,6 @@ SW0     ADDB #4
         JMP SWWPC9
 
         org 0x7ad
-
 ;;;  SCAN COIN SWITCHES
 CSCAN   LDA PIA01
         ORA PIA02
@@ -1035,7 +1054,7 @@ INITC   LDA ,X+
 
 ;;;  INITIALIZE OBJECT LIST
 OINIT   PSHS CC,X,D
-        ORCC #$FF                       ;  OFF INTERRUPTS
+        ORCC #$FF                  ;  OFF INTERRUPTS
         LDX #OLIST
         STX OFREE
 OINIT1  LEAX OSIZE,X
@@ -1043,13 +1062,16 @@ OINIT1  LEAX OSIZE,X
         CMPX #OLEND-OSIZE
         BNE OINIT1
         CLRD()
-        STD ,X                          ;  LAST LINK 0
-        STD IPTR                        ;  INACTIVE LIST
+        STD ,X                     ;  LAST LINK 0
+        STD IPTR                   ;  INACTIVE LIST
         STD OPTR
         STD SPTR
-        PULS CC,X,D,PC
+        PULS CC,X,D,PC              ; Return
 
-;;;   MONOCHROMATIZER ROUTINE Y = OBJECT PICTURE ADDRESS;  U = MONOCHROMATIC PICTURE ADDRESS;  COLOR: $F
+;;; **Function: Build a monochromatic version of this object**
+;;; Params: _Y_ -> object definition
+;;;         _U_ -> destination of monochromatic object
+;;; Sets all non-transparent pixels to $F (white)
 MONO    PSHS U,X,D                      ;  SAVE REGISTERS
         LDD OBJW,Y                      ;  GET PICTURE SIZE
         STD OBJW,U                      ;  COPY TO MONO DESCRIPTOR
@@ -1095,7 +1117,8 @@ MONO5   ANDA #$BB                       ;  CHANGE COLOR TO $B
         CMPU 4,S                        ;  CHECK FOR END OF OBJECT
         BLO MONO1                       ;  NO?, CONTINUE
         RTS                             ;  YES?,                 ; RETURN
-;  RANDOM MAX ROUTINE; A = RAND <=A
+
+;;;  RANDOM MAX ROUTINE; A = RAND <=A
 RMAX    PSHS A
         JSR RAND
 RMAX1   CMPA ,S
@@ -1105,7 +1128,8 @@ RMAX1   CMPA ,S
 RMAXX   INCA
         LEAS 1,S
         RTS
-;  BCD-HEX CONVERT; A=BCD-HEX
+
+;;;  BCD-HEX CONVERT; A=BCD-HEX
 BCDHEX  PSHS B
         CLRB
 BCH1    CMPA #$10
@@ -1115,8 +1139,9 @@ BCH1    CMPA #$10
         BRA BCH1
 BCH2    PSHS B
         ADDA ,S+
-        PULS B,PC
-;  HEX-BCD CONVERT; A=HEX-BCD
+        PULS B,PC ; return
+
+;;;  HEX-BCD CONVERT; A=HEX-BCD
 HEXBCD  PSHS B
         TFR A,B
         CLRA
@@ -1129,30 +1154,40 @@ HBC1    CMPB #10
 HBC2    PSHS B
         ADDA ,S+
         DAA
-        PULS B,PC
-;  STAR INITIALIZE
+        PULS B,PC ; Return
 
-STINIT  LDX #SMAP
-        LDB #16
+;;;  STAR INITIALIZE
+STINIT  LDX #SMAP                   ; x -> destination
+        LDB #16                     ; 16 stars
         STB STRCNT
+
+        ; Star colour, first star is black?
+        ; @BUG - likely, we'd never see the star
         CLRB
-STI0    JSR RAND
+!next_star
+        JSR RAND
         CMPA #$9C
-        BHS STI0                        ;  NO GOOD
+        BHS !next_star                  ;  NO GOOD
         STA SX,X                        ;  GET X
-STI1    JSR RAND
+!nogood   
+        JSR RAND
         CMPA #$A0                       ;  LIMIT TEST
-        BHI STI1
+        BHI !nogood
         CMPA #YMIN
-        BLS STI1
+        BLS !nogood
+
+        ; We have star we like!
         STA SY,X
         STB SCOL,X                      ;  COLOR
-        ADDB #$11
-        ANDB #$77
-        LEAX SLGTH,X
-        CMPX #SMEND
-        BNE STI0
-STX_    RTS
+
+        ; Modify colour for next star
+        addb #$11
+        andb #$77
+
+        leax SLGTH,X                    ; skip to the next star
+        cmpx #SMEND
+        bne !next_star
+STX_    rts
 
 ;;;  Draw the stars
 ;;;  drawn in an interrupt
@@ -1649,19 +1684,31 @@ VELLP   LDX ,X
         BNE VELOLP
 VELOX   RTS
 
-;;; Draw all objects
-;;; * A = min Y for objects
-;;; * B = min X for objects
+;;; **Draw all objects within in a range**
+;;;
+;;; **Params**
+;;; * A : minimum Y for objects
+;;; * B : minimum X for objects
+;;;
+;;; **Description**
 ;;; This routine is called under interrupt a few times during 
-;;; the screen draw at different raster lines
-;;; the min Y param filters out objects that shouldn't be drawn
-;;; at the current raster position
-OPROC   STD ITEMP2                      ; Save the min x, min y needed to draw
-        LDA STATUS
-        BITA #$20
-        BNE OPRX                        ; NO
-        LDX #OPTR
-        BRA OPLP                        ;  ERASE OLD OBJECT
+;;; the screen draw at different raster lines the min Y param
+;;; filters out objects that shouldn't be drawn at the current
+;;; raster position
+
+OPROC   
+        STD     ITEMP2                      ; Save the min x, min y needed to draw
+
+        ; Check status
+        ; if BIT 5 is set we don't draw
+        ; any objects
+        lda     STATUS        
+        bita    #$20
+        bne     OPRX_exit
+
+        ldx     #OPTR ; x -> object list pointer
+        bra     OPLP  ;ERASE OLD OBJECT
+
 OPLP0   LDD OBJX,X
         BEQ OPON                        ; ALREADY ERASED
         CMPB ITEMP2                     ; TOO HIGH Y?
@@ -1672,6 +1719,7 @@ OPLP0   LDD OBJX,X
         JSR [OBJDEL,Y]                  ; Delete the object
         LDD #0
         STD OBJX,X                      ; OFF OBJECT; ON NEW OBJECT
+
 OPON    LDB OY16,X                      ; CAN WE WRITE
         CMPB ITEMP2                     ; UPPER BOUND
         BHI OPLP
@@ -1696,7 +1744,7 @@ OPON    LDB OY16,X                      ; CAN WE WRITE
         JSR [OBJWRT,Y]                  ; draw it
 OPLP    LDX OLINK,X
         BNE OPLP0                       ; CHECK THE REST
-OPRX    RTS
+OPRX_exit    RTS
 
 ;;;  GET A SHELL; X=OBJECT FIRING, RETURNED PTR TO SHELL; U= OBJID; RET=OUPUT ROUTINE; RET+2=COLLISION PICT; RET+4= KILL ROUTINE; RET+6= RET
 GETSHL  PSHS D,Y,U

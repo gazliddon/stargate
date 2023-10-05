@@ -53,8 +53,8 @@ struct ptable {
 PTABLE
         RMB  ptable.size * 300
 
-        ORG  WRPORG
-        JMP  ROCK0  ; WARP
+            ORG  WRPORG
+WARPV       JMP  ROCK0  ; WARP
 
 ;;; Table that an element is pointted to by FROBPT
 ;;; FROBT increases over time and loops at ENDPIC

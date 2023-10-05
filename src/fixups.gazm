@@ -1,0 +1,9 @@
+
+        ORG $5F70
+        FCB $B7 ; MATCH THE PROMS GOOFY
+
+        ORG $3237
+        FCB $02 ; MATCH THE PROMS!!!!!
+
+        org 0xd950
+        FCB $8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E

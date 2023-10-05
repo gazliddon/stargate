@@ -58,14 +58,13 @@
 
 BLKTIM  equ $18                         ; BLINK TIMER.
 
-        org MESORG
+           org MESORG
+MESLDV            JMP MESSLD                      ;;; LOADER
+MESINV            JMP MESSIN                      ;;; INITIALIZER
 
-        JMP MESSLD                      ; LOADER
-        JMP MESSIN                      ; INITIALIZER
-
-;  UPDATE
-
-MESSUP  LDA STATUS                      ; OK TO DO IT??
+;;;  UPDATE
+MESUPV   
+        LDA STATUS                      ; OK TO DO IT??
         BITA #$2C                       ; NOT IF OJBECTS OR SAM TURNED OFF, OR PLAYER DEAD
         BNE MESSUX
         LDA MESSTM                      ; GET TIMER

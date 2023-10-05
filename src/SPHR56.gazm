@@ -1,14 +1,16 @@
 ; TTL    <<<<<  S T A R G A T E >>>>>
 ;************   S T A R G A T E    V E R S I O N    S G W 4   **************
 
-
-
-HSTK      EQU    $BFFF                ;;; Stack top
+// [[
+// # Hello
+// * a a a a  a  aaa  aa
+// * Text 
+// ]]
+HSTK        EQU    $BFFF              ;;; Stack top
 
 ; Score display constants
-YMAX        equ    240
+YMAX        equ    240                ;;; Max Y coord
 YMIN        equ    44                 ;;; MIN Y COORD
-
 
 // I think these are screen addresses
 P1ORG       equ    7*$100
@@ -31,97 +33,15 @@ SCANH       equ    8
 
 ////////////////////////////////////////////////////////////////////////////////
 ;MAIN PROGRAM VECTORS
-
 TSCORG      EQU    $E940                  ;;; Org: HIGH SCORE BULLSHIT
-PUPHSC      EQU    TSCORG                 ;;; POWER UP HIGH SCORE CHECK
-ENDPRC      EQU    PUPHSC+3               ;;; END OF GAME PROCESSING
-GODSET      EQU    ENDPRC+3               ;;; ENTER GODS NAME BY OPERATOR
-HIGHRS      EQU    GODSET+3               ;;; RESET HIGH SCORE TABLE BY OPERATOR
-HSCHKV      EQU    HIGHRS+3               ;;; CHECK IF HS TABLE LOOKS BASHED
-HSBUTV      EQU    HSCHKV+3               ;;; HIGH SCORE RESET BUTTON
-
 TSTORG      EQU    $F480                  ;;; TEST MODE
-AUD         EQU    TSTORG                 ;;; AUDIT: COUNT=A, COUNTER=B (1-7)
-AUD1        EQU    AUD+3                  ;;; AUDIT: COUNT=1, COUNTER=B (1-7)
-
-PWRUPV      EQU    AUD1+3
-ADVSW       EQU    PWRUPV+3
-AUTOCY      EQU    ADVSW+3
-
-TSBORG      EQU    $E000                  ; ADJUST PART OF TEST MODE
-ADJV        EQU    TSBORG
-CMINIT      EQU    ADJV+3
-ATMCK       EQU    CMINIT+3
-GETLT       EQU    ATMCK+3                ; ROUTINE TO GET LETTERS FROM CONTROL PANEL
-CMSMVV      EQU    GETLT+3
-
-LOGORG      EQU    $D000                  ; ATTRACT MODE
-ATTR        EQU    LOGORG
-GOV         EQU    ATTR+3                 ; GAME OVER VECTOR
-HALVCT      EQU    GOV+3
-GNCDAV      EQU    HALVCT+3
-
-ATRORG      EQU    $DA00                  ; OTHER HALF ATTRACT MODE
-PIKVCT      EQU    ATRORG
-
-SAMORG      EQU    $2700                  ; BEGINNING OF APPEAR EXPLOSION PROGRAM
-APVCT       EQU    SAMORG                 ; APPEAR START
-XSVCT       EQU    SAMORG+3               ; XPLOSION START
-XUVCT       EQU    SAMORG+6               ; APPEAR/XPLOSION UPDATE
-
-BGORG       EQU    $2C00                  ; TERRAIN/PLAYER EXPLOSION CODE BLOCK
-BGINIT      EQU    BGORG                  ; TERRAIN INIT
-BGOUT       EQU    BGINIT+3               ; UPDATE TERRAIN
-BGERAS      EQU    BGINIT+6               ; ERASE TERRAIN
-PXVCT       EQU    BGINIT+9               ; PLAYER EXPLOSION
-
+TSBORG      EQU    $E000                  ;;; ADJUST PART OF TEST MODE
+LOGORG      EQU    $D000                  ;;; ATTRACT MODE
+ATRORG      EQU    $DA00                  ;;; OTHER HALF ATTRACT MODE
+SAMORG      EQU    $2700                  ;;; BEGINNING OF APPEAR EXPLOSION PROGRAM
+BGORG       EQU    $2C00                  ;;; TERRAIN/PLAYER EXPLOSION CODE BLOCK
 SWTAB       EQU    $5F80
-SWTAB1      EQU    SWTAB+32
-PLENDV      EQU    SWTAB1+24
-
-LDISPV      EQU    PLENDV+3
-SBDSPV      EQU    LDISPV+3
-GETWVV      EQU    SBDSPV+3
-TDISPV      EQU    GETWVV+3
-RPHK        EQU    TDISPV+3
-INVSTV      EQU    RPHK+3
-PLNDV1      EQU    INVSTV+3
-WVCHKV      EQU    PLNDV1+3
-ENDWVV      EQU    WVCHKV+3
-INITV       EQU    ENDWVV+3
-RIPTV       EQU    INITV+3                ; THIS IS A 2 BYTE POINTER
-PLINV       EQU    RIPTV+2
-ONCOLV      EQU    PLINV+3
-GETW0V      EQU    ONCOLV+3
-PTRANV      EQU    GETW0V+3
-INT20V      EQU    PTRANV+3
-DIMV        EQU    INT20V+3
-BRTV        EQU    DIMV+3
-SGSTV       EQU    BRTV+3
-
 TEXORG      EQU    $7000
-N0V         EQU    TEXORG                 ;;; BEGINNING OF NUMBER TABLE
-
-PRINV       EQU    N0V+40                 ;;; INITIALIZE PRINT PARAMETERS
-PR35V       EQU    PRINV+3                ;;; PRINT A 3 X 5 CHARACTER
-PR35FV      EQU    PR35V+3                ;;; PRINT A 3 X 5 CHARACTER AT AN EVEN FLAVOR
-PR57V       EQU    PR35FV+3               ;;; PRINT A 5 X 7 CHARACTER
-PR57FV      EQU    PR57V+3                ;;; PRINT A 5 X 7 CHARACTER AT AN EVEN FLAVOR
-PN35V       EQU    PR57FV+3               ;;; PRINT A 3 X 5 4 DIGIT NUMBER
-PN35LV      EQU    PN35V+3                ;;; PRINT A 3 X 5 4 DIG. NUM. W/ LEAD ZERO BLANKING
-PN57V       EQU    PN35LV+3               ;;; PRINT A 5 X 7 4 DIG. NUM.
-PN57LV      EQU    PN57V+3                ;;; PRINT A 5 X 7 4 DIG. NUM. W/ LEAD ZERO BLANKING
-PN25V       EQU    PN57LV+3               ;;; PRINT A 3 X 5 2 DIG. NUM.
-PN25LV      EQU    PN25V+3                ;;; PRINT A 3 X 5 2 DIG. NUM. W/ LEAD ZERO BLANKING
-PN27V       EQU    PN25LV+3               ;;; PRINT A 5 X 7 2 DIG. NUM.
-PN27LV      EQU    PN27V+3                ;;; PRINT A 5 X 7 2 DIG. NUM. W/ LEAD ZERO BLANKING
-WRD5V       EQU    PN27LV+3               ;;; PRINT MESSAGE STARTING 5 HIGH.
-WRD5FV      EQU    WRD5V+3                ;;; PRINT MESSAGE STARTING 5 HIGH, EVEN FLAVOR.
-WRD7V       EQU    WRD5FV+3               ;;; PRINT MESSAGE STARTING 7 HIGH.
-WRD7FV      EQU    WRD7V+3                ;;; PRINT MESSAGE STARTING 7 HIGH, EVEN FLAVOR.
-N0AV        EQU    WRD7FV+3               ;;; THIS TABLE IS 40 BYTES
-
-////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 ;   MESSAGE NUMBER EQUATES
@@ -232,64 +152,18 @@ FBDUNM    EQU    152
 
 ////////////////////////////////////////////////////////////////////////////////
 WRPORG    EQU    $3240                  ;;; WARP PROGRAM
-WARPV     EQU    WRPORG
-
 BLOWV     EQU    $3440                  ;;; TERRAIN BLOW UP
 
 ////////////////////////////////////////////////////////////////////////////////
-;         SCANNER AREA MESSAGE HANDLER
+;         SCANNER AREA MESSAGE HANDLER Vectors
 MESORG    EQU    $3740                  ;;; Scanner area jump table
-MESLDV    EQU    MESORG                 ;;; MESSAGE LOADER
-MESINV    EQU    MESLDV+3               ;;; INITIALIZE
-MESUPV    EQU    MESINV+3               ;;; MESSAGE UPDATE
-
-
 BPSORG    EQU    $3840                  ;;; BAITER POD SWARMER
-UFOST     EQU    BPSORG
-PRBST     EQU    UFOST+3
-MMSW      EQU    PRBST+3
-RIPV1     EQU    MMSW+3
-MPROB     EQU    RIPV1+3
-BMSTV     EQU    MPROB+3                ;;; Stffff
-BAITPV    EQU    BMSTV+3
-BREDPV    EQU    BAITPV+2               ;;; 2 BYTE ADDRS
-PHRDPV    EQU    BREDPV+2
-MCHYPV    EQU    PHRDPV+2
-MCHRPV    EQU    MCHYPV+2
-MCHGPV    EQU    MCHRPV+2
-
 LMAORG    EQU    $4540                  ;;; LANDERS MUTANTS AND ASTRONAUTS
-LANDST    EQU    LMAORG
-SCZST     EQU    LANDST+3
-ASTST     EQU    SCZST+3
-LEDTRG    EQU    ASTST+3
-SHOOTV    EQU    LEDTRG+3
-SHT00V    EQU    SHOOTV+3
-NITRV     EQU    SHT00V+3
-BOZOV     EQU    NITRV+3
-ASTPT     EQU    BOZOV+3                ; 2 BYTE ADDRESS HELD HERE
-AFALLP    EQU    ASTPT+2                ; 2 BYTE ADDRESS
-ASKILP    EQU    AFALLP+2               ; 2 BYTE ADDRESS
-LNDPV     EQU    ASKILP+2               ; 2 BYTE ADDRESS
-PHSTV     EQU    LNDPV+2
-
-YFORG     EQU    $4F40                  ; YLLABIANS, FIREBOMBERS
-FBSTRT    EQU    YFORG
-YLST      EQU    FBSTRT+3
-RIPV      EQU    YLST+3
-PHFBP     EQU    RIPV+3                 ; 2 BYTE*** POINTER TO PHONEY FIREBALL
-FBMBPV    EQU    PHFBP+2                ; BYTE
-FBALPV    EQU    FBMBPV+2               ; 2 BYTE
-YLPV      EQU    FBALPV+2               ; 2 BYTE
-
+YFORG     EQU    $4F40                  ;;; YLLABIANS, FIREBOMBERS
 DNORG     EQU    $5AD0
-DYNSTV    EQU    DNORG
-DYNPV     EQU    DYNSTV+3
-HUMPV     EQU    DYNPV+2
 
-;
+////////////////////////////////////////////////////////////////////////////////
 ; CMOS RAM ALLOCATION
-;
             ORG    CMOS+$100            ; WRITABLE CMOS
 
 CREDST      RMB    2                    ;;; CREDITS BACKUP
@@ -322,6 +196,8 @@ CUNITC      RMB    2                    ;;; COIN UNITS PER CREDIT
 CUNITB      RMB    2                    ;;; COIN UNITS FOR BONUS
 MINUNT      RMB    2                    ;;; MINIMUM REQD
 FREEPL      RMB    2                    ;;; FREE PLAY MODE       (ONE CREDIT GAME)
+
+; @TODO: Replace with a structure
 GA1         RMB    2                    ;;; 10 MASTER DIFFICULTY CONTROL                  1
             RMB    2                    ;   GAME ADJUSTS - DIFFICULTY                     2
             RMB    2                    ;   DIFFICULTY CEILING                            3
@@ -332,6 +208,8 @@ GA1         RMB    2                    ;;; 10 MASTER DIFFICULTY CONTROL        
             RMB    2                    ;   # OF MEN FOR WARP                             8
             RMB    2                    ;   LAST WAVE WARP IS ALLOWED TO OCCUR IN.        9
             RMB    2                    ;   NUMBER OF LETTERS ALLOWED TO GOD             10
+
+; @TODO replace with a structure
 SPECFN      RMB    2                    ;;; RESTORE FACTORY SETTINGS
             RMB    2                    ;   CLEAR AUDIT TOTALS
             RMB    2                    ;   INITIALIZE HIGH SCORE TABLE
@@ -348,12 +226,10 @@ OMESUM      RMB    2
 
 ;BASE PAGE RAM AREA
          ORG    $9C00
-
-RAM      EQU     $9c00
+RAM      
          SETDP   RAM>>8
 
 BGSAV       rmb 16
-
 TEXCOL
 TXFLAV       equ * + 1
 TXLEAD       equ * + 2
@@ -361,12 +237,12 @@ TXFONT       equ * + 3
 TXTSAV       rmb 16
 
 // Terrain vars
-BGL         RMB    2    ;;;TERRAIN LEFT POINTER
+BGL         RMB    2    ;;; Coord of left hand side of the terrain
 BGLX        RMB    2    ;;; OLD TERRAIN LEFT
 GTIME       RMB    1    ;;; GAME TIMER
 PDFLG       RMB    1    ;;; SPACE HOLDER PLAYER DIED
 PCRAM       RMB    16   ;;; PSEUDO COLOR RAM
-CREDIT      RMB    1
+CREDIT      RMB    1    ;;; Number of credits
 CUNITS      RMB    1
 BUNITS      RMB    1
 
@@ -442,16 +318,18 @@ SNDREP      RMB    1
 LFLG        RMB    1
 LCOLRX      RMB    1
 
-;;; ## Var: STATUS
-;;; Holds global flags for the games status
-;;;     * b0 : 0x01 : SPECIAL ATTR SWITCH FEED INACTIVE [ATTR MODE ONLY]
-;;;     * b1 : 0x02 : Terrain innactive
-;;;     * b2 : 0x04 : APPEARS,EXPLOSIONS DISABLE
-;;;     * b3 : 0x08 : Player dead
-;;;     * b4 : 0x10 : Player image inactive
-;;;     * b5 : 0x20 : Do not draw stars, objs, shells?
-;;;     * b6 : 0x40 : Player controls inactive
-;;;     * b7 : 0x80 : Game over
+;;;__Flags__: STATUS
+;;;
+;;;Holds global flags for the games status
+;;;
+;;;    * b0 : 0x01 : SPECIAL ATTR SWITCH FEED INACTIVE [ATTR MODE ONLY]
+;;;    * b1 : 0x02 : Terrain innactive
+;;;    * b2 : 0x04 : APPEARS,EXPLOSIONS DISABLE
+;;;    * b3 : 0x08 : Player dead
+;;;    * b4 : 0x10 : Player image inactive
+;;;    * b5 : 0x20 : Do not draw stars, objs, shells?
+;;;    * b6 : 0x40 : Player controls inactive
+;;;    * b7 : 0x80 : Game over
 STATUS RMB 1
 
 st_game_over            equ 1 << 7
@@ -465,12 +343,12 @@ st_attr_mode            equ 1 << 0
 
 st_init                 equ st_game_over | st_controls_inactive | st_player_invisible | st_player_invisible | st_terrain_invisible |  st_attr_mode | st_player_dead
 
-; PLAYER DIRECTION+THRUST
+;;; PLAYER DIRECTION+THRUST
 NPLAD       RMB    2    ; NEW PLAYER DIRECTION
 PLADIR      RMB    2
 
-;PLAYER COORDINATES
-;UPPER LEFT
+;;;PLAYER COORDINATES
+;;;UPPER LEFT
 PLAXC       RMB    1
 PLAYC       RMB    1
 
@@ -479,10 +357,10 @@ NPLAXC      RMB    1
 NPLAYC      RMB    1
 
 ;16 BIT
-PLAX16      RMB    2
-PLAY16      RMB    2
+PLAX16      RMB    2 ;;; Player X 16 bit
+PLAY16      RMB    2 ;;; Player Y 16 bit
 
-;PLAYER VELOCITY
+; Player Velocities
 PLAXV       RMB    3  ;;; Player X velocity - 3 bytes - 1 fractional
 PLAYV       RMB    2  ;;; Player Y velocity
 
@@ -504,7 +382,7 @@ LRX         RMB    1
 LRY         RMB    1
 CTEMP       RMB    2                       ; INDEX TEMP
 CTEMP2      RMB    2
-PCFLG       RMB    1                       ; PLAYER COLLISION
+PCFLG       RMB    1                       ;;; PLAYER COLLISION FLAG
 
 ;RANDOM VARIABLES
 SEED        RMB    1
@@ -533,10 +411,10 @@ IRQSV       RMB    2
 SCNCOL      RMB    1    ;;; SCANNER BORDER COLOR SAVE
 
 ;    DYNAMIC SAM ALLOCATION POINTERS
-FREEP       RMB    2    ; FREE LIST
-APPTR       RMB    2    ; APPEAR LIST
-EXPTR       RMB    2    ; EXPLODE LIST
-TRPTR       RMB    2    ; TRANSPORTER LIST ******COULD GO***
+FREEP       RMB    2    ;;; SAM FREE LIST
+APPTR       RMB    2    ;;; SAM APPEAR LIST
+EXPTR       RMB    2    ;;; SAM EXPLODE LIST
+TRPTR       RMB    2    ;;; SAM TRANSPORTER LIST ******COULD GO***
 
 ;** ADDITIONAL TEXT ALLOCATION
 TXTEMP      RMB    2
@@ -544,7 +422,7 @@ INVFLG      RMB    2    ; INVISIBLE FLAG
 SWEXC       RMB    1    ; SWARMER EXPLOSION EXCLUSION
 
 ;*************************************** MOVE THIS WITH MESSAGE RAM
-MESSCD      RMB    1    ; CODE OF CURRENT MESSAGE
+MESSCD      RMB    1    ;;; CODE OF CURRENT MESSAGE
 ;******************************************************************
 
 RIPOFF      RMB    1    ; *****************THIS MAY ALSO BE MOVED OUT OF BASEPAGE
@@ -556,29 +434,32 @@ ATRSW2      RMB    1    ;;; ATTRACT PIA2 FEED
 ATRSW3      RMB    1    ;;; PIA3
 INDIAG      RMB    1    ;;; NON ZERO INDICATES IN DIAGNOSTICS
 SWPR3_      RMB    4    ;;; THIRD SWITCH BUFFER
-ATRFLG      RMB    1    ;;; ATTRACT MODE FLAG
+
+;;; __Flags:__ ATTRACT MODE FLAG
+ATRFLG      RMB    1    
+
 GETLRM      RMB    2    ;;; GET LETTER PROCESS ADDRESS SAVE (FOR TIMER)
 SWPR4_      RMB    4    ;;; FOURTH SWITCH BUFFER
 CHKS1       RMB    1
 
 ; TABLE DATA
-         ORG    RAM+$100 ; PAST BASE PAGE
-WRPRAM       EQU    RAM+$100     ;;; WARP EFFECT OVERLAYS EXPLOSIONS AND TERRAIN
-RAMALS       RMB    $400         ;;; Ram for explosions
-RAMEND
+            ORG    RAM+$100 ; PAST BASE PAGE
+WRPRAM      EQU    RAM+$100     ;;; WARP EFFECT OVERLAYS EXPLOSIONS AND TERRAIN
+RAMALS      RMB    $400         ;;; Ram for explosions
+RAMEND                          ;;; End of excplosion RAM
 
 ;TERRAIN TABLES
-ALTBL       RMB    $400          ;;; ALTITUDES
+ALTBL       RMB    $400         ;;; ALTITUDES
 STBL        RMB    $9A*2        ;;; ERASE TABLE
 TERTF0      RMB    $9A*6        ;;; FLAVOR 0
 TERTF1      RMB    $9A*6        ;;; FLAVOR 1
 
-
+; @TODO Turn this into a structure
 ; Object index offsets
-OLINK       EQU    0          ;;; Obj - LINK TO NEXT object
+OLINK       EQU    0            ;;; Obj - LINK TO NEXT object
 OPICT       EQU    2            ;;; Obj - Picture descriptor addr
-OBJX        EQU    4            ;;; Obj - Upper left screen x
-OBJY        EQU    5            ;;; Obj - Upper left screen y
+OBJX        EQU    4            ;;; Obj - Screen relative X pos
+OBJY        EQU    5            ;;; Obj - Screen relative Y pos
 OBJID       EQU    6            ;;; Obj - Associated process id (IF ANY)
 OCVECT      EQU    8            ;;; Obj - Collision routine addr
 OX16        EQU    $A           ;;; Obj - 16 Obj - bit x world coord
@@ -587,37 +468,40 @@ OXV         EQU    $E           ;;; Obj - X velocity
 OYV         EQU    $10          ;;; Obj - Y velocity
 OBJCOL      EQU    $12          ;;; Obj - Scanner blip colour
 
+;;; **Object Type**
+;;;  b0 : 0x01  : _Unaffected by hyperspace_
+;;;  b1 : 0x02  : _Another hyperable flag?_
+;;;  b2 : 0x04  : _?_
+;;;  b3 : 0x08  : _?_
+;;;  b4 : 0x10  : _Uncollideable_
+;;;  b5 : 0x20  : _?_
+;;;  b6 : 0x40  : _?_
+;;;  b7 : 0x80  : _?_
+OTYP        EQU    $14
 
-;;;  b0 : 0x01  : Unaffected by hyperspace
-;;;  b1 : 0x02  : Another hyperable flag?
-;;;  b2 : 0x04  : ?
-;;;  b3 : 0x08  : ?
-;;;  b4 : 0x10  : Uncollideable
-;;;  b5 : 0x20  : ?
-;;;  b6 : 0x40  : ?
-;;;  b7 : 0x80  : ?
-OTYP        EQU    $14          ;;; Obj - OBJECT TYPE
-
-ODATA       EQU    $15          ;;; Obj - MISC. DATA
+ODATA       EQU    $15          ;;; Obj - MISC. DATA - used as timer for Smartbomb
 OSIZE       EQU    $17
 
-OLIST       RMB    (95)*OSIZE   ;;; Master Object list. Table that contains all of the game's visual objects
+OLIST       RMB    95*OSIZE     ;;; Master Object list. Table that contains all of the game's visual objects
 OLEND                           ;;; Object list end
 
-;;;USER DEFINED OBJECT TYPES
-;;;0=NORMAL,HYPERABLE
-;;;1=LANDER PICKING UP NON-HYP
-;;;2(BIT 1)= APPEAR NON-HYP
-;;;$10=EARTHLING NON-HYP,NON SMART BOMB
-;;;$11=SIGN POST NON-HYP,NON SB
-;;;USER DEFINED PROCESS TYPES
+;;;**User defined object types**
+;;;* b0 : 0=NORMAL,HYPERABLE
+;;;* b1 : 1=LANDER PICKING UP NON-HYP
+;;;* b2 : 2(BIT 1)= APPEAR NON-HYP
+;;;* b3 : ?
+;;;* b4 | b5 : 
+;;;    * $10 : EARTHLING NON-HYP,NON SMART BOMB
+;;;    * $11: S IGN POST NON-HYP,NON SB
+
 STYPE    EQU    0    ;;; Process type: SYSTEM PROCESS
 ATYPE    EQU    1
-CTYPE    EQU    2
+CTYPE    EQU    2    ;;; Process type: Coin
 DTYPE    EQU    3    ;;; Process type: PLAYER DEATH PROCESS
 LTYPE    EQU    4    ;;; Process type: LASER
 SBTYPE   EQU    5    ;;; Process type: SMART BOMB
 
+;;; Process structure
 struct proc {
     link    : word,
     addr    : word,
@@ -634,12 +518,16 @@ struct proc {
     d7      : byte,
 }
 
-PTAB    ;;; Process table
-    RMB    proc.size*(85)
-TABEND  ;;; End of process tab
+;;; **Process table**
+;;; Holds information on the games active processes.
+PTAB    RMB    proc.size*(85)
+
+;;; End of process table `PTAB`
+TABEND  
 
 SPSIZE    EQU    proc.size+8
-;;; Super process tab - space for 5 processes with an extra 8 bytes
+;;; **Super process table**
+;;; 5 processes with an extra 8 bytes added to them
 SPTAB     RMB    SPSIZE*5
 SPTEND
 
@@ -661,7 +549,9 @@ struct smap {
 
 SNUM     EQU    16
 SLGTH    EQU   smap.size
-
+;;; **Stars Table**
+;;; Table of `smap` structures restructes
+;;; one for each star in the game's background
 SMAP     RMB   SNUM*SLGTH  ; RESERVE SPACE
 SMEND
 
@@ -673,7 +563,7 @@ SCOL    EQU    smap.scol
 ;;; MONOCHROME TABLE
 MONOTB    RMB    128
 
-;SCANNER ERASE TABLES
+; SCANNER ERASE TABLES
 SETAB     RMB    200    ;;; Erase table for scanner OBJECTS
 STETAB    RMB    128    ;;; Erase tabel for TERRAIN
 
@@ -694,7 +584,8 @@ MESSCR    RMB    2
 ;;; Beginning of this message
 MESSST    RMB    2
 
-;;; Special action bits for current message
+;;; __Action Bits for Message__
+;;; Current message action bits
 ;;;
 ;;; * b0 N/A
 ;;; * b1 N/A
@@ -769,7 +660,7 @@ PTARG     EQU    player_data.PTARG
 PENEMY    EQU    player_data.PENEMY
 ;
 
-ASTCNT    RMB    1 ;;;Astronaut count
+ASTCNT    RMB    1 ;;; Astronaut count
 
 ;;; ENEMIES LIST
 ;;; WARNING DO NOT CHANGE ORDER OF COUNTS
@@ -832,8 +723,9 @@ BMCNT       RMB    1
 MISCNT      RMB    1
 ECEND
 
-;;; TARGET LIST
-TLIST    RMB    20    ;;; Target list table
+;;; __Table__ : List of astronaut object pointers
+;;; 10 entries of word ptrs to the astronauts `obj` record
+TLIST       RMB    20
 TLEND
 
 ;;;Volcano lava data structure
@@ -857,7 +749,6 @@ EGRAM2    RMB    2           ;;; IT LIKES TO GO 2 DEEP.
 GETLST    RMB    3           ;;; RAM TO IMPLEMENT RUBOUT FEATURE OF INITIAL ENTRY
 CHKS2     RMB    1
 SGDFLG    RMB    1           ;;; STARGATE DELAY FLAG.
-
 
 ;; Various equates
 YMAXX   equ  $F6

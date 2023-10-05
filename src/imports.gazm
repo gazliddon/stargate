@@ -142,3 +142,51 @@
     import ::core::C5P1
     import ::core::PLAPIC
     import ::core::PLBPIC
+
+    import ::lorom::PICKUP
+    import ::lorom::BGINIT
+    import ::lorom::BGOUT
+    import ::lorom::XUVCT
+    import ::lorom::XSVCT
+    import ::lorom::APVCT
+
+    import ::lorom::PLENDV
+    import ::lorom::SWTAB1
+    import ::lorom::RPHK
+    import ::lorom::LDISPV
+    import ::lorom::SBDSPV
+    import ::lorom::GETWVV
+    import ::lorom::WVCHKV
+    import ::lorom::INVSTV
+    import ::lorom::PLNDV1
+
+    import ::lorom::AUD
+    import ::lorom::AUD1
+    import ::lorom::PWRUPV
+    import ::lorom::ADVSW
+    import ::lorom::AUTOCY
+
+    import ::lorom::N0V
+    import ::lorom::N0AV
+
+    import ::lorom::PRINV
+    import ::lorom::PR35V
+    import ::lorom::PR35FV
+    import ::lorom::PR57V
+    import ::lorom::PR57FV
+    import ::lorom::PN35V
+    import ::lorom::PN35LV
+    import ::lorom::PN57V
+    import ::lorom::PN57LV
+    import ::lorom::PN25V
+    import ::lorom::PN25LV
+    import ::lorom::PN27V
+    import ::lorom::PN27LV
+    import ::lorom::WRD5V
+    import ::lorom::WRD5FV
+    import ::lorom::WRD7V
+    import ::lorom::WRD7FV
+
+    import ::lorom::MESUPV
+    import ::lorom::MESINV
+        

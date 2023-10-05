@@ -17,12 +17,12 @@ SW2SCI  RMB    1
 SW3STI  RMB    1
 SW3SCI  RMB    1
 
-        org TSTORG
-        JMP    AUD_
-        JMP    AUD1_
-        JMP    PWRUP
-        JMP    ADVSW_
-        JMP    AUTCYC
+            org TSTORG
+AUD         JMP    AUD_
+AUD1        JMP    AUD1_
+PWRUPV      JMP    PWRUP
+ADVSW       JMP    ADVSW_
+AUTOCY      JMP    AUTCYC
 
 ;;;  AUDIT: COUNT=A, COUNTER=B (1-7)
 AUD1_

@@ -21,11 +21,11 @@
         include "TREKC5.gazm"
 
 	scope lorom
+        include "YF14.gazm"
         include "ET13.gazm"
         include "MESS2.gazm"
         include "BPS15.gazm"
         include "LMA12.gazm"
-        include "YF14.gazm"
         include "SD51.gazm"
         include "TEXT31.gazm"
         include "SAM16.gazm"
@@ -35,6 +35,9 @@
 		include "TESTB12.gazm"
 		include "TESTC8.gazm"
 		include "TEST12.gazm"
+
+    scope fixups
+        include "fixups.gazm"
 
 	; scope hirom
 
