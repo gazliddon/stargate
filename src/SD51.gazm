@@ -4,7 +4,7 @@
 ;  LIST
 ;  TTL	<<<<< S T A R G A T E  >>>>>
         org SWTAB
-; SWTAB
+
         FDB LFIRE                       ; FIRE
         FCB LTYPE,$E8
         FDB 0                           ; THRUST
@@ -18,7 +18,10 @@
         FDB ST1
         FCB STYPE,0
         FDB REV
-        FCB STYPE,$E8
+
+        FCB STYPE
+        FCB $E8
+SWTABX
         FDB 0
         FCB 0,0
 SWTAB1
@@ -1580,32 +1583,32 @@ DIM4    BSR DIMSUB
 
 ;       DIMSUB - TAKE AWAY BLUE, GREEN, RED
 
-DIMSUB  LDA ,X                          ; WORKING AREA
-        LDB ,X                          ; GET FOR RED CHECK
-        ANDB #$7                        ; RED??
-        CMPB proc.d5,U                      ; TOO MUCH RED??
-        BLS DIMSB1                      ; NOPE.
-        DECA                            ; TAKE SOME RED AWAY
-DIMSB1  LDB ,X                          ; GET FOR GREEN
-        LSRB
-        LSRB
-        LSRB
-        ANDB #$07
-        CMPB proc.d5,U
-        BLS DIMSB2                      ; NOT ENOUGH GREEN
-        SUBA #$08                       ; TAKE AWAY A GREEN UNIT.
-DIMSB2  LDB ,X
-        LSRB
-        LSRB
-        LSRB
-        LSRB
-        LSRB
-        ANDB #$06                       ; ONLY 2 BITS OF BLUE
-        CMPB proc.d5,U
-        BLS DIMSB3
-        SUBA #$40                       ; TAKE A BLUE AWAY.
-DIMSB3  STA ,X+                         ; RETURN TO SENDER
-        RTS
+DIMSUB      LDA ,X                          ; WORKING AREA
+            LDB ,X                          ; GET FOR RED CHECK
+            ANDB #$7                        ; RED??
+            CMPB proc.d5,U                      ; TOO MUCH RED??
+            BLS DIMSB1                      ; NOPE.
+            DECA                            ; TAKE SOME RED AWAY
+DIMSB1      LDB ,X                          ; GET FOR GREEN
+            LSRB
+            LSRB
+            LSRB
+            ANDB #$07
+            CMPB proc.d5,U
+            BLS DIMSB2                      ; NOT ENOUGH GREEN
+            SUBA #$08                       ; TAKE AWAY A GREEN UNIT.
+DIMSB2      LDB ,X
+            LSRB
+            LSRB
+            LSRB
+            LSRB
+            LSRB
+            ANDB #$06                       ; ONLY 2 BITS OF BLUE
+            CMPB proc.d5,U
+            BLS DIMSB3
+            SUBA #$40                       ; TAKE A BLUE AWAY.
+DIMSB3      STA ,X+                         ; RETURN TO SENDER
+            RTS
 
 BRIGHT  LDA proc.data ,U                        ; SAVE STATUS FROM SCANNER CRASH
         PSHS A

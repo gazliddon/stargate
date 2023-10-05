@@ -152,6 +152,7 @@
 
     import ::lorom::PLENDV
     import ::lorom::SWTAB1
+    import ::lorom::SWTABX
     import ::lorom::RPHK
     import ::lorom::LDISPV
     import ::lorom::SBDSPV

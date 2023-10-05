@@ -365,15 +365,16 @@ HALL1       LDX #PCRAM                             ; CLEAR OUT COLORS
             JSR MSPROC                             ; DONE
             LDA #$AA
             STA TEXCOL                             ; MAKE GOD NAME VISIBLE
+
             LDX #GODSCR+38                         ; POINT AT LAST LETTER
-LHAL1       JSR RCMOSA                             ; FETCH A LETTER
+!loop2      JSR RCMOSA                             ; FETCH A LETTER
             LEAX -4,X                              ; UNDO INC, AND BACKUP 1
             CMPA #$3A                              ; SPACE??
-            BNE LHAL2
+            BNE !LHAL2
             CMPX #GODSCR
-            BHS LHAL1
+            BHS !loop2
 
-LHAL2       LEAX 2,X                               ; POINT AT LAST
+!LHAL2      LEAX 2,X                               ; POINT AT LAST
             PSHS X                                 ; PUT IT ON STACK
             LDX #$0E47                             ; GODS PLACE IN THE WORLD
             LDA #$31
@@ -382,12 +383,12 @@ LHAL2       LEAX 2,X                               ; POINT AT LAST
             JSR PR57V
             LEAX $300,X
             LDY #GODSCR
-LHAL3       EXG X,Y
+!LHAL3      EXG X,Y
             JSR RCMOSA                             ; GET A CHARACTER
             EXG X,Y
             JSR PR57V                              ; PRINT IT
             CMPY ,S                                ; COMPARE TO LAST
-            BLS LHAL3                              ; GOD NAME HAS BEEN PRINTED
+            BLS !LHAL3                              ; GOD NAME HAS BEEN PRINTED
             LEAX $200,X                            ; SLIDE OVER 8 PIXELS
             LDY #GODSCR+40                         ; POINT AT SCORE
             LDU #WRD7V                             ; PRINT IN 7 HIGH
@@ -397,12 +398,12 @@ LHAL3       EXG X,Y
             JSR PR57V
             LDY #GODINT                            ; POINT AT INITIALS
             LDB #3
-LHA3__      EXG X,Y
+!LHA3__     EXG X,Y
             JSR RCMOSA
             EXG X,Y
             JSR PR57V
             DECB
-            BNE LHA3__
+            BNE !LHA3__
             LDA #$5C
             JSR PR57V
 
@@ -439,25 +440,31 @@ HSCOLM      lda     #3                                 ; 3 COLUMNS
 HSCOL0      lda     proc.data+7,U                      ; NUMBER PER COLUMN
             sta     proc.data+1,U                      ; MAKE THAT NUMBER LEFT IN THIS COLUMN
 HSCOL3
-            NAP (1,HSCOL6)                         ; TIME BREAK HERE
-HSCOL6      LDA TEXCOL                             ; GET CURRENT COLOR
+            NAP (1,!sleep)                         ; TIME BREAK HERE
+
+!sleep
+            // Update the text colour
+            LDA TEXCOL                             ; GET CURRENT COLOR
             ADDA #$11                              ; PUSH TO NEXT
             CMPA #$88
-            BLS HSCOL1
+            BLS !nowrap
             LDA #$11
-HSCOL1      STA TEXCOL
+!nowrap     STA TEXCOL
+
             LDX proc.data+3,U                      ; GET ADDRESS
             LDB proc.data,U                        ; GET PLAYERS INDEX
             LDA #HSINDX                            ; INDEX MESSAGE
             JSR WRD5V                              ; PRINT IT
+
             LDY proc.data+5,U                      ; POINT AT PLAYERS INITIALS
             LDB #3                                 ; ITERATE 3 TIMES
-HSCOL2      EXG X,Y
+!hscol2     EXG X,Y
             JSR RCMOSA                             ; GET AN INITIAL
             EXG X,Y
             JSR PR35V                              ; PRINT IT OUT
             DECB
-            BNE HSCOL2                             ; INITIALS ARE OUT THERE
+            BNE !hscol2                             ; INITIALS ARE OUT THERE
+
             LDX proc.data+3,U                      ; GET CURSOR POINTER AGAIN
             LEAX $E00,X                            ; POSITION FOR SCORE
             LDU #WRD5V                             ; USE 3 BY 5 SCORE ROUTINE
@@ -487,22 +494,22 @@ HSCOL2      EXG X,Y
             CMPY #TODAYS+SCRSIZ                    ; ARE WE IN TODAYS
             LBLS PRTODY                            ; NOPE...GO AND DO TODAYS
                                                ;
-PRDONE
             MAKP (LOGCOL)                          ; DONE...START THE COLORS
             LDU CRPROC
             LDA #8
             STA proc.data,U
-HALX1       DEC proc.data,U
-            BEQ HALX
-            NAP (60,HALX1)
-HALX        LDA #120
+!HALX1      DEC proc.data,U
+            BEQ !HALX
+            NAP (60,!HALX1)
+!HALX       LDA #120
             STA proc.data,U
-HALX2       LDA PIA21
+!halx2      LDA PIA21
             ANDA #$8
             BEQ LOGO
             DEC proc.data,U
             BEQ LOGO
-            NAP (30,HALX2)
+            NAP (30,!halx2)
+
 SGMSP       LDX #$0E10                             ; TOP OF SCREEN
             LDD #$0A01
             JSR OTSGM                              ; PUT IT OUT

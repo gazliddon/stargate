@@ -218,74 +218,72 @@ YLPS2  SEX
     STD  OXV,X
 
 ; Y ACCELL
-YLPS2L  LDX  proc.data,U
-    LDB  proc.d4,U              ; GET ACCELL
-    LDA  PLAYC
-    ADDA  proc.d3,U          ; DIVE OFFSET
-    CMPA  OY16,X
-    BHI  YLPS5
-    NEGB
-YLPS5  SEX
-    ADDD  OYV,X
-    STD  OYV,X
-    COMA
-    COMB
-    ASRA
-    RORB
-    ASRA
-    RORB
-    ASRA  
-    RORB
-    ADDD  OYV,X
-    STD  OYV,X
-    DEC  proc.d6,U              ; TIME TO SHOOT
-    BNE  YLPS6
-    JSR  YLBOMB              ; BOMB THE GUY
-YLPS6  DEC  proc.d5,U        ; NEW DIVE?
-    BEQ  YLPS1
-    JSR  GYLPIC
-    NAP  (4,YLPS2L)
-; 
-;  RIPOFF CHECK
-; 
+YLPS2L      LDX  proc.data,U
+            LDB  proc.d4,U              ; GET ACCELL
+            LDA  PLAYC
+            ADDA  proc.d3,U          ; DIVE OFFSET
+            CMPA  OY16,X
+            BHI  YLPS5
+            NEGB
+YLPS5       SEX
+            ADDD  OYV,X
+            STD  OYV,X
+            COMA
+            COMB
+            ASRA
+            RORB
+            ASRA
+            RORB
+            ASRA  
+            RORB
+            ADDD  OYV,X
+            STD  OYV,X
+            DEC  proc.d6,U              ; TIME TO SHOOT
+            BNE  YLPS6
+            JSR  YLBOMB              ; BOMB THE GUY
+YLPS6       DEC  proc.d5,U        ; NEW DIVE?
+            BEQ  YLPS1
+            JSR  GYLPIC
+            NAP  (4,YLPS2L)
 
+;;;  RIPOFF CHECK
 RIPCHK  
-    MAKP  (RIPC0)
-  RTS
+            MAKP  (RIPC0)
+            RTS
 
-RIPC0  LDA  RIPOFF              ; ALREADY ACTIVE??
-    BNE  RIPDIE              ; THEN NO NEED TO LIVE.
-    INC  RIPOFF              ; EXCLUDE PLEASE
-    LDA  #$3
-    STA  proc.data,U
+RIPC0       LDA  RIPOFF              ; ALREADY ACTIVE??
+            BNE  RIPDIE              ; THEN NO NEED TO LIVE.
+            INC  RIPOFF              ; EXCLUDE PLEASE
+            LDA  #$3
+            STA  proc.data,U
 RIPC2  
-    NAP  (8,RIPC1)
-RIPC1  LDA  PIA21
-    CMPA  #$51          ; REV-START2-FIRE
-    BEQ  RIPC4
-    CMPA  #$E2          ; STILL OLD COMBO??
-    BEQ  RIPC2              ; THEN DON'T COUNT
-    DEC  proc.data,U
-    BNE  RIPC2
-    BRA  RIPC3
-RIPC4  LDA  #$3
-    STA  proc.data,U
-RIPC5  
-    NAP  (8,RIPC6)
-RIPC6  LDA  PIA21
-    CMPA  #$A3          ; DN-START1-TH-FIRE
-    LBEQ  RIPV1          ; DONE!
-    CMPA  #$51          ; OLD COMBO??
-    BEQ  RIPC5
-    DEC  proc.data,U          ; LESS TIME
-    BNE  RIPC5
-RIPC3  CLR  RIPOFF
-RIPDIE  JMP  SUCIDE
+                NAP  (8,!RIPC1)
+!RIPC1          LDA  PIA21
+                CMPA  #$51          ; REV-START2-FIRE
+                BEQ  !RIPC4
+                CMPA  #$E2          ; STILL OLD COMBO??
+                BEQ  RIPC2              ; THEN DON'T COUNT
+                DEC  proc.data,U
+                BNE  RIPC2
+                BRA  RIPC3
+!RIPC4          LDA  #$3
+                STA  proc.data,U
+!RIPC5  
+                NAP  (8,!RIPC6)
+!RIPC6          LDA  PIA21
+                CMPA  #$A3          ; DN-START1-TH-FIRE
+                LBEQ  RIPV1          ; DONE!
+                CMPA  #$51          ; OLD COMBO??
+                BEQ  !RIPC5
+                DEC  proc.data,U          ; LESS TIME
+                BNE  !RIPC5
+RIPC3           CLR  RIPOFF
+RIPDIE          JMP  SUCIDE
 
-.OPTR  EQU  proc.data            ; OBJECT POINTER
-.COAST  EQU  .OPTR+2        ; NUMBER OF WAKEUPS TILL NEXT UPDATE
-.DELA  EQU  .COAST+1
-.RET  EQU  proc.data+6              ; PLACE TO HOLD CALLER
+.OPTR           equ  proc.data            ; OBJECT POINTER
+.COAST          equ  .OPTR+2        ; NUMBER OF WAKEUPS TILL NEXT UPDATE
+.DELA           equ  .COAST+1
+.RET            equ  proc.data+6              ; PLACE TO HOLD CALLER
 
 
 ;;;   FIREBOMBER  (TM) (R) (C) (P) (BS) (ETC)

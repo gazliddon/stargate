@@ -274,254 +274,249 @@ MTERR   FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
 ;;; D = SCREEN ADDR
 ;;; ALL SAVED
 ;;; REENTRANT
-CWRIT   PSHS A,B,X,Y,U
-        TFR D,X
-        LDD OBJW,Y                      ; GET WIDTH,LENGTH
-        LDY OBJP0,Y                     ; GET DATA
-        PSHS D                          ; SAVE WIDTH,HEIGHT
-        BITB #1                         ; ODD LENGTH?
-        BNE CWRT1
+CWRIT       PSHS A,B,X,Y,U
+            TFR D,X
+            LDD OBJW,Y                      ; GET WIDTH,LENGTH
+            LDY OBJP0,Y                     ; GET DATA
+            PSHS D                          ; SAVE WIDTH,HEIGHT
+            BITB #1                         ; ODD LENGTH?
+            BNE CWRT1
 ; EVEN BYTE COUNT
-CWRT00  SUBB #2
-CWRT0   LDU B,Y
-        STU B,X
-        SUBB #2
-        BPL CWRT0
-        LDB 1,S
-        LEAX $100,X
-        LEAY B,Y
-        DECA
-        BNE CWRT00
-        BRA CWRTX
-; ODD BYTE COUNT
-CWRT1   DECB
-        LDA B,Y
-        STA B,X
-        SUBB #2
-        BMI CWRT3
-CWRT2   LDU B,Y
-        STU B,X
-        SUBB #2
-        BPL CWRT2
-CWRT3   LDB 1,S                         ; GET HEIGHT
-        LEAX $100,X
-        LEAY B,Y
-        DEC ,S                          ; DEC WIDTH
-        BNE CWRT1
-CWRTX   LEAS 2,S                        ; GET MAP +2 PHONIES
-        PULS A,B,X,Y,U,PC
+CWRT00      SUBB #2
+CWRT0       LDU B,Y
+            STU B,X
+            SUBB #2
+            BPL CWRT0
+            LDB 1,S
+            LEAX $100,X
+            LEAY B,Y
+            DECA
+            BNE CWRT00
+            BRA CWRTX
+// ODD BYTE COUNT
+CWRT1       DECB
+            LDA B,Y
+            STA B,X
+            SUBB #2
+            BMI CWRT3
+CWRT2       LDU B,Y
+            STU B,X
+            SUBB #2
+            BPL CWRT2
+CWRT3       LDB 1,S                         ; GET HEIGHT
+            LEAX $100,X
+            LEAY B,Y
+            DEC ,S                          ; DEC WIDTH
+            BNE CWRT1
+CWRTX       LEAS 2,S                        ; GET MAP +2 PHONIES
+            PULS A,B,X,Y,U,PC
 
-;;; COFF
-;;; Y = OBJECT DESCRIPTOR ADDR
-;;; D = SCREEN ADDR
-COFF    PSHS A,B,X,U
-        TFR D,X
-        LDD OBJW,Y                      ; GET WIDTH ,HEIGHT
+;;; __Func:__ COFF
+;;; Y = Object descriptor addr
+;;; D = Screen addr
+COFF        PSHS A,B,X,U
+            TFR D,X
+            LDD OBJW,Y                      ; GET WIDTH ,HEIGHT
 
-; Clear block
-COFFA   LDU #0                          ; clear col
-        PSHS B                          ; SAVE HT
-        BITB #1                         ; ODD LENGTH?
-        BNE COFF1                       ; YES
-; EVEN BYTE COUNT
-COFF00  SUBB #2
-COFF0   STU B,X
-        SUBB #2
-        BPL COFF0
-        LDB ,S                          ; GET HT
-        LEAX $100,X
-        DECA
-        BNE COFF00
-        BRA COFFX
+;;; Clear block
+;;; called by other functions and assumes
+;;; A,B,X,U already on stack
+COFFA       LDU     #0                         ; clear col
+            PSHS    B                          ; SAVE HT
+            BITB    #1                         ; ODD LENGTH?
+            BNE     !coff1                     ; YES
 
-; ODD BYTE COUNT
-COFF1   DECB
-        CLR B,X
-        SUBB #2
-        BMI COFF3
-COFF2   STU B,X
-        SUBB #2
-        BPL COFF2
-COFF3   LDB ,S                          ; GET HT
-        LEAX $100,X
-        DECA
-        BNE COFF1
-COFFX   LEAS 1,S                        ; PULL HEIGHT
-        PULS A,B,X,U,PC
+// EVEN BYTE COUNT
+!coff00     subb    #2
+!coff0      stu     B,X
+            subb    #2
+            bpl     !coff0
+            ldb     ,S                  ; GET HT
+            leax    $100,X              ; Next column
+            deca
+            bne     !coff00
+            bra     !COFFX
 
-;;; BLOCK CLEAR
-;;; X=ADDR, D=W,H
-BLKCLR  PSHS A,B,X,U
-        BRA COFFA
+// ODD BYTE COUNT
+!coff1      decb
+            clr     B,X
+            subb    #2
+            bmi     !COFF3
+!COFF2      stu     B,X
+            subb    #2
+            bpl     !COFF2
+!COFF3      ldb     ,S                          ; GET HT
+            leax    $100,X
+            deca
+            bne     !coff1
+!COFFX      leas    1,S                        ; PULL HEIGHT
+            puls    A,B,X,U,PC
+
+;;; __Func:__ BLKCLR
+;;; Clear a block on the screen
+;;;     * X-> Screen
+;;;     * D = W,H
+BLKCLR      PSHS A,B,X,U
+            BRA COFFA
 
 ;;; SCREEN CLEAR
-SCRCLR  PSHS D,X,Y,U
-        LDU #$9C00
-        LDX #0
-        TFR X,Y
-        TFR X,D
-SCLRLP  PSHU X,Y,D
-        PSHU X,Y,D
-        PSHU X,Y,D
-        PSHU X,Y,D
-        PSHU X,Y,D
-        PSHU X                          ; 32 AT A CRACK
-        CMPU #0
-        BNE SCLRLP
-        PULS D,X,Y,U,PC
-;
-; CLEAR ACTIVE SCREEN
-;
-SCLR1   PSHS D,X,Y,U,DP
-        LDU #$9C00
-        LDX #0
-        TFR X,Y
-        TFR X,D
-        TFR A,DP
-SC0LP   LDB #8
-SC1LP   PSHU X,Y,A,DP
-        PSHU X,Y,A,DP
-        PSHU X,Y,A,DP
-        PSHU X,Y,A,DP
-        DECB
-        BNE SC1LP
-        PSHU X,Y,A,DP
-        PSHU X,Y,A,DP
-        PSHU X,Y,A,DP
-        PSHU X
-        LEAU -YMIN,U
-        CMPU #0
-        BNE SC0LP
-        PULS D,X,Y,U,DP,PC
-;
-;  CMOS PRIMITIVE FOR READING
-;
-RCMOSA  equ *
-RCMOS   LDA 1,X                         ; GET LSB
-        ANDA #$0F                       ; LEAVE ONLY LS
-        PSHS A                          ; SAVE IT
-        LDA ,X++                        ; GET MSB + AUTO INC
-        ASLA
-        ASLA
-        ASLA
-        ASLA                            ; SHIFT LS TO MSB
-        ADDA ,S+                        ; GET LSB + FIX STACK
-DRTS    RTS                             ; BYE
-;
-;  READ CMOS INTO D POINTED TO BY X: A=X,X+1; B=X+2,X+3
-;
-RCMOSD  BSR RCMOSA                      ; GET THE FIRST BYTE+FALL THRU FOR 2ND
-;
-;  READ CMOS INTO B POINTED TO BY X
-;
-RCMOSB  PSHS A                          ; SAVE A
-        BSR RCMOSA                      ; GET IN A
-        TFR A,B                         ; PUT IT IN B
-        PULS A,PC                       ; DONE
-;
-;  WRITE TO CMOS PRIMITIVE
-;
-WCMOSA  equ *
-WCMOS   PSHS A                          ; SAVE WHATS TO BE WRITTEN
-        STA 1,X                         ; SAVE LSB
-        LSRA                            ; SHIFT	MS TO LS
-        LSRA
-        LSRA
-        LSRA
-        STA ,X++                        ; SAVE MSB AND AUTO INC
-        PULS A,PC                       ; DONE
-;
-;  WRITE CMOS FROM D TO X: A=X,X+1; B=X+2,X+3
-;
-WCMOSD  BSR WCMOSA                      ; DO IT AND FALL THRU FOR 2ND
-;
-;  WRITE CMOS FROM B TO X
-;
-WCMOSB  PSHS A                          ; SAVE A
-        TFR B,A                         ; MOVE B TO A
-        BSR WCMOSA                      ; FAKE IT
-        PULS A,PC                       ; DONE
-;
-;
-;
-; SCORE ROUTINE
-; A=0-7EXP,B=0-99
-;
-; SCORE PSHS A,B,X,U,Y
-;  ORCC #1 SET CARRY
-SCORE   JMP SCRPCH                      ;  *****************NO SCORE IN ATTR
-        NOP                             ;  ***********************************************
-        ROL SCRFLG                      ; SET FLAG
-        LSRA
-        PSHS A
-        LDA #0
-        BCC SCR1
-        ASLB
-        ROLA
-        ASLB
-        ROLA
-        ASLB
-        ROLA
-        ASLB
-        ROLA
-SCR1    JSR PLINDX
-        STD XTEMP
-        LDB #3
-        SUBB ,S+
-        LDA B,X
-        ADDA XTEMP+1
-        DAA
-        STA B,X
-        DECB
-        BMI SCRX
-SCR2    LDA B,X
-        ADCA XTEMP
-        DAA
-        STA B,X
-        LDA #0
-        STA XTEMP
-        DECB
-        BPL SCR2
-; CHECK REPLAY
-SCRX    LDD REPLA                       ; REPLAYS AVAILABLE
-        BEQ SCRXX                       ; NO
-        LEAY 4,X
-        BSR RCHK
-        BLO SCRXX                       ; NO
-        LDA 2,Y                         ; GET NEXT LEVEL
-        ADDA REPLA+1
-        DAA
-        STA 2,Y
-        LDA 1,Y
-        ADCA REPLA
-        DAA
-        STA 1,Y
-        LDA ,Y
-        ADCA #0
-        DAA                             ; DUMB	ASSHOLE ASSOCIATION
-        STA ,Y
-        JSR RPHK                        ; GO TO YOUR REPLAY HOOK
-        JSR LDISPV                      ; REWARD
-        JSR SBDSPV
-        LDD #RPSND
-        JSR SNDLD
-        LDB #5
-        JSR AUD1
-SCRXX   BSR SCRTRN
-        PULS A,B,X,U,Y
-        RTS
+SCRCLR      PSHS D,X,Y,U
+            LDU #$9C00
+            LDX #0
+            TFR X,Y
+            TFR X,D
+SCLRLP      PSHU X,Y,D
+            PSHU X,Y,D
+            PSHU X,Y,D
+            PSHU X,Y,D
+            PSHU X,Y,D
+            PSHU X                          ; 32 AT A CRACK
+            CMPU #0
+            BNE SCLRLP
+            PULS D,X,Y,U,PC
+
+;;; CLEAR ACTIVE SCREEN
+SCLR1       PSHS D,X,Y,U,DP
+            LDU #$9C00
+            LDX #0
+            TFR X,Y
+            TFR X,D
+            TFR A,DP
+SC0LP       LDB #8
+SC1LP       PSHU X,Y,A,DP
+            PSHU X,Y,A,DP
+            PSHU X,Y,A,DP
+            PSHU X,Y,A,DP
+            DECB
+            BNE SC1LP
+            PSHU X,Y,A,DP
+            PSHU X,Y,A,DP
+            PSHU X,Y,A,DP
+            PSHU X
+            LEAU -YMIN,U
+            CMPU #0
+            BNE SC0LP
+            PULS D,X,Y,U,DP,PC
+
+;;;  CMOS PRIMITIVE FOR READING
+RCMOSA      LDA 1,X                         ; GET LSB
+            ANDA #$0F                       ; LEAVE ONLY LS
+            PSHS A                          ; SAVE IT
+            LDA ,X++                        ; GET MSB + AUTO INC
+            ASLA
+            ASLA
+            ASLA
+            ASLA                            ; SHIFT LS TO MSB
+            ADDA ,S+                        ; GET LSB + FIX STACK
+DRTS        RTS                             ; BYE
+
+;;;  READ CMOS INTO D POINTED TO BY X: A=X,X+1; B=X+2,X+3
+RCMOSD      BSR RCMOSA                      ; GET THE FIRST BYTE+FALL THRU FOR 2ND
+
+;;;  READ CMOS INTO B POINTED TO BY X
+RCMOSB      PSHS A                          ; SAVE A
+            BSR RCMOSA                      ; GET IN A
+            TFR A,B                         ; PUT IT IN B
+            PULS A,PC                       ; DONE
+
+;;;  WRITE TO CMOS PRIMITIVE
+WCMOSA
+            PSHS A                          ; SAVE WHATS TO BE WRITTEN
+            STA 1,X                         ; SAVE LSB
+            LSRA                            ; SHIFT	MS TO LS
+            LSRA
+            LSRA
+            LSRA
+            STA ,X++                        ; SAVE MSB AND AUTO INC
+            PULS A,PC                       ; DONE
+
+;;;  WRITE CMOS FROM D TO X: A=X,X+1; B=X+2,X+3
+WCMOSD      BSR WCMOSA                      ; DO IT AND FALL THRU FOR 2ND
+
+;;;  WRITE CMOS FROM B TO X
+WCMOSB      PSHS A                          ; SAVE A
+            TFR B,A                         ; MOVE B TO A
+            BSR WCMOSA                      ; FAKE IT
+            PULS A,PC                       ; DONE
+;;; SCORE ROUTINE
+;;; A=0-7EXP,B=0-99
+;;;
+;;; SCORE PSHS A,B,X,U,Y
+;;; ORCC #1 SET CARRY
+SCORE       JMP SCRPCH                      ;  *****************NO SCORE IN ATTR
+            NOP                             ;  ***********************************************
+
+SCORE2      ROL SCRFLG                      ; SET FLAG
+            LSRA
+            PSHS A
+            LDA #0
+            BCC !SCR1
+            ASLB
+            ROLA
+            ASLB
+            ROLA
+            ASLB
+            ROLA
+            ASLB
+            ROLA
+!SCR1       JSR PLINDX
+            STD XTEMP
+            LDB #3
+            SUBB ,S+
+            LDA B,X
+            ADDA XTEMP+1
+            DAA
+            STA B,X
+            DECB
+            BMI !SCRX
+!SCR2       LDA B,X
+            ADCA XTEMP
+            DAA
+            STA B,X
+            LDA #0
+            STA XTEMP
+            DECB
+            BPL !SCR2
+// CHECK REPLAY
+!SCRX       LDD REPLA                       ; REPLAYS AVAILABLE
+            BEQ SCRXX                       ; NO
+            LEAY 4,X
+            BSR RCHK
+            BLO SCRXX                       ; NO
+            LDA 2,Y                         ; GET NEXT LEVEL
+            ADDA REPLA+1
+            DAA
+            STA 2,Y
+            LDA 1,Y
+            ADCA REPLA
+            DAA
+            STA 1,Y
+            LDA ,Y
+            ADCA #0
+            DAA                             ; DUMB	ASSHOLE ASSOCIATION
+            STA ,Y
+            JSR RPHK                        ; GO TO YOUR REPLAY HOOK
+            JSR LDISPV                      ; REWARD
+            JSR SBDSPV
+            LDD #RPSND
+            JSR SNDLD
+            LDB #5
+            JSR AUD1
+SCRXX       BSR SCRTRN
+            PULS A,B,X,U,Y
+            RTS
 
 ;;; REPLAY CHECK
 ;;; X=PLAYER SCORE MSB 8 DIGITS
 ;;; Y=REPLAY LEVEL MSB 8 DIGITS
 ;;; RETURNS CC FOR PSCOR-RLEVL
-RCHK    PSHS D
-        LDD ,X
-        CMPD ,Y
-        BNE !skip
-        LDD 2,X
-        CMPD 2,Y
-!skip   PULS D,PC
+RCHK        PSHS D
+            LDD ,X
+            CMPD ,Y
+            BNE !skip
+            LDD 2,X
+            CMPD 2,Y
+!skip       PULS D,PC
 
 ;;; SCORE TRANSFER
 SCRTRN      LDA SAMEXC                      ; Skip if TERRAIN BLOW UP OR WARP IN EFFECT??
@@ -574,155 +569,155 @@ SCT4        LEAX DIGLTH,X
             PULS A,Y,PC
 
 ;;; SCREEN SWITCHING
-P1SW    PSHS D,X                        ; SAVE REGISTERS
-P1SW0   LDX #IRQ
-        LDD #$013C
-        BRA PSW1
-P2SW    PSHS D,X                        ; SAVE REGISTERS
-        LDA PIA3                        ; COCKTAIL?
-        BPL P1SW0                       ; NO
-        LDX #IRQB                       ; SWITCH UPSIDE DOWN GUYS
-        LDD #$0334
-PSW1    STX IRQHK+1                     ; IRQ SELECT
-        STB PIA3+1
-        STA RWCNTL
-        LDA #$7E
-        STA IRQHK
-        PULS D,X,PC
+P1SW        PSHS D,X                        ; SAVE REGISTERS
+P1SW0       LDX #IRQ
+            LDD #$013C
+            BRA PSW1
+P2SW        PSHS D,X                        ; SAVE REGISTERS
+            LDA PIA3                        ; COCKTAIL?
+            BPL P1SW0                       ; NO
+            LDX #IRQB                       ; SWITCH UPSIDE DOWN GUYS
+            LDD #$0334
+PSW1        STX IRQHK+1                     ; IRQ SELECT
+            STB PIA3+1
+            STA RWCNTL
+            LDA #$7E
+            STA IRQHK
+            PULS D,X,PC
 
 ;;; CHECK FOR PROCESS EXISTANCE
 ;;; Y=PADDR OF SUSPECT
 ;;; RET EQ IF FOUND, NE IF NOT THERE
-PCHEK   PSHS X
-        LDX ACTIVE
-        BEQ PCHK2
-PCHK1   CMPY proc.addr,X
-        BEQ PCKBYE
-        LDX ,X
-        BNE PCHK1
-PCHK2   ANDCC #$FB                      ; RET NE
-PCKBYE  PULS X,PC
+PCHEK       PSHS X
+            LDX ACTIVE
+            BEQ PCHK2
+PCHK1       CMPY proc.addr,X
+            BEQ PCKBYE
+            LDX ,X
+            BNE PCHK1
+PCHK2       ANDCC #$FB                      ; RET NE
+PCKBYE      PULS X,PC
 
-BSET    JSR SCLR1                       ; CLEAR THE SCREEN FOR THE BONE
-        LDX PLRX                        ; GET PLAYER
-        LDA PWAV,X                      ; GET HIS WAVE NUMBER
-        JSR HEXBCD                      ; IN BCD PLEASE (HUMAN NUMBER??)
-        TFR A,B                         ; PUT IN B FOR MESSAGE
-        CMPA #5
-        BLS BSET1
-        LDA #5                          ; NO MORE THAN 500 THOUGH FOR BONUS
-BSET1   PSHS A                          ; SAVE FOR A MOMENT
-        LDA #ATTAKM                     ; MAKE THE ATTACK MESSAGE
-        JSR WRD7FV
-        PULS A,PC                       ; RESTORE A (HUNDRED VALUE) AND RETURN
+BSET        JSR SCLR1                       ; CLEAR THE SCREEN FOR THE BONE
+            LDX PLRX                        ; GET PLAYER
+            LDA PWAV,X                      ; GET HIS WAVE NUMBER
+            JSR HEXBCD                      ; IN BCD PLEASE (HUMAN NUMBER??)
+            TFR A,B                         ; PUT IN B FOR MESSAGE
+            CMPA #5
+            BLS BSET1
+            LDA #5                          ; NO MORE THAN 500 THOUGH FOR BONUS
+BSET1       PSHS A                          ; SAVE FOR A MOMENT
+            LDA #ATTAKM                     ; MAKE THE ATTACK MESSAGE
+            JSR WRD7FV
+            PULS A,PC                       ; RESTORE A (HUNDRED VALUE) AND RETURN
 
 
 ;;; BONUS COLLECT PROCESS
 ;;; A GETS NUMBER OF HUNDREDS OF BONUS MULTIPLIER (HEX)
-BONUS   CLR PCRAM
-        LDU CRPROC
-        PULS X
-        STX proc.data +6,U                      ; SAVE RETURN
-BON1    CLRB
-        TFR D,Y                         ; SAVE FOR TEXT
-        TFR A,B                         ; MOVE COUNT TO COUNT
-        LDA #2                          ; PUT IN POWER
-        STD proc.d4,U                       ; AND SAVE FOR SCORE
-        LDA #ATWVM                      ; WRITE IT OUT
-        JSR WRD7FV
-        LDX #$38A0                      ; INITIAL ADDR
-        LDA ASTCNT
-        STA proc.d2,U
-        BEQ BC2
-BCLP    TFR X,D
-        LDY #ASTP3
-        JSR CWRIT
-        LEAX $400,X
-        LDD proc.d4,U                       ; GET SCORE
-        JSR SCORE
-        STX proc.data ,U
-        NAP (4,BC1)
-BC1     LDX proc.data ,U
-        DEC proc.d2,U                       ; ALL DONE?
-        BNE BCLP                        ; NO
-BC2     LDX PLRX
-        JSR GETWVV
-        NAP ($80,BC3)                   ; HANG OUT
-BC3     JMP [proc.data+6,U]                    ; RETURN
+BONUS       CLR PCRAM
+            LDU CRPROC
+            PULS X
+            STX proc.data +6,U                      ; SAVE RETURN
+BON1        CLRB
+            TFR D,Y                         ; SAVE FOR TEXT
+            TFR A,B                         ; MOVE COUNT TO COUNT
+            LDA #2                          ; PUT IN POWER
+            STD proc.d4,U                       ; AND SAVE FOR SCORE
+            LDA #ATWVM                      ; WRITE IT OUT
+            JSR WRD7FV
+            LDX #$38A0                      ; INITIAL ADDR
+            LDA ASTCNT
+            STA proc.d2,U
+            BEQ BC2
+BCLP        TFR X,D
+            LDY #ASTP3
+            JSR CWRIT
+            LEAX $400,X
+            LDD proc.d4,U                       ; GET SCORE
+            JSR SCORE
+            STX proc.data ,U
+            NAP (4,BC1)
+BC1         LDX proc.data ,U
+            DEC proc.d2,U                       ; ALL DONE?
+            BNE BCLP                        ; NO
+BC2         LDX PLRX
+            JSR GETWVV
+            NAP ($80,BC3)                   ; HANG OUT
+BC3         JMP [proc.data+6,U]                    ; RETURN
 
 ;;; Firq INTERRUPT ROUTINE
 ;;; dispatches to the correct routine
 ;;; Firq triggers 
-IRQ     LDA #RAM>>8
-        TFR A,DP
-        LDA #$34
-        STA PIA1_ctrl
-        LDA PIA1
-        LDA VERTCT                      ; PAST 128
-        CMPA #128
-        BLO I0                          ; NO
+IRQ         LDA #RAM>>8
+            TFR A,DP
+            LDA #$34
+            STA PIA1_ctrl
+            LDA PIA1
+            LDA VERTCT                      ; PAST 128
+            CMPA #128
+            BLO I0                          ; NO
 
-        LDA IFLG                        ; ALREADY DONE ?
-        BNE IRQX                        ; NO
-        INC IFLG
-        JSR SNDSEQ                      ;  SOUNDS+SWITCHES
-        JSR PLAYER
-        JSR STOUT                       ;  OUTPUT STARS
-        LDA VERTCT
-        SUBA #8
-        CMPA #$A8
-        BLS IRQ1
+            LDA IFLG                        ; ALREADY DONE ?
+            BNE IRQX                        ; NO
+            INC IFLG
+            JSR SNDSEQ                      ;  SOUNDS+SWITCHES
+            JSR PLAYER
+            JSR STOUT                       ;  OUTPUT STARS
+            LDA VERTCT
+            SUBA #8
+            CMPA #$A8
+            BLS IRQ1
 
-        LDA #$A8
-IRQ1    STA XXX2
-        LDD XXX2
-        JSR OPROC
-        LDD XXX2
-        JSR PRDISP
-        JSR SHELL
-        BRA IRQX                ; exit irq
+            LDA #$A8
+IRQ1        STA XXX2
+            LDD XXX2
+            JSR OPROC
+            LDD XXX2
+            JSR PRDISP
+            JSR SHELL
+            BRA IRQX                ; exit irq
 
 ;;; I/o scanning
-I0      LDB IFLG
-        BEQ IRQX                ; exit if being serviced
-        CLR IFLG
-        INC TIMER
-        LDB #WDATA
-        STB WDOG
-        CMPA #4                         ; TOO LATE?
-        BHI I01
+I0          LDB IFLG
+            BEQ IRQX                ; exit if being serviced
+            CLR IFLG
+            INC TIMER
+            LDB #WDATA
+            STB WDOG
+            CMPA #4                         ; TOO LATE?
+            BHI I01
 
 ; COLOR MAPPING
-        LDU #CRAM+16
-        LDD PCRAM+10
-        LDX PCRAM+12
-        LDY PCRAM+14
-        PSHU D,X,Y
-        LDD PCRAM+4
-        LDX PCRAM+6
-        LDY PCRAM+8
-        PSHU D,X,Y
-        LDD PCRAM
-        LDX PCRAM+2
-        PSHU D,X
+            LDU #CRAM+16
+            LDD PCRAM+10
+            LDX PCRAM+12
+            LDY PCRAM+14
+            PSHU D,X,Y
+            LDD PCRAM+4
+            LDX PCRAM+6
+            LDY PCRAM+8
+            PSHU D,X,Y
+            LDD PCRAM
+            LDX PCRAM+2
+            PSHU D,X
 
-I01     JSR CSCAN                       ; COIN SWITCHES
-        LDA STATUS
-        BITA #$02
-        BNE IRQ2
-        JSR BGOUT                       ; Update terrain
-IRQ2    LDD XXX1
-        JSR PRDISP                      ; Draw the player
-        LDD XXX1
-        JSR OPROC
-        JSR VELO                        ; UPDATE VELOCITIES
-IRQX    ORCC #$FF
-        LDA #$35
-        STA PIA1_ctrl
-        LDA ,S                          ; E BIT FIX
-        ANDA #$6F
-        STA ,S
-        PULS X,Y,D,U,PC,CC,DP
+I01         JSR CSCAN                       ; COIN SWITCHES
+            LDA STATUS
+            BITA #$02
+            BNE IRQ2
+            JSR BGOUT                       ; Update terrain
+IRQ2        LDD XXX1
+            JSR PRDISP                      ; Draw the player
+            LDD XXX1
+            JSR OPROC
+            JSR VELO                        ; UPDATE VELOCITIES
+IRQX        ORCC #$FF
+            LDA #$35
+            STA PIA1_ctrl
+            LDA ,S                          ; E BIT FIX
+            ANDA #$6F
+            STA ,S
+            PULS X,Y,D,U,PC,CC,DP
 
 ;;; INVERTED IRQ FOR SCREEN FLIP
 ;;; Block copy of IRQ but handles flipped
@@ -1671,22 +1666,26 @@ IVDSP1  LDB #$FF
         SUBA #5
         BHI IVDSP1
 IVDSPX  RTS
-;
-; DISPLAY LASERS
-;
+
+;;; DISPLAY LASERS
 LDISP   PSHS D,X,Y,U                    ; PLAYER 1
         LDA SAMEXC
-        BNE LDPX
+        BNE !exit
         LDX #P1LAS
         LDA .P1LAS
         BSR LDSP
         LDA PLRCNT
         DECA
-        BEQ LDPX
+        BEQ !exit
         LDX #P2LAS
         LDA .P2LAS
         BSR LDSP
-LDPX    PULS D,X,Y,U,PC
+!exit   PULS D,X,Y,U,PC
+
+
+;;; Display a laser
+;;; A = 
+;;; X -> 
 LDSP    PSHS A
         LDD #$2406
         JSR BLKCLR
@@ -1716,26 +1715,26 @@ LDSP3   JSR CWRIT                       ; WRITE OUT YOUR SHIPS
 LDSPX   PULS A,PC
 
 ;;; DISPLAY TOP OF SCREEN
-TDISP   PSHS D,X,Y,U
-        LDD #$4020
-        LDX #SCANER
-        JSR BLKCLR
-        LDX #$0008                      ; PLAYER 1 UPPER RIGHT CORNER (NOTE...NO EQUATE)
-        LDD #$2F28                      ; PLAYER 1 REGION SIZE
-        JSR BLKCLR
-        LDX #$7108                      ; PLAYER 2 UPPER RIGHT
-        LDD #$2B28                      ; REGION SIZE
-        JSR BLKCLR
-        JSR BORDER
-        JSR LDISP
-        BSR SBDISP
-        JSR IVDISP
-        LDA PLRCNT
-TD1     JSR SCRTR0
-        DECA
-        BNE TD1
-        JSR MESINV                      ; INITIALIZE MESSAGE REGION
-        PULS D,X,Y,U,PC
+TDISP       PSHS D,X,Y,U
+            LDD #$4020
+            LDX #SCANER
+            JSR BLKCLR
+            LDX #$0008                      ; PLAYER 1 UPPER RIGHT CORNER (NOTE...NO EQUATE)
+            LDD #$2F28                      ; PLAYER 1 REGION SIZE
+            JSR BLKCLR
+            LDX #$7108                      ; PLAYER 2 UPPER RIGHT
+            LDD #$2B28                      ; REGION SIZE
+            JSR BLKCLR
+            JSR BORDER
+            JSR LDISP
+            BSR SBDISP
+            JSR IVDISP
+            LDA PLRCNT
+!TD1        JSR SCRTR0
+            DECA
+            BNE !TD1
+            JSR MESINV                      ; INITIALIZE MESSAGE REGION
+            PULS D,X,Y,U,PC
 
 ;;; SMART BOMB DISPLAY
 SBDISP      PSHS X,Y,D,U
@@ -2201,167 +2200,164 @@ PACH1X  LDX #OPTR
         JMP BOZ1
 
 ; BLIP SCAN SUBROUTINE
-PCH110  LDD OX16,X                      ; FIND OFFSET
-        SUBD XTEMP                      ; SUBTRACT SCANNER LEFT
-        LSRA                            ; SHIFT	DOWN TO 6 BITS
-        LSRA
-        LDB OY16,X
-        LSRB
-        LSRB
-        LSRB
-        ADDD #SCANER-5
-        STD ,U
-        LDD OBJCOL,X                    ; STORE BLIP
-        BEQ BLPX
-        CMPD #$9000
-        BEQ BLPX                        ; HUM
-        CMPD #$4000
-        BEQ BLPX                        ; FIREBALL
-        CMPA #$33                       ; BAITER
-        BEQ BLPX
-        CMPD #$6666
-        BEQ BLPX                        ; HUMANOIDS
-        CMPD #$4433
-        BEQ BLPX                        ; LANDERS
-        CMPA #$1F                       ; STAR GATE?
-        BNE PCH120                      ; NO
-        LDD ,U
-        CMPA #( SCANER>>8 )+$3F                ; CLIP GATE AT LIMIT
-        BNE PCH12A
-        DECA
-        STA ,U
-PCH12A  LDY #$FFF0
-        STY [,U++]
-        INCB
-        STD ,U
-        LDY #$F0FF
-        STY [,U++]
-        INCA
-        STD ,U
-        LDY #$F0F0
-        STY [,U++]
-        DECB
-        STD ,U
-        STY [,U++]
-        BRA PCH13
-PCH120  LDD #$9999
-BLPX    STD [,U++]
-PCH13   LDX ,X                          ; DO THE REST
-        BNE PCH110
-        RTS
+PCH110      LDD OX16,X                      ; FIND OFFSET
+            SUBD XTEMP                      ; SUBTRACT SCANNER LEFT
+            LSRA                            ; SHIFT	DOWN TO 6 BITS
+            LSRA
+            LDB OY16,X
+            LSRB
+            LSRB
+            LSRB
+            ADDD #SCANER-5
+            STD ,U
+            LDD OBJCOL,X                    ; STORE BLIP
+            BEQ BLPX
+            CMPD #$9000
+            BEQ BLPX                        ; HUM
+            CMPD #$4000
+            BEQ BLPX                        ; FIREBALL
+            CMPA #$33                       ; BAITER
+            BEQ BLPX
+            CMPD #$6666
+            BEQ BLPX                        ; HUMANOIDS
+            CMPD #$4433
+            BEQ BLPX                        ; LANDERS
+            CMPA #$1F                       ; STAR GATE?
+            BNE PCH120                      ; NO
+            LDD ,U
+            CMPA #( SCANER>>8 )+$3F                ; CLIP GATE AT LIMIT
+            BNE PCH12A
+            DECA
+            STA ,U
+PCH12A      LDY #$FFF0
+            STY [,U++]
+            INCB
+            STD ,U
+            LDY #$F0FF
+            STY [,U++]
+            INCA
+            STD ,U
+            LDY #$F0F0
+            STY [,U++]
+            DECB
+            STD ,U
+            STY [,U++]
+            BRA PCH13
+PCH120      LDD #$9999
+BLPX        STD [,U++]
+PCH13       LDX ,X                          ; DO THE REST
+            BNE PCH110
+            RTS
 
 ;;; NO LOW PRIORITY SOUNDS IN ATTR
-SNDPCH  PSHS X,D,CC
-        CLR THFLG
-        TFR D,X
-        LDA ,X
-        TST STATUS
-        LBPL $705                       ; NOT ATTR
-SNDPCX  CMPA #$F0
-        LBHS $705
-        PULS X,D,CC,PC                  ; NOGO
+SNDPCH      PSHS X,D,CC
+            CLR THFLG
+            TFR D,X
+            LDA ,X
+            TST STATUS
+            LBPL $705                       ; NOT ATTR
+SNDPCX      CMPA #$F0
+            LBHS $705
+            PULS X,D,CC,PC                  ; NOGO
 
 ;;; ATTR SWITCH SCAN PATCH
-SWPCH   LDB STATUS
-        BPL SWPCHX
-        LSRB
-        BCS SWPCHX
-        LDB PIA2
-        ANDB #$7D
-        ORB ATRSW2                      ; THRUST+ UP
-        STB PIA21
-        LDB PIA3
-        ANDB #$FE
-        ORB ATRSW3
-        JMP $78C
-SWPCHX  LDB PIA2
-        JMP $787
+SWPCH       LDB STATUS
+            BPL SWPCHX
+            LSRB
+            BCS SWPCHX
+            LDB PIA2
+            ANDB #$7D
+            ORB ATRSW2                      ; THRUST+ UP
+            STB PIA21
+            LDB PIA3
+            ANDB #$FE
+            ORB ATRSW3
+            JMP ::core::PATCH2
+SWPCHX      LDB PIA2
+            JMP ::core::PATCH1
 
 ;;; NO SCORE IN ATTR PATCH
-SCRPCH  PSHS A,B,X,U,Y
-        TST STATUS
-        BMI SCRPCX                      ; ATTR NO SCORE
-        ORCC #1
-        JMP $143E
-SCRPCX  PULS A,B,X,U,Y,PC
+SCRPCH      PSHS A,B,X,U,Y
+            TST STATUS
+            BMI SCRPCX                      ; ATTR NO SCORE
+            ORCC #1
+            JMP SCORE2
+SCRPCX      PULS A,B,X,U,Y,PC
 
 ;;; SMART BOMB DONT KILL NULLOBS PATCH
-SBPCH   LDD OPICT,X
-        CMPD #NULOB
-        LBEQ SBMB2
-        JSR [OCVECT,X]
-        JMP SBMB00
-LASPAT  LDA SAMEXC                      ; NO LASER DURING BAD TERRAIN
-        BNE NOLAS
-        LDA LFLG                        ; HOW MANY
-        CMPA #4
-        BHS NOLAS
-        RTS
-NOLAS   JMP SUCIDE
-this_end
+SBPCH       LDD OPICT,X
+            CMPD #NULOB
+            LBEQ SBMB2
+            JSR [OCVECT,X]
+            JMP SBMB00
+LASPAT      LDA SAMEXC                      ; NO LASER DURING BAD TERRAIN
+            BNE NOLAS
+            LDA LFLG                        ; HOW MANY
+            CMPA #4
+            BHS NOLAS
+            RTS
+NOLAS       JMP SUCIDE
 
-        org 0x2b70
-
-SWPACH  BEQ SWP_
-        JSR INVSTV
-SWP_    LDA INDIAG                      ; NO SWITCH PROC IF IN DIAGS
-        BNE SWP3_                       ; NO SWITCH PROCESSING
-        LDX SWPROC                      ; CHECK FIRST GUY
-        BNE SWP1_                       ; DO HIS WORK
-        LDX SWPROC+4                    ; CHECK SECOND GUY
-        BEQ SWP2_                       ; EMPTY....CHECK THIRD
-        LDD SWPROC+6
-        CLR SWPROC+4
-        CLR SWPROC+5
-        JMP SWP3                        ; AND GO BACK AND DO REST
-SWP1_   LDD SWPROC+2
-        CLR SWPROC
-        CLR SWPROC+1
-        JMP SWP3                        ; JUMP BACK AND DO IT
-SWP2_   LDX SWPR3_                      ; CHECK THIRD SWITCH COUNTER
-        BEQ SWP4_                       ; NOTHING THERE...DONE.
-        LDD SWPR3_+2
-        CLR SWPR3_
-        CLR SWPR3_+1
-        JMP SWP3
-SWP4_   LDX SWPR4_
-        LBEQ SWPX
-        LDD SWPR4_+2
-        CLR SWPR4_
-        CLR SWPR4_+1
-        JMP SWP3
+            org 0x2b70
+SWPACH      BEQ SWP_
+            JSR INVSTV
+SWP_        LDA INDIAG                      ; NO SWITCH PROC IF IN DIAGS
+            BNE SWP3_                       ; NO SWITCH PROCESSING
+            LDX SWPROC                      ; CHECK FIRST GUY
+            BNE SWP1_                       ; DO HIS WORK
+            LDX SWPROC+4                    ; CHECK SECOND GUY
+            BEQ SWP2_                       ; EMPTY....CHECK THIRD
+            LDD SWPROC+6
+            CLR SWPROC+4
+            CLR SWPROC+5
+            JMP SWP3                        ; AND GO BACK AND DO REST
+SWP1_       LDD SWPROC+2
+            CLR SWPROC
+            CLR SWPROC+1
+            JMP SWP3                        ; JUMP BACK AND DO IT
+SWP2_       LDX SWPR3_                      ; CHECK THIRD SWITCH COUNTER
+            BEQ SWP4_                       ; NOTHING THERE...DONE.
+            LDD SWPR3_+2
+            CLR SWPR3_
+            CLR SWPR3_+1
+            JMP SWP3
+SWP4_       LDX SWPR4_
+            LBEQ SWPX
+            LDD SWPR4_+2
+            CLR SWPR4_
+            CLR SWPR4_+1
+            JMP SWP3
 ;
-SWP3_   JMP SWPX                        ; JUMP PAST SWITCH PROCESSING
+SWP3_       JMP SWPX                        ; JUMP PAST SWITCH PROCESSING
 
 ; IRQ SWITCH PATCH
-SWWPC9
-        BNE SWWPC0                      ;  NO ROOM IN FIRST COUNTER
-        STD SWPROC
-        STX SWPROC+2
-        BRA SWWPC4
-SWWPC0  LDU SWPROC+4
-        BNE SWWPC2
-        STD SWPROC+4
-        STX SWPROC+6
-        BRA SWWPC4
-SWWPC2  LDU SWPR3_
-        BNE SWWPC3
-        STD SWPR3_
-        STX SWPR3_+2
-        BRA SWWPC4
-SWWPC3  STD SWPR4_
-        STX SWPR4_+2
-SWWPC4  PULS U,D                        ; GET BASE, SHIFTERS BACK
-        TSTA
-        LBNE SW0                        ; BIT STILL IN A NEED PROCESSING
-        RTS                             ; ELSE RETURN TO INTERRUPT PROCESSOR
-HYPACH  LDA SCRFLG                      ; ANY SCORE OR IS IT SAFE TO KILL HIM?
-        BNE HYPC1                       ; YEP...KILL HIM
-        JMP SUCIDE                      ; NOPE..DIE
-HYPC1   JMP PLNDV1
-;
-VOLPAC  CLR lava.time,X
-        CLR lava.x,X
-        JMP VOLCLX
-END
+SWWPC9      BNE SWWPC0                      ;  NO ROOM IN FIRST COUNTER
+            STD SWPROC
+            STX SWPROC+2
+            BRA SWWPC4
+SWWPC0      LDU SWPROC+4
+            BNE SWWPC2
+            STD SWPROC+4
+            STX SWPROC+6
+            BRA SWWPC4
+SWWPC2      LDU SWPR3_
+            BNE SWWPC3
+            STD SWPR3_
+            STX SWPR3_+2
+            BRA SWWPC4
+SWWPC3      STD SWPR4_
+            STX SWPR4_+2
+SWWPC4      PULS U,D                        ; GET BASE, SHIFTERS BACK
+            TSTA
+            LBNE SW0                        ; BIT STILL IN A NEED PROCESSING
+            RTS                             ; ELSE RETURN TO INTERRUPT PROCESSOR
+HYPACH      LDA SCRFLG                      ; ANY SCORE OR IS IT SAFE TO KILL HIM?
+            BNE HYPC1                       ; YEP...KILL HIM
+            JMP SUCIDE                      ; NOPE..DIE
+HYPC1       JMP PLNDV1
+
+VOLPAC      CLR lava.time,X
+            CLR lava.x,X
+            JMP VOLCLX
+
 
