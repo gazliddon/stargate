@@ -18,316 +18,316 @@ SW3STI  RMB    1
 SW3SCI  RMB    1
 
             org TSTORG
-AUD         JMP    AUD_
-AUD1        JMP    AUD1_
-PWRUPV      JMP    PWRUP
-ADVSW       JMP    ADVSW_
-AUTOCY      JMP    AUTCYC
+AUD             jmp    AUD_
+AUD1            jmp    AUD1_
+PWRUPV          jmp    PWRUP
+ADVSW           jmp    ADVSW_
+AUTOCY          jmp    AUTCYC
 
 ;;;  AUDIT: COUNT=A, COUNTER=B (1-7)
 AUD1_
-        PSHS  D,X                       ;  SAVE STATE
-        LDA   #$01                      ;  BUMP BY COUNT OF 1
-        BRA   AUD2
+                pshs  D,X                       ;  SAVE STATE
+                lda   #$01                      ;  BUMP BY COUNT OF 1
+                bra   AUD2
 
-AUD_    PSHS  D,X                       ;  SAVE STATE
+AUD_            pshs  D,X                       ;  SAVE STATE
 
-AUD2    ANDB  #$0F                      ;  LIMIT TO 0-F
-        ASLB                            ;  MAKE    INTO 4X
-        PSHS B
-        ASLB
-        ADDB ,S+                        ;  6X
-        LDX #CMOS-4+$100                ;  POINT TO START-6    (CREDITS TAKES UP 2)
-        ABX                             ;  GET THE CORRECT DESTINATION
-        JSR   RCMOSB
-        PSHS B
-        JSR   RCMOSB
-        PSHS B
-        JSR   RCMOSB
-        PSHS B
-        ADDA ,S
-        DAA
-        STA   ,S
-        LDA   1,S
-        ADCA #0
-        DAA
-        STA   1,S
-        LDA   2,S
-        ADCA #0
-        DAA
-        LEAX -6,X
-        JSR   WCMOSA
-        PULS B
-        PULS A
-        JSR WCMOSD
-        PULS A
-AUDX    PULS D,X,PC                     ;  CLEAN UP
+AUD2            andb  #$0F                      ;  LIMIT TO 0-F
+                aslb                            ;  MAKE    INTO 4X
+                pshs B
+                aslb
+                addb ,S+                        ;  6X
+                ldx #CMOS-4+$100                ;  POINT TO START-6    (CREDITS TAKES UP 2)
+                abx                             ;  GET THE CORRECT DESTINATION
+                jsr   RCMOSB
+                pshs B
+                jsr   RCMOSB
+                pshs B
+                jsr   RCMOSB
+                pshs B
+                adda ,S
+                daa
+                sta   ,S
+                lda   1,S
+                adca #0
+                daa
+                sta   1,S
+                lda   2,S
+                adca #0
+                daa
+                leax -6,X
+                jsr   WCMOSA
+                puls B
+                puls A
+                jsr WCMOSD
+                puls A
+AUDX            puls D,X,PC                     ;  CLEAN UP
 
 ;;; Game entru point on power up
-PWRUP   orcc   #$FF                     ;  NO INTERRUPTS ETC.
-        lds    #HSTK                    ;  IF AND WHEN WE DECIDE TO USE THE STACK
-        clr    PIA0_ctrl
-        clr    PIA0
-        lda    #$3C                     ;  SET LED 3 TO 1 (WE'RE MAKING AN F TO BLANK)
-        sta    PIA0_ctrl
-        clr    PIA1_ctrl
-        lda    #$C0                     ;  BITS 6,7 TO OUTPUTS (LEDS)
-        sta    PIA1
-        lda    #$3C                     ;  SET BIT 2 TO 1
-        sta    PIA1_ctrl                ;  CLEAR CB2 (LED)
-        lda    #$C0                     ;  CLEAR LEDS
-        sta    PIA1                     ;  SET BITS 0,1
-        lda    #1
-        sta    RWCNTL                   ;  MAKE SURE WE COPY FROM ROM!
-        ldx    #CRTAB
-        ldy    #CRAM
-!loop   ldd    ,X++
-        std    ,Y++
-        cmpx    #CRTAB+16
-        blo    !loop
-        lda    #2
-        ldy    #PWRUP1
-        ldx    #0
-        jmp    RAMTST                   ;  DO A RAM TEST.
+PWRUP           orcc   #$FF                     ;  NO INTERRUPTS ETC.
+                lds    #HSTK                    ;  IF AND WHEN WE DECIDE TO USE THE STACK
+                clr    PIA0_ctrl
+                clr    PIA0
+                lda    #$3C                     ;  SET LED 3 TO 1 (WE'RE MAKING AN F TO BLANK)
+                sta    PIA0_ctrl
+                clr    PIA1_ctrl
+                lda    #$C0                     ;  BITS 6,7 TO OUTPUTS (LEDS)
+                sta    PIA1
+                lda    #$3C                     ;  SET BIT 2 TO 1
+                sta    PIA1_ctrl                ;  CLEAR CB2 (LED)
+                lda    #$C0                     ;  CLEAR LEDS
+                sta    PIA1                     ;  SET BITS 0,1
+                lda    #1
+                sta    RWCNTL                   ;  MAKE SURE WE COPY FROM ROM!
+                ldx    #CRTAB
+                ldy    #CRAM
+!loop           ldd    ,X++
+                std    ,Y++
+                cmpx    #CRTAB+16
+                blo    !loop
+                lda    #2
+                ldy    #PWRUP1
+                ldx    #0
+                jmp    RAMTST                   ;  DO A RAM TEST.
 
-PWRUP1  LDY    #PWRUP4
-        JMP    ROMTST
-PWRUP4  LDA    #$34                     ;  PUT A ZERO IN THE LED.
-        STA    PIA0_ctrl
-        STA    PIA1_ctrl
-        CLR    PIA1
-        LDA    #RAM>>8
-        TFR    A,DP
-        LDS    #HSTK
-        JSR    SCRCLR
-        LDA    #OKM
-        JSR    WRD7V                    ;  INDICATE OK
-        LDY    #INITV                   ;  DELAY TO JUMP INTO GAME.
-        LDA    #7
-        JMP    DELA1
+PWRUP1          ldy    #PWRUP4
+                jmp    ROMTST
+PWRUP4          lda    #$34                     ;  PUT A ZERO IN THE LED.
+                sta    PIA0_ctrl
+                sta    PIA1_ctrl
+                clr    PIA1
+                lda    #RAM>>8
+                tfr    A,DP
+                lds    #HSTK
+                jsr    SCRCLR
+                lda    #OKM
+                jsr    WRD7V                    ;  INDICATE OK
+                ldy    #INITV                   ;  DELAY TO JUMP INTO GAME.
+                lda    #7
+                jmp    DELA1
 
 ;
 ;     ADVANCE SWITCH
 ;
 
-ADVSW_  LDA    INDIAG                   ;  ALREADY HERE??
-        BNE    SUCDV
+ADVSW_          lda    INDIAG                   ;  ALREADY HERE??
+                bne    SUCDV
         NAP    (2,ADVSW2)                               ;  MAKE SURE THAT ITS NOT NOISE
-ADVSW2  LDA    PIA0                     ;  IS IT STILL PRESSED??
-        BITA   #$02                     ;  WELL??
-        BNE    ADVSW3                   ;  YEP
-SUCDV   JMP    SUCIDE                   ;  NOPE...DIE
-ADVSW3  JSR    GNCIDE                   ;  CAN EVERYBODY
-        JSR    P1SW                     ;  MAKE SURE PROPER DIRECTION FACED
-        LDA    #$FF
-        STA    INDIAG
-        STA    STATUS                   ;  KEEP EM ALL OUT
-        JSR    INITCM                   ;  INITIALIZE COLOR MATRIX
-        LDA    PIA0                     ;  CHECK WHICH TYPE OF TEST
-        RORA                            ;  AUTO UP??
-        LBCS    BOOK                    ;  YEP...GO TO BOOKKEEPING
-        JSR    SCRCLR
-        ORCC    #$BF                    ;  FIRQ ENABLED INDICATES NORMAL AGNOSTICS RUNNING.
-        LDY    #DAG999
-        JMP    BLKLED                   ;  BLANK THE LEDS
+ADVSW2          lda    PIA0                     ;  IS IT STILL PRESSED??
+                bita   #$02                     ;  WELL??
+                bne    ADVSW3                   ;  YEP
+SUCDV           jmp    SUCIDE                   ;  NOPE...DIE
+ADVSW3          jsr    GNCIDE                   ;  CAN EVERYBODY
+                jsr    P1SW                     ;  MAKE SURE PROPER DIRECTION FACED
+                lda    #$FF
+                sta    INDIAG
+                sta    STATUS                   ;  KEEP EM ALL OUT
+                jsr    INITCM                   ;  INITIALIZE COLOR MATRIX
+                lda    PIA0                     ;  CHECK WHICH TYPE OF TEST
+                rora                            ;  AUTO UP??
+                lbcs    BOOK                    ;  YEP...GO TO BOOKKEEPING
+                jsr    SCRCLR
+                orcc    #$BF                    ;  FIRQ ENABLED INDICATES NORMAL AGNOSTICS RUNNING.
+                ldy    #DAG999
+                jmp    BLKLED                   ;  BLANK THE LEDS
 
-DAG999  LDA    #WDATA
-        STA    WDOG
-        LDA    PIA0                     ;  WAIT FOR ADVANCE SWITCH LET GO
-        BITA   #2
-        BNE    DAG999
-        LDY    #DIAG0
-        JMP    ROMTST                   ;  DO THE ROM TEST
+DAG999          lda    #WDATA
+                sta    WDOG
+                lda    PIA0                     ;  WAIT FOR ADVANCE SWITCH LET GO
+                bita   #2
+                bne    DAG999
+                ldy    #DIAG0
+                jmp    ROMTST                   ;  DO THE ROM TEST
 
-DIAG0   LDA    #RAM>>8
-        TFR    A,DP
-        JSR    SCRCLR                   ;  CLEAR FOR ROMS MESSAGE.
-        LDA    #ROMOK
-        JSR    WRD7V                    ;  PRINT THE MESSAGE
-        LDB    #3
-DIG111  LDX    #$7000
-DIAG1   LDA    #WDATA
-        STA    WDOG
-        LDA    PIA0
-        BITA    #2
-        BNE    DIAG2                    ;  CONTINUE IF ADVANCE PRESSED.
-        LEAX    -1,X
-        CMPX    #0
-        BNE    DIAG1
-        DECB
-        BNE    DIG111
-DIG11_  LDY    #DIAG2
-        LDX    #0
-        LDA    #$FF                     ;  INDICATE FRONT DOOR
-        JMP    RAMTST                   ;   DO THE RAM TEST.
-DIAG2   LDA    #1
-        STA    RWCNTL
-        LDA    #RAM>>8
-        TFR    A,DP
-        JSR    SCRCLR
-        LDA    #RAMOK
-        JSR    WRD7V                    ;  PRINT RAM OK MESSAGE
-DIAG22  LDA    #WDATA
-        STA    WDOG
-        LDA    PIA0
-        BITA    #2
-        BNE    DIAG22                   ;  HOLD CONTROL UNTIL LET GO.
-RAMERJ  LDX    #$9C00                   ;  RAM ERROR MESSAGE COMES HERE.
-DIAG3   CLR    ,X+                      ;  CLR USABLE MEMORY
-        LDB    #WDATA
-        STB    WDOG
-        CMPX    #HSTK+1
-        BNE    DIAG3
-        LDD    #$A55A
-        STD    HSEED
-        STA    INDIAG                   ;  INDICATE THAT WE'RE AGNOSTICS
-        JSR    PINIT                    ;  TIME TO LET THE SYSTEM TAKE OVER
-        JSR    INT20V
-        JSR    P1SW
-        COM    STATUS
+DIAG0           lda    #RAM>>8
+                tfr    A,DP
+                jsr    SCRCLR                   ;  CLEAR FOR ROMS MESSAGE.
+                lda    #ROMOK
+                jsr    WRD7V                    ;  PRINT THE MESSAGE
+                ldb    #3
+DIG111          ldx    #$7000
+DIAG1           lda    #WDATA
+                sta    WDOG
+                lda    PIA0
+                bita    #2
+                bne    DIAG2                    ;  CONTINUE IF ADVANCE PRESSED.
+                leax    -1,X
+                cmpx    #0
+                bne    DIAG1
+                decb
+                bne    DIG111
+DIG11_          ldy    #DIAG2
+                ldx    #0
+                lda    #$FF                     ;  INDICATE FRONT DOOR
+                jmp    RAMTST                   ;   DO THE RAM TEST.
+DIAG2           lda    #1
+                sta    RWCNTL
+                lda    #RAM>>8
+                tfr    A,DP
+                jsr    SCRCLR
+                lda    #RAMOK
+                jsr    WRD7V                    ;  PRINT RAM OK MESSAGE
+DIAG22          lda    #WDATA
+                sta    WDOG
+                lda    PIA0
+                bita    #2
+                bne    DIAG22                   ;  HOLD CONTROL UNTIL LET GO.
+RAMERJ          ldx    #$9C00                   ;  RAM ERROR MESSAGE COMES HERE.
+DIAG3           clr    ,X+                      ;  CLR USABLE MEMORY
+                ldb    #WDATA
+                stb    WDOG
+                cmpx    #HSTK+1
+                bne    DIAG3
+                ldd    #$A55A
+                std    HSEED
+                sta    INDIAG                   ;  INDICATE THAT WE'RE AGNOSTICS
+                jsr    PINIT                    ;  TIME TO LET THE SYSTEM TAKE OVER
+                jsr    INT20V
+                jsr    P1SW
+                com    STATUS
         MAKP    ( DIAG4 )                          ;  START A PROCESS TO CONTINUE
-        BSR    ZLED                     ;  ZERO IN LED
-        ANDCC    #0                     ;  LET THE INTERRUPTS IN
-        JMP    EXEC                     ;  GO!
-DIAG4   JSR    AVWAIT                   ;  WAIT FOR ADVANCE SWITCH.
-        JSR    CMTEST                   ;  TEST CMOS.
-        ANDCC    #1                     ;  INTERRUPTS BACK ON    LEAVE CARRY
-        LDA    #CMOK
-        BCC    DIAG66
-        LDB    #$2F                     ;  INDICATE THAT ITS IN R/W HALF
-        CMPX    #CMOS+$100
-        BHI    DIAG5                    ;  IT WAS IN WRITABLE HALF
-        LDB    #$1F
-DIAG5   ORCC    #$10                    ;  LOCK OUT THE INTERRUPTS
-        LDS    #DIAG55
-        LDA    #$3
-        JMP    PULSE
-DIAG55  LDS    #HSTK
-        BSR    ZLED
-        LDA    #RAM>>8
-        TFR    A,DP
-        ANDCC    #$EF                   ;  LET THE INTERRUPTS BACK
-        LDA    #CMERR
-        CMPB    #$1F
-        BHI    DIAG66
-        LDA    #CMDOOR
-DIAG66  JSR    SCRCLR
-        JSR    WRD7V                    ;  PRINT ONE OF THE TWO MESSAGES.
-        LDU    CRPROC
-        JSR    AVWAIT
-        CLR    proc.data  +2,U                   ;  INDICATE FRONT DOOR TEST CALLING
-        JSR    SNDSRT                   ;  START THE SOUND TEST
-DIAG6   JSR    SNDCYC                   ;  CYCLE ONE SOUND
-        JSR    AVCHK                    ;  CHECK ADVANCE SWITCH.
-        BCC    DIAG6                    ;  NOT PRESSED, DO ANOTHER SOUND
-        LDA    #$3F
-        STA    SOUND
+                bsr    ZLED                     ;  ZERO IN LED
+                andcc    #0                     ;  LET THE INTERRUPTS IN
+                jmp    EXEC                     ;  GO!
+DIAG4           jsr    AVWAIT                   ;  WAIT FOR ADVANCE SWITCH.
+                jsr    CMTEST                   ;  TEST CMOS.
+                andcc    #1                     ;  INTERRUPTS BACK ON    LEAVE CARRY
+                lda    #CMOK
+                bcc    DIAG66
+                ldb    #$2F                     ;  INDICATE THAT ITS IN R/W HALF
+                cmpx    #CMOS+$100
+                bhi    DIAG5                    ;  IT WAS IN WRITABLE HALF
+                ldb    #$1F
+DIAG5           orcc    #$10                    ;  LOCK OUT THE INTERRUPTS
+                lds    #DIAG55
+                lda    #$3
+                jmp    PULSE
+DIAG55          lds    #HSTK
+                bsr    ZLED
+                lda    #RAM>>8
+                tfr    A,DP
+                andcc    #$EF                   ;  LET THE INTERRUPTS BACK
+                lda    #CMERR
+                cmpb    #$1F
+                bhi    DIAG66
+                lda    #CMDOOR
+DIAG66          jsr    SCRCLR
+                jsr    WRD7V                    ;  PRINT ONE OF THE TWO MESSAGES.
+                ldu    CRPROC
+                jsr    AVWAIT
+                clr    proc.data  +2,U                   ;  INDICATE FRONT DOOR TEST CALLING
+                jsr    SNDSRT                   ;  START THE SOUND TEST
+DIAG6           jsr    SNDCYC                   ;  CYCLE ONE SOUND
+                jsr    AVCHK                    ;  CHECK ADVANCE SWITCH.
+                bcc    DIAG6                    ;  NOT PRESSED, DO ANOTHER SOUND
+                lda    #$3F
+                sta    SOUND
         NAP    ( 1,DIAG77 )
-DIAG77  LDA    #$C                      ;  SILENCE
-        STA    SOUND
-        JSR    AVWAIT                   ;  NOW WAIT FOR RELEASE.
-        JSR    SWTEST                   ;  DO A SWITCH TEST.
-        JSR    AVWAIT                   ;  WAIT FOR RELESE
-        JSR    CRTEST                   ;  DO THE COLOR MATRIX TEST
-        JSR    AVCHK                    ;  HOLDING BUTTON??
-        BCC    DIAG78                   ;  NOPE...CONTINUE
-        JSR    AVWAIT                   ;  WAIT FOR LET GO TIME.
-DIAG78  JMP    TSTPAT                   ;  DO SOME TEST PATTERNS    THEN GO TO BOOK.
+DIAG77          lda    #$C                      ;  SILENCE
+                sta    SOUND
+                jsr    AVWAIT                   ;  NOW WAIT FOR RELEASE.
+                jsr    SWTEST                   ;  DO A SWITCH TEST.
+                jsr    AVWAIT                   ;  WAIT FOR RELESE
+                jsr    CRTEST                   ;  DO THE COLOR MATRIX TEST
+                jsr    AVCHK                    ;  HOLDING BUTTON??
+                bcc    DIAG78                   ;  NOPE...CONTINUE
+                jsr    AVWAIT                   ;  WAIT FOR LET GO TIME.
+DIAG78          jmp    TSTPAT                   ;  DO SOME TEST PATTERNS    THEN GO TO BOOK.
 
-ZLED    CLR    PIA1                     ;  ZERO IN LED INDICATES ON LAST TEST OR DUN
-        LDA    #$34
-        STA    PIA0_ctrl
-        INCA
-        STA    PIA1_ctrl
-        RTS
+ZLED            clr    PIA1                     ;  ZERO IN LED INDICATES ON LAST TEST OR DUN
+                lda    #$34
+                sta    PIA0_ctrl
+                inca
+                sta    PIA1_ctrl
+                rts
 
-INITCM  LDX    #CRTAB
-        LDY    #PCRAM
-ADVS90  LDD    ,X++
-        STD    ,Y++
-        CMPX    #CRTAB+16
-        BLO    ADVS90
-        RTS
+INITCM          ldx    #CRTAB
+                ldy    #PCRAM
+ADVS90          ldd    ,X++
+                std    ,Y++
+                cmpx    #CRTAB+16
+                blo    ADVS90
+                rts
 ;
 ;       AUTO CYCLE
 ;
 
-AUTCYC  LDA    #$3F                     ;  MAKE LOOK LIKE FRONT DOOR TEST THANX TO MOTOROLA
-        TFR    A,CC                     ;  SET TO AUTOCYCLE NO INTS PLEASE ETC.
-        LDA    #$8F                     ;  FIFTEEN RAM PASSES, IN AUTOCYCLE
-        LDX    RAMALS+$600                ;  TAKE A BYTE FROM THE RAM TEST
-        LEAX    $1234,X                 ;  ADD A STUPID NUMBER TO VARY TEST
-        LDY    #AUTO1
-        JMP    RAMTST                   ;  TEST THE RAM
-AUTO1   LDY    #AUTO2
-        JMP    ROMTST
-AUTO2   LDA    #RAM>>8
-        TFR    A,DP
-        LDS    #HSTK                    ;  JUST IN CASE
-        JSR    CMTEST
-        BCC    AUTO4
-        LDA    #CMDOOR
-        CMPX    #CMOS+$100                ;  WRITE PROTECT??
-        BLS    AUTO8
-        LDA    #CMERR
-AUTO8   JSR    SCRCLR
-        JSR    WRD7V                    ;  PRINT THE ERROR
-AUTO5   LDA    #WDATA
-        STA    WDOG
-        BRA    AUTO5
-AUTO4   JSR    BARS
-        LDY    #AUTCYC
-        LDA    #4
-        JMP    DELA1
+AUTCYC          lda    #$3F                     ;  MAKE LOOK LIKE FRONT DOOR TEST THANX TO MOTOROLA
+                tfr    A,CC                     ;  SET TO AUTOCYCLE NO INTS PLEASE ETC.
+                lda    #$8F                     ;  FIFTEEN RAM PASSES, IN AUTOCYCLE
+                ldx    RAMALS+$600                ;  TAKE A BYTE FROM THE RAM TEST
+                leax    $1234,X                 ;  ADD A STUPID NUMBER TO VARY TEST
+                ldy    #AUTO1
+                jmp    RAMTST                   ;  TEST THE RAM
+AUTO1           ldy    #AUTO2
+                jmp    ROMTST
+AUTO2           lda    #RAM>>8
+                tfr    A,DP
+                lds    #HSTK                    ;  JUST IN CASE
+                jsr    CMTEST
+                bcc    AUTO4
+                lda    #CMDOOR
+                cmpx    #CMOS+$100                ;  WRITE PROTECT??
+                bls    AUTO8
+                lda    #CMERR
+AUTO8           jsr    SCRCLR
+                jsr    WRD7V                    ;  PRINT THE ERROR
+AUTO5           lda    #WDATA
+                sta    WDOG
+                bra    AUTO5
+AUTO4           jsr    BARS
+                ldy    #AUTCYC
+                lda    #4
+                jmp    DELA1
 
 ;
 ;     TEST PATTERNS
 ;
 
-TSTPAT  JSR    CROSS                    ;  DO FANCY HASSLER PAT.
-        JSR    AVWAIT                   ;  WAIT FOR ADVANCE
-        JSR    SCRCLR
-        LDA    #$7                      ;  RED
-        STA    PCRAM
-        JSR    AVWAIT
-        LDA    #$38                     ;  GREEN
-        STA    PCRAM
-        JSR    AVWAIT
-        LDA    #$C0
-        STA    PCRAM                    ;  BLUE
-        JSR    AVWAIT
-        JSR    BARS
-        JSR    AVWAIT
-        JMP    BOOK
+TSTPAT          jsr    CROSS                    ;  DO FANCY HASSLER PAT.
+                jsr    AVWAIT                   ;  WAIT FOR ADVANCE
+                jsr    SCRCLR
+                lda    #$7                      ;  RED
+                sta    PCRAM
+                jsr    AVWAIT
+                lda    #$38                     ;  GREEN
+                sta    PCRAM
+                jsr    AVWAIT
+                lda    #$C0
+                sta    PCRAM                    ;  BLUE
+                jsr    AVWAIT
+                jsr    BARS
+                jsr    AVWAIT
+                jmp    BOOK
 
-BARS    LDX    #PCRAM
-        LDY    #CBARCL
-        LDU    #CRAM
-BARS0   LDD    ,Y++                     ;  GET A COLOR
-        STD    ,X++
-        STD    ,U++                     ;  IN CASE INTERRUPTS OFF
-        LDA    #WDATA
-        STA    WDOG
-        CMPX    #PCRAM+16
-        BLO    BARS0
-        LDD    #0
-        LDX    #0
-COLOR1  STX    XTEMP
-        LEAX    $F00,X
-COLOR2  STD    ,--X
-        PSHS    A
-        LDA    #WDATA
-        STA    WDOG
-        PULS    A
-        CMPX    XTEMP
-        BNE    COLOR2
-        LEAX    $900,X
-        TSTA
-        BNE    COLOR3
-        LDX    #$D00
-COLOR3  ADDD    #$1111
-        BCC    COLOR1
-        RTS
+BARS            ldx    #PCRAM
+                ldy    #CBARCL
+                ldu    #CRAM
+BARS0           ldd    ,Y++                     ;  GET A COLOR
+                std    ,X++
+                std    ,U++                     ;  IN CASE INTERRUPTS OFF
+                lda    #WDATA
+                sta    WDOG
+                cmpx    #PCRAM+16
+                blo    BARS0
+                ldd    #0
+                ldx    #0
+COLOR1          stx    XTEMP
+                leax    $F00,X
+COLOR2          std    ,--X
+                pshs    A
+                lda    #WDATA
+                sta    WDOG
+                puls    A
+                cmpx    XTEMP
+                bne    COLOR2
+                leax    $900,X
+                tsta
+                bne    COLOR3
+                ldx    #$D00
+COLOR3          addd    #$1111
+                bcc    COLOR1
+                rts
 
 CBARCL  FCB    $5,$5,$28,$28,$80,$80,$0,$0
         FCB    $AD,$AD,$2D,$2D,$A8,$A8,$85,$85
@@ -342,107 +342,107 @@ CBARCL  FCB    $5,$5,$28,$28,$80,$80,$0,$0
 ;     RAM4 = RED - 07
 ;
 
-CROSS   JSR    SCRCLR                   ;  CLEAR SCREEN
-        CLRA
-        JSR    SETPCR                   ;  ZERO COLOR MATRIX
-        LDA    #$FF
-        STA    PCRAM+1
-        LDA    #$C0
-        STA    PCRAM+2
-        LDA    #$38
-        STA    PCRAM+3
-        LDA    #$7
-        STA    PCRAM+4
-        LDY    #WVERT                   ;  MOVE WHITE VERTICALS
-        LDD    #$0101
-CROSS4  LDX    0,Y                      ;  GET START PTR
-CROSS5  STD    ,X++                     ;  MOVE IN WHITE
-        CMPX    2,Y                     ;  CK IF LINE DONE
-        BNE    CROSS5                   ;  NO, KEEP GOING
-        LEAY    4,Y                     ;  INCR Y BY 4
-        CMPY    #WVERTX                 ;  CK IF ALL DONE
-        BNE    CROSS4                   ;  NO, DO NEXT LINE
-        LDA    #$11                     ;  MOVE WHITE HORIZ
-        LDY    #WHORZ
-CROSS2  LDX    0,Y                      ;  GET START PTR
-        STX    XTEMP
-CROSS3  STA    0,X                      ;  MOVE IN WHITE
-        INC    XTEMP                    ;  UPDATE PTR
-        LDX    XTEMP
-        CMPX    2,Y                     ;  CK IF DONE
-        BNE    CROSS3                   ;  NO, KEEP GOING
-        LEAY    4,Y                     ;  INCR Y BY 4
-        CMPY    #WHORZX                 ;  CK IF ALL DONE
-        BNE    CROSS2                   ;  NO, DO NEXT LINE
-        LDY    #HORIZ                   ;  MOVE IN COLOR HORIZ.
-CROSS6  LDX    0,Y                      ;  GET START PTR
-        STX    XTEMP
-        LDA    4,Y                      ;  GET COLOR
-CROSS7  STA    0,X                      ;  MOVE IN COLOR
-        INC    XTEMP
-        LDX    XTEMP
-        CMPX    2,Y                     ;  CK IF LINE DONE
-        BNE    CROSS7                   ;  NO, KEEP GOING
-        LEAY    5,Y                     ;  INCR Y BY 5
-        CMPY    #HORIZX                 ;  CK IF ALL DONE
-        BNE    CROSS6                   ;  NO, DO NEXT LINE
-        LDY    #VERT                    ;  MOVE IN COLOR VERTICAL
-CROSS8  LDX    0,Y                      ;  GET START PTR
-        LDA    4,Y                      ;  GET COLOR
-CROSS9  STA    ,X+                      ;  MOVE IN COLOR
-        CMPX    2,Y                     ;  CK IF LINE DONE
-        BNE    CROSS9                   ;  NO, KEEP GOING
-        LEAY    5,Y                     ;  INCR Y BY 5
-        CMPY    #VERTX                  ;  CK IF ALL DONE
-        BNE    CROSS8                   ;  NO, DO NEXT LINE
-        LDA    #$21                     ;  BLUE TOUCH UP
-        STA    $437E
-        LDA    #$20
-        STA    $937E
-        LDX    #$4B0A
-CROSSA  ORCC    #$10                    ;  SEI
-        CLR    RWCNTL
-        LDA    0,X
-        LDB    #1
-        STB    RWCNTL
-        ANDCC    #$EF                   ;  CLI
-        ANDA    #$F0
-        ORA    #$02
-        STA    ,X+
-        CMPX    #$4B6D
-        BNE    CROSSA
-        LDX    #$4B90
-CROSSB  ORCC    #$10                    ;  SEI
-        CLR    RWCNTL
-        LDA    0,X
-        LDB    #1
-        STB    RWCNTL
-        ANDCC    #$EF                   ;  CLI
-        ANDA    #$F0
-        ORA    #$02
-        STA    ,X+
-        CMPX    #$4BF3
-        BNE    CROSSB
-        LDX    #$0B18
-        STX    XTEMP                    ;  MOVE IN DOTS
-CROSSC  LDX    XTEMP
-        LDA    0,X                      ;  OR IN DOT
-        ANDA    #$F0
-        ORA    #$01
-        STA    0,X                      ;  STORE DOT
-        LDB    XTEMP+1                  ;  UPDATE VERTICAL PTR
-        ADDB    #$22
-        BCS    CROSSD
-        STB    XTEMP+1
-        BRA    CROSSC
-CROSSD  LDB    #$18
-        STB    XTEMP+1                  ;  RE-INIT VERT. PTR
-        LDB    XTEMP
-        ADDB    #$10                    ;  UPDATE HORIZ PTR
-        STB    XTEMP
-        CMPB    #$9B                    ;  CK IF DONE
-        BNE    CROSSC                   ;  NO, KEEP GOING
-        RTS
+CROSS           jsr    SCRCLR                   ;  CLEAR SCREEN
+                clra
+                jsr    SETPCR                   ;  ZERO COLOR MATRIX
+                lda    #$FF
+                sta    PCRAM+1
+                lda    #$C0
+                sta    PCRAM+2
+                lda    #$38
+                sta    PCRAM+3
+                lda    #$7
+                sta    PCRAM+4
+                ldy    #WVERT                   ;  MOVE WHITE VERTICALS
+                ldd    #$0101
+CROSS4          ldx    0,Y                      ;  GET START PTR
+CROSS5          std    ,X++                     ;  MOVE IN WHITE
+                cmpx    2,Y                     ;  CK IF LINE DONE
+                bne    CROSS5                   ;  NO, KEEP GOING
+                leay    4,Y                     ;  INCR Y BY 4
+                cmpy    #WVERTX                 ;  CK IF ALL DONE
+                bne    CROSS4                   ;  NO, DO NEXT LINE
+                lda    #$11                     ;  MOVE WHITE HORIZ
+                ldy    #WHORZ
+CROSS2          ldx    0,Y                      ;  GET START PTR
+                stx    XTEMP
+CROSS3          sta    0,X                      ;  MOVE IN WHITE
+                inc    XTEMP                    ;  UPDATE PTR
+                ldx    XTEMP
+                cmpx    2,Y                     ;  CK IF DONE
+                bne    CROSS3                   ;  NO, KEEP GOING
+                leay    4,Y                     ;  INCR Y BY 4
+                cmpy    #WHORZX                 ;  CK IF ALL DONE
+                bne    CROSS2                   ;  NO, DO NEXT LINE
+                ldy    #HORIZ                   ;  MOVE IN COLOR HORIZ.
+CROSS6          ldx    0,Y                      ;  GET START PTR
+                stx    XTEMP
+                lda    4,Y                      ;  GET COLOR
+CROSS7          sta    0,X                      ;  MOVE IN COLOR
+                inc    XTEMP
+                ldx    XTEMP
+                cmpx    2,Y                     ;  CK IF LINE DONE
+                bne    CROSS7                   ;  NO, KEEP GOING
+                leay    5,Y                     ;  INCR Y BY 5
+                cmpy    #HORIZX                 ;  CK IF ALL DONE
+                bne    CROSS6                   ;  NO, DO NEXT LINE
+                ldy    #VERT                    ;  MOVE IN COLOR VERTICAL
+CROSS8          ldx    0,Y                      ;  GET START PTR
+                lda    4,Y                      ;  GET COLOR
+CROSS9          sta    ,X+                      ;  MOVE IN COLOR
+                cmpx    2,Y                     ;  CK IF LINE DONE
+                bne    CROSS9                   ;  NO, KEEP GOING
+                leay    5,Y                     ;  INCR Y BY 5
+                cmpy    #VERTX                  ;  CK IF ALL DONE
+                bne    CROSS8                   ;  NO, DO NEXT LINE
+                lda    #$21                     ;  BLUE TOUCH UP
+                sta    $437E
+                lda    #$20
+                sta    $937E
+                ldx    #$4B0A
+CROSSA          orcc    #$10                    ;  SEI
+                clr    RWCNTL
+                lda    0,X
+                ldb    #1
+                stb    RWCNTL
+                andcc    #$EF                   ;  CLI
+                anda    #$F0
+                ora    #$02
+                sta    ,X+
+                cmpx    #$4B6D
+                bne    CROSSA
+                ldx    #$4B90
+CROSSB          orcc    #$10                    ;  SEI
+                clr    RWCNTL
+                lda    0,X
+                ldb    #1
+                stb    RWCNTL
+                andcc    #$EF                   ;  CLI
+                anda    #$F0
+                ora    #$02
+                sta    ,X+
+                cmpx    #$4BF3
+                bne    CROSSB
+                ldx    #$0B18
+                stx    XTEMP                    ;  MOVE IN DOTS
+CROSSC          ldx    XTEMP
+                lda    0,X                      ;  OR IN DOT
+                anda    #$F0
+                ora    #$01
+                sta    0,X                      ;  STORE DOT
+                ldb    XTEMP+1                  ;  UPDATE VERTICAL PTR
+                addb    #$22
+                bcs    CROSSD
+                stb    XTEMP+1
+                bra    CROSSC
+CROSSD          ldb    #$18
+                stb    XTEMP+1                  ;  RE-INIT VERT. PTR
+                ldb    XTEMP
+                addb    #$10                    ;  UPDATE HORIZ PTR
+                stb    XTEMP
+                cmpb    #$9B                    ;  CK IF DONE
+                bne    CROSSC                   ;  NO, KEEP GOING
+                rts
 ;
 ;  CROSS HATCH DATA
 ;
@@ -541,160 +541,160 @@ VERTX
 ;     COLOR    MATRIX    TEST
 ;
 
-CRTEST  PULS    D                       ;  GET RETURN
-        LDU    CRPROC
-        STD    proc.data  +6,U                   ;  SAVE
-        JSR    SCRCLR                   ;  CLEAR OUT BABY
-        LDA    #CMTSTM                  ;  PRINT THE MESSAGE
-        JSR    WRD7V
-        LDA    #$80
-        STA    proc.data  ,U
+CRTEST          puls    D                       ;  GET RETURN
+                ldu    CRPROC
+                std    proc.data  +6,U                   ;  SAVE
+                jsr    SCRCLR                   ;  CLEAR OUT BABY
+                lda    #CMTSTM                  ;  PRINT THE MESSAGE
+                jsr    WRD7V
+                lda    #$80
+                sta    proc.data  ,U
 CRTST1
         NAP    ( 1,CRTST2 )
-CRTST2  JSR    AVCHK                    ;  PRESS??
-        BCS    CMTBYE                   ;  NOPE
-        DEC    proc.data  ,U                     ;  DONE WITH DELAY??
-        BNE    CRTST1
-        LDA    COLRMT                   ;  GET FIRST COLOR.
-        BSR    SETPCR                   ;  STORE IT DOWN
-        BSR    RAMBAR                   ;  SET UP MEMORY.
-CRTT__  LDX    #COLRMT                  ;  TABLE TO STORE
-CRTST3  LDA    ,X+                      ;  GET A COLOR
-        LDU    CRPROC
-        STX    proc.data  +2,U
-        BSR    SETPCR                   ;  STORE IT THROUGH
-        LDA    #$80
-        STA    proc.data  ,U
+CRTST2          jsr    AVCHK                    ;  PRESS??
+                bcs    CMTBYE                   ;  NOPE
+                dec    proc.data  ,U                     ;  DONE WITH DELAY??
+                bne    CRTST1
+                lda    COLRMT                   ;  GET FIRST COLOR.
+                bsr    SETPCR                   ;  STORE IT DOWN
+                bsr    RAMBAR                   ;  SET UP MEMORY.
+CRTT__          ldx    #COLRMT                  ;  TABLE TO STORE
+CRTST3          lda    ,X+                      ;  GET A COLOR
+                ldu    CRPROC
+                stx    proc.data  +2,U
+                bsr    SETPCR                   ;  STORE IT THROUGH
+                lda    #$80
+                sta    proc.data  ,U
 CRTST4
         NAP(1, CRTST5)
 
-CRTST5  JSR    AVCHK                    ;  ADVANCE??
-        BCS    CMTBYE                   ;  YEP
-        DEC    proc.data  ,U
-        BNE    CRTST4
-        LDX    proc.data+2,U                   ;  RESTORE POINTER
-        CMPX    #COLRMT+8
-        BLO    CRTST3
-        BRA    CRTT__                   ;  CONTINUE THROUGH
-CMTBYE  LDU    CRPROC
-        JMP    [proc.data+6,U]
+CRTST5          jsr    AVCHK                    ;  ADVANCE??
+                bcs    CMTBYE                   ;  YEP
+                dec    proc.data  ,U
+                bne    CRTST4
+                ldx    proc.data+2,U                   ;  RESTORE POINTER
+                cmpx    #COLRMT+8
+                blo    CRTST3
+                bra    CRTT__                   ;  CONTINUE THROUGH
+CMTBYE          ldu    CRPROC
+                jmp    [proc.data+6,U]
 
-RAMBAR  LDX    #$0
-        LDY    #COLRMD                  ;  NUMBERS TO PUT IN BARS
-RAMBA1  STX    XTEMP                    ;  SAVE OUR X
-        LEAX    $F00,X
-        LDA    ,Y+
-        TFR    A,B
-RAMBA2  STD    ,--X
-        CMPX    XTEMP
-        BNE    RAMBA2
-        LEAX    $900,X
-        TSTA
-        BNE    RAMBA3
-        LDX    #$D00
-RAMBA3  CMPY    #COLRMD+16
-        BNE    RAMBA1
-        RTS
+RAMBAR          ldx    #$0
+                ldy    #COLRMD                  ;  NUMBERS TO PUT IN BARS
+RAMBA1          stx    XTEMP                    ;  SAVE OUR X
+                leax    $F00,X
+                lda    ,Y+
+                tfr    A,B
+RAMBA2          std    ,--X
+                cmpx    XTEMP
+                bne    RAMBA2
+                leax    $900,X
+                tsta
+                bne    RAMBA3
+                ldx    #$D00
+RAMBA3          cmpy    #COLRMD+16
+                bne    RAMBA1
+                rts
 
 COLRMT  FCB    $02,$03,$04,$10,$18,$20,$40,$80
 COLRMD  FCB    $00,$FF,$11,$EE,$22,$DD,$33,$CC
         FCB    $44,$BB,$55,$AA,$66,$99,$77,$88
 
-SETPCR  LDX    #PCRAM
-SETPC1  STA    ,X+
-        CMPX    #PCRAM+16
-        BLO    SETPC1
-        RTS
+SETPCR          ldx    #PCRAM
+SETPC1          sta    ,X+
+                cmpx    #PCRAM+16
+                blo    SETPC1
+                rts
 ;
 ;     SWITCH TEST
 ;
 
 SWMH    equ 44                          ;  HEIGHT OF FIRST MESSAGE
 
-SWTEST  PULS    D                       ;  GET RETURN ADDR
-        LDU    CRPROC
-        STD    proc.data+6,U
-        LDA    #10
-        STA    proc.data+4,U                   ;  DELAY COUNTER FOR EXIT
-        JSR    SCRCLR                   ;  CLEAR IT PLEASE
-        LDA    #SWTESM                  ;  SWITCH TEST MESSAGE.
-        JSR    WRD7V
-        LDU    #RAMALS
-SWTES0  CLR    ,U+
-        CMPU    #SW3SCI+1
-        BLS    SWTES0
-SWTES2  LDU    #STABP
-        BSR    SWSCN0
-SWTES1  LDA    #$34
-        STA    PIA3_ctrl
-        BSR    SWSCN0                   ;  SCAN THE COCKTAIL SIDE
-        LDA    #$3C
-        STA    PIA3_ctrl
-        BSR    SWDISP
-        JSR    AVCHK                    ;  ADVANCE PRESSED?
-        BCC    SWT999                   ;  NOPE.
-        LDU    CRPROC
-        DEC    proc.data+4,U
-        BEQ    SWTBYE
+SWTEST          puls    D                       ;  GET RETURN ADDR
+                ldu    CRPROC
+                std    proc.data+6,U
+                lda    #10
+                sta    proc.data+4,U                   ;  DELAY COUNTER FOR EXIT
+                jsr    SCRCLR                   ;  CLEAR IT PLEASE
+                lda    #SWTESM                  ;  SWITCH TEST MESSAGE.
+                jsr    WRD7V
+                ldu    #RAMALS
+SWTES0          clr    ,U+
+                cmpu    #SW3SCI+1
+                bls    SWTES0
+SWTES2          ldu    #STABP
+                bsr    SWSCN0
+SWTES1          lda    #$34
+                sta    PIA3_ctrl
+                bsr    SWSCN0                   ;  SCAN THE COCKTAIL SIDE
+                lda    #$3C
+                sta    PIA3_ctrl
+                bsr    SWDISP
+                jsr    AVCHK                    ;  ADVANCE PRESSED?
+                bcc    SWT999                   ;  NOPE.
+                ldu    CRPROC
+                dec    proc.data+4,U
+                beq    SWTBYE
 SWT999
         NAP    (1,SWTES2)
 
-SWTBYE  LDU    CRPROC
-        JMP    [proc.data+6,U]                 ;  "RETURN"
+SWTBYE          ldu    CRPROC
+                jmp    [proc.data+6,U]                 ;  "RETURN"
 
-SWSCN0  LDX    ,U++                     ;  GET ADDRESS OF PORT
-        BEQ    SWSCN5                   ;  DONE
-        LDY    ,U++                     ;  GET ADDRESS TO STORE STATE
-        LDA    ,X                       ;  GET NEW STATE
-        EORA   ,Y                       ;  SEE WHERE DIFFERENT
-        STA    1,Y                      ;  AND SAVE AS DIFFERENCE BYTE.
-        BRA    SWSCN0
-SWSCN5  RTS
+SWSCN0          ldx    ,U++                     ;  GET ADDRESS OF PORT
+                beq    SWSCN5                   ;  DONE
+                ldy    ,U++                     ;  GET ADDRESS TO STORE STATE
+                lda    ,X                       ;  GET NEW STATE
+                eora   ,Y                       ;  SEE WHERE DIFFERENT
+                sta    1,Y                      ;  AND SAVE AS DIFFERENCE BYTE.
+                bra    SWSCN0
+SWSCN5          rts
 
-SWDISP  LDU    #SPHTAB                  ;  WE'LL WALK THROUGH SWITCH PHRASE TABLE
-        LDY    #RAMALS                  ;  WALK THROUGH THE SCANNED STUFF.
-SWDIS4  LDB    #1                       ;  WALK FROM LSB
-SWDIS0  BITB   1,Y                      ;  SEE IF THIS BIT CHANGED.
-        BEQ    SWDIS2
-        BSR    SWACT                    ;  TAKE SOME ACTION
-SWDIS2  LEAU   3,U                      ;  MOVE TO NEXT ENTRY
-        ASLB                            ;  SHIFT ONE DOWN
-        BCC    SWDIS0
-        LEAY   2,Y                      ;  TO NEXT BYTE
-        CMPY   #SW3SCI                  ;  PAST TABLE
-        BHI    SWDIS9                   ;  YEP..DONE
-        LDA    PIA3                     ;  COCKTAIL
-        BMI    SWDIS4                   ;  YEP...FULL SCAN
-        CMPY   #SW3SCN                  ;  NOPE..DONE WITH NORMAL SWITCHES??
-        BLS    SWDIS4                   ;  NOT DONE
-SWDIS9  RTS                             ;  RETURN BABY.
+SWDISP          ldu    #SPHTAB                  ;  WE'LL WALK THROUGH SWITCH PHRASE TABLE
+                ldy    #RAMALS                  ;  WALK THROUGH THE SCANNED STUFF.
+SWDIS4          ldb    #1                       ;  WALK FROM LSB
+SWDIS0          bitb   1,Y                      ;  SEE IF THIS BIT CHANGED.
+                beq    SWDIS2
+                bsr    SWACT                    ;  TAKE SOME ACTION
+SWDIS2          leau   3,U                      ;  MOVE TO NEXT ENTRY
+                aslb                            ;  SHIFT ONE DOWN
+                bcc    SWDIS0
+                leay   2,Y                      ;  TO NEXT BYTE
+                cmpy   #SW3SCI                  ;  PAST TABLE
+                bhi    SWDIS9                   ;  YEP..DONE
+                lda    PIA3                     ;  COCKTAIL
+                bmi    SWDIS4                   ;  YEP...FULL SCAN
+                cmpy   #SW3SCN                  ;  NOPE..DONE WITH NORMAL SWITCHES??
+                bls    SWDIS4                   ;  NOT DONE
+SWDIS9          rts                             ;  RETURN BABY.
 
-SWACT   PSHS   B,X                      ;  SAVE THE MASK
-        LDA    #$3F
-        STA    SOUND                    ;  BRING SOUND LINES HIGH IN ANTICIPATION
-        EORB   ,Y                       ;  INVERT THE BIT
-        STB    ,Y                       ;  AND MAKE THAT THE NEW STATE
-        LDB    ,S                       ;  RESTORE MASK
-        BITB   ,Y                       ;  WHICH WAY DID IT GO
-        BNE    SWPRNT                   ;  ON....PRINT A MESSAGE.
-        LDB    2,U                      ;  HEIGHT
-        BEQ    SWNOAC
-        LDA    #$40                     ;  X
-        TFR    D,X                      ;  MAKE IT CURSOR
-        LDD    #$3006
-        JSR    BLKCLR                   ;  CLEAR THE BLOCK
-        PULS   B,X,PC
-SWPRNT  LDB    2,U                      ;  GET HEIGHT
-        BEQ    SWNOAC
-        LDA    #$40                     ;  CURSOR
-        TFR    D,X
-        LDB    #$BB
-        STB    TEXCOL
-        LDD    ,U                       ;  GET MESSAGE NUMBER,B (PLAYER NUMBER)
-        JSR    WRD5FV                   ;  AND PRINT IT.
-        LDA    #$17
-        STA    SOUND                    ;  MAKE A SOUND
-SWNOAC  PULS    B,X,PC                  ;  AND RETURN.
+SWACT           pshs   B,X                      ;  SAVE THE MASK
+                lda    #$3F
+                sta    SOUND                    ;  BRING SOUND LINES HIGH IN ANTICIPATION
+                eorb   ,Y                       ;  INVERT THE BIT
+                stb    ,Y                       ;  AND MAKE THAT THE NEW STATE
+                ldb    ,S                       ;  RESTORE MASK
+                bitb   ,Y                       ;  WHICH WAY DID IT GO
+                bne    SWPRNT                   ;  ON....PRINT A MESSAGE.
+                ldb    2,U                      ;  HEIGHT
+                beq    SWNOAC
+                lda    #$40                     ;  X
+                tfr    D,X                      ;  MAKE IT CURSOR
+                ldd    #$3006
+                jsr    BLKCLR                   ;  CLEAR THE BLOCK
+                puls   B,X,PC
+SWPRNT          ldb    2,U                      ;  GET HEIGHT
+                beq    SWNOAC
+                lda    #$40                     ;  CURSOR
+                tfr    D,X
+                ldb    #$BB
+                stb    TEXCOL
+                ldd    ,U                       ;  GET MESSAGE NUMBER,B (PLAYER NUMBER)
+                jsr    WRD5FV                   ;  AND PRINT IT.
+                lda    #$17
+                sta    SOUND                    ;  MAKE A SOUND
+SWNOAC          puls    B,X,PC                  ;  AND RETURN.
 
 STABP   FDB    PIA0,SW0ST
         FDB    PIA2,SW2ST
@@ -749,345 +749,345 @@ SPHTAB  FCB    SWMES1,0,SWMH                ;  AUTO UP
         FCB    0,0,0                    ;  UNUSED
         FCB    0,0,0                    ;  UNUSED
 
-FDRET   LDU    #RAMERJ                  ;  RAM ERROR RETURN
-        BRA    FDROM0
+FDRET           ldu    #RAMERJ                  ;  RAM ERROR RETURN
+                bra    FDROM0
 
-FDROM   LDU    #DIG11_
-FDROM0  LDS    #HSTK
-FDROM5  LDY    #FDROM6
-        LDA    #1
-        JMP    DELA1
-FDROM6  LDA    PIA0
-        BITA    #$2
-        BNE    FDROM5
-FDROM1  LDY    #FDROM7
-        LDA    #1
-        JMP    DELA1
-FDROM7  LDA    PIA0
-        BITA    #$2
-        BEQ    FDROM1
-FDROM2  LDY    #FDROM8
-        LDA    #1
-        JMP    DELA1
-FDROM8  LDA    PIA0
-        BITA    #2
-        BNE    FDROM2
-        JMP    ,U
+FDROM           ldu    #DIG11_
+FDROM0          lds    #HSTK
+FDROM5          ldy    #FDROM6
+                lda    #1
+                jmp    DELA1
+FDROM6          lda    PIA0
+                bita    #$2
+                bne    FDROM5
+FDROM1          ldy    #FDROM7
+                lda    #1
+                jmp    DELA1
+FDROM7          lda    PIA0
+                bita    #$2
+                beq    FDROM1
+FDROM2          ldy    #FDROM8
+                lda    #1
+                jmp    DELA1
+FDROM8          lda    PIA0
+                bita    #2
+                bne    FDROM2
+                jmp    ,U
 
-AVWAIT  PULS    D
-        LDU    CRPROC
-        STD    proc.data+6,U
-AVWAI_  LDA    PIA0                     ;  SEE IF ADVANCE PRESSED
-        BITA    #$2                     ;  WELL??
-        BNE    AVWAT2
+AVWAIT          puls    D
+                ldu    CRPROC
+                std    proc.data+6,U
+AVWAI_          lda    PIA0                     ;  SEE IF ADVANCE PRESSED
+                bita    #$2                     ;  WELL??
+                bne    AVWAT2
         NAP    (1,AVWAI_)                                                   ;  WELL, WAIT FOR IT.
-AVWAT2  CLR    PCRAM
-        JSR    SCRCLR
-        BRA    AVWAT5
-AVWAT4  LDA    PIA0
-        BITA    #$2                     ;  WAIT FOR IT TO BE RELEASED
-        BEQ    AVWAT3
+AVWAT2          clr    PCRAM
+                jsr    SCRCLR
+                bra    AVWAT5
+AVWAT4          lda    PIA0
+                bita    #$2                     ;  WAIT FOR IT TO BE RELEASED
+                beq    AVWAT3
 AVWAT5
         NAP    (2,AVWAT4)
-AVWAT3  JMP    [proc.data+6,U]
+AVWAT3          jmp    [proc.data+6,U]
 
-AVCHK   LDA    PIA0
-        BITA    #$2
-        BEQ    AVCHK1
-        ORCC    #$01                    ;  SEC
-        RTS
-AVCHK1  ANDCC    #$FE                   ;  CLC
-        RTS
+AVCHK           lda    PIA0
+                bita    #$2
+                beq    AVCHK1
+                orcc    #$01                    ;  SEC
+                rts
+AVCHK1          andcc    #$FE                   ;  CLC
+                rts
 
 ;
 ;     DISPLAY BOOKKEEPPING
 ;
 
-BOOK    LDA    #$FF
-        STA    STATUS
-        JSR    INITCM                   ;  COLOR MATRIX PROPER.
-        JSR    AVCHK
-        BCC    BOOK3
-        JSR    AVWAIT                   ;  WAIT FOR HIM TO LET GO.
-BOOK3   LDA    #BOOKM
-        JSR    WRD7V                    ;  PRINT THE BOOKKEEPING MESSAGE
-        LDU    #SLOT1
-        LDA    #AUDMES                  ;  FIRST OF THE AUDIT MESSAGES
-BOOK0   PSHS    A                       ;  SAVE MESSAGE NUMBER
-        JSR    WRD7V                    ;  PRINT IT.
-        EXG    U,X
-        JSR    RCMOSB                   ;  GET THE TOP BYTE
-        PSHS    B
-        JSR    RCMOSD
-        TFR    D,Y
-        PULS    B
-        EXG    U,X
-        TSTB
-        BEQ    BOOK1
-        LDA    #AUDM1
-        JSR    WRD7V                    ;  FULL SIX DIGITS USED
-        LDA    #AUDM2
-        JSR    WRD7V
-        BRA    BOOK2
-BOOK1   LDA    #AUDM3
-        JSR    WRD7V
-BOOK2   PULS    A                       ;  RESTORE A
-        INCA
-        CMPU    #WARPS
-        BLS    BOOK0                    ;  THANK YOU SIR, MAY I HAVE ANOTHER??
-        JSR    AVWAIT
-        JMP    ADJV                     ;  NOW GO DO ADJUSTMENT MODE
+BOOK            lda    #$FF
+                sta    STATUS
+                jsr    INITCM                   ;  COLOR MATRIX PROPER.
+                jsr    AVCHK
+                bcc    BOOK3
+                jsr    AVWAIT                   ;  WAIT FOR HIM TO LET GO.
+BOOK3           lda    #BOOKM
+                jsr    WRD7V                    ;  PRINT THE BOOKKEEPING MESSAGE
+                ldu    #SLOT1
+                lda    #AUDMES                  ;  FIRST OF THE AUDIT MESSAGES
+BOOK0           pshs    A                       ;  SAVE MESSAGE NUMBER
+                jsr    WRD7V                    ;  PRINT IT.
+                exg    U,X
+                jsr    RCMOSB                   ;  GET THE TOP BYTE
+                pshs    B
+                jsr    RCMOSD
+                tfr    D,Y
+                puls    B
+                exg    U,X
+                tstb
+                beq    BOOK1
+                lda    #AUDM1
+                jsr    WRD7V                    ;  FULL SIX DIGITS USED
+                lda    #AUDM2
+                jsr    WRD7V
+                bra    BOOK2
+BOOK1           lda    #AUDM3
+                jsr    WRD7V
+BOOK2           puls    A                       ;  RESTORE A
+                inca
+                cmpu    #WARPS
+                bls    BOOK0                    ;  THANK YOU SIR, MAY I HAVE ANOTHER??
+                jsr    AVWAIT
+                jmp    ADJV                     ;  NOW GO DO ADJUSTMENT MODE
 
 ;
 ;     SOUND TEST
 ;
 
-SNDSRT  JSR    SCRCLR                   ;  CLEAR THE SCREEN
-SNDSR1  LDD    #$FE01                   ;  SET UP FOR SOUND LINE 1
-        STD    proc.data,U
-        RTS
+SNDSRT          jsr    SCRCLR                   ;  CLEAR THE SCREEN
+SNDSR1          ldd    #$FE01                   ;  SET UP FOR SOUND LINE 1
+                std    proc.data,U
+                rts
 
-SNDCYC  PULS    D
-        STD    proc.data+6,U
-        LDA    #$3F
-        STA    SOUND
+SNDCYC          puls    D
+                std    proc.data+6,U
+                lda    #$3F
+                sta    SOUND
         NAP    (1,SNDC55)
-SNDC55  LDA    #$C
-        STA    SOUND
+SNDC55          lda    #$C
+                sta    SOUND
         NAP    (1,SNDCY6)
-SNDCY6  LDA    #$3F
-        STA    SOUND
+SNDCY6          lda    #$3F
+                sta    SOUND
         NAP    (1,SNDCY1)
-SNDCY1  LDD    proc.data,U
-        ANDA    #$3F
-        STA    SOUND
-        LDA    #SNDTEX
-        JSR    WRD7V
-        LDA    #$40
-        STA    proc.data+4,U
+SNDCY1          ldd    proc.data,U
+                anda    #$3F
+                sta    SOUND
+                lda    #SNDTEX
+                jsr    WRD7V
+                lda    #$40
+                sta    proc.data+4,U
 SNDCY4
         NAP (1,SNDCY5)
-SNDCY5  JSR    AVCHK                    ;  ADVANCE???
-        BCS    SNDCY3                   ;  THEN GO
-        DEC    proc.data+4,U
-        BNE    SNDCY4
-SNDCY3  LDA    proc.data+2,U                   ;  SEE WHO SET THIS UP??
-        BNE    SNDC90                   ;  AUTOCY DID....ALWAYS ADVANCE
-        LDA    PIA0                     ;  CHECK MANUAL/AUTO
-        RORA
-        BCC    SNDC91                   ;  MANUAL...DON'T MOVE ON.
-SNDC90  LDD    proc.data,U
-        ORCC    #$01                    ;  SEC
-        ROLA                            ;  MOVE TO NEXT LINE
-        INCB
-        CMPB    #6                      ;  UP TO LINE 6??
-        BLO    SNDCY2
-        BSR    SNDSR1
-SNDCY2  STD    proc.data,U
-SNDC91  JMP    [proc.data+6,U]
+SNDCY5          jsr    AVCHK                    ;  ADVANCE???
+                bcs    SNDCY3                   ;  THEN GO
+                dec    proc.data+4,U
+                bne    SNDCY4
+SNDCY3          lda    proc.data+2,U                   ;  SEE WHO SET THIS UP??
+                bne    SNDC90                   ;  AUTOCY DID....ALWAYS ADVANCE
+                lda    PIA0                     ;  CHECK MANUAL/AUTO
+                rora
+                bcc    SNDC91                   ;  MANUAL...DON'T MOVE ON.
+SNDC90          ldd    proc.data,U
+                orcc    #$01                    ;  SEC
+                rola                            ;  MOVE TO NEXT LINE
+                incb
+                cmpb    #6                      ;  UP TO LINE 6??
+                blo    SNDCY2
+                bsr    SNDSR1
+SNDCY2          std    proc.data,U
+SNDC91          jmp    [proc.data+6,U]
 
 ;;; CMOS RAM TEST
-CMTEST  ldx    #CMOS
-        ldy    #RAMALS                  ;  USE SAMRAM
-!loop   lda    ,X+                      ;  DON'T DO DOUBLES BECAUSE OF HARDWARE BRAIN DAM.
-        sta    ,Y+
-        cmpx    #CMOS+$400              ;  DONE??
-        bne    !loop
+CMTEST          ldx    #CMOS
+                ldy    #RAMALS                  ;  USE SAMRAM
+!loop           lda    ,X+                      ;  DON'T DO DOUBLES BECAUSE OF HARDWARE BRAIN DAM.
+                sta    ,Y+
+                cmpx    #CMOS+$400              ;  DONE??
+                bne    !loop
 
-        ldb    #6                       ;  ENOUGH ITERATIONS TO ASSURE
-        orcc   #$3F                     ;  STOP INTERRUPTS
-!outer  ldu    HSEED
-        ldy    SEED
-        ldx    #CMOS
-!loop3  jsr    RAND
-        sta    ,X+
-        lda    #WDATA
-        sta    WDOG
-        cmpx   #CMOS+$400                ;  DONE??
-        bne    !loop3
-        sty    SEED                     ;  RESTORE SEED
-        stu    HSEED
-        ldx    #CMOS
-!loop4  jsr    RAND
-        eora   ,X+
-        anda   #$F
-        bne    !CMEROR
-        lda    #WDATA
-        sta    WDOG
-        cmpx   #CMOS+$400
-        bne    !loop4
-        decb                            ;  ANOTHER PASS...DONE??
-        bne    !outer
-        bsr    !RAMBAK
-        andcc  #$FE                   ;  CLC CLEAR IT FOR REAL
-        rts                             ;  AND RETURN
+                ldb    #6                       ;  ENOUGH ITERATIONS TO ASSURE
+                orcc   #$3F                     ;  STOP INTERRUPTS
+!outer          ldu    HSEED
+                ldy    SEED
+                ldx    #CMOS
+!loop3          jsr    RAND
+                sta    ,X+
+                lda    #WDATA
+                sta    WDOG
+                cmpx   #CMOS+$400                ;  DONE??
+                bne    !loop3
+                sty    SEED                     ;  RESTORE SEED
+                stu    HSEED
+                ldx    #CMOS
+!loop4          jsr    RAND
+                eora   ,X+
+                anda   #$F
+                bne    !CMEROR
+                lda    #WDATA
+                sta    WDOG
+                cmpx   #CMOS+$400
+                bne    !loop4
+                decb                            ;  ANOTHER PASS...DONE??
+                bne    !outer
+                bsr    !RAMBAK
+                andcc  #$FE                   ;  CLC CLEAR IT FOR REAL
+                rts                             ;  AND RETURN
 
-!RAMBAK LDU    #RAMALS
-        LDY    #CMOS
-!rbloop LDA    ,U+
-        STA    ,Y+
-        CMPY    #CMOS+$400
-        BNE    !rbloop
-        RTS
+!RAMBAK         ldu    #RAMALS
+                ldy    #CMOS
+!rbloop         lda    ,U+
+                sta    ,Y+
+                cmpy    #CMOS+$400
+                bne    !rbloop
+                rts
 
-!CMEROR BSR    !RAMBAK
-        ORCC   #$01                     ;  SEC
-        RTS
+!CMEROR         bsr    !RAMBAK
+                orcc   #$01                     ;  SEC
+                rts
 
 ;;;     RAM TEST....Y = PLACE TO RETURN IF NO ERROR
 ;;;     X = SEED TO START WITH
 ;;;     A = ITERATIONS TO MAKE
-RAMTST  ORCC    #$3F                    ;  NO INTERRUPTS DURING TEST
-        CLR    RWCNTL                   ;  SET TO RAM READ
-        TFR    A,DP                     ;  COUNT AT DP.
-        TFR    X,D                      ;  START WITH A PASSED SEED.
-RAM2    TFR    D,U                      ;  SAVE THE SEED
-RAM0    LDX    #0                       ;  MEMORY POINTER
-RAM3    COMB                            ;  DONT ASK
-        BITB    #9
-        BNE    RAM4
-        COMB
-        RORA
-        RORB
-        BRA    RAM6
-RAM4    COMB
-        BITB    #9
-        BNE    RAM5
-        RORA
-        RORB
-        BRA    RAM6
-RAM5    LSRA
-        RORB
-RAM6    STD    ,X++
-        EXG    X,D                      ;  SINCE IRQ RUNS OUT OF RAM, STROKE ROVER
-        TSTB
-        BNE    RAM6B                    ;  EVERY 256!
-        LDB    #WDATA
-        STB    WDOG                     ;  HAVE A BONE..EVER BEEN BONED.....
-        TFR    DP,B                     ;  CHECK IS NORMAL DIAGS
-        CMPB    #$FF                    ;  FF MEANS FRONT DOOR
-        BNE    RAM6C
-        LDB    PIA0                     ;  CHECK FOR ADV.
-        BITB    #2
-        BEQ    RAM6C                    ;  NOT PRESSED.
-        JMP    ,Y                       ;  TIME TO RETURN
-RAM6C   CLRB                            ;  RETURN B TO ZERO
-RAM6B   EXG    X,D                      ;  TRADE BACK
-        CMPX    #$C000                  ;  DONE??
-        BNE    RAM3                     ;  NOPE..CONTINUE
+RAMTST          orcc    #$3F                    ;  NO INTERRUPTS DURING TEST
+                clr    RWCNTL                   ;  SET TO RAM READ
+                tfr    A,DP                     ;  COUNT AT DP.
+                tfr    X,D                      ;  START WITH A PASSED SEED.
+RAM2            tfr    D,U                      ;  SAVE THE SEED
+RAM0            ldx    #0                       ;  MEMORY POINTER
+RAM3            comb                            ;  DONT ASK
+                bitb    #9
+                bne    RAM4
+                comb
+                rora
+                rorb
+                bra    RAM6
+RAM4            comb
+                bitb    #9
+                bne    RAM5
+                rora
+                rorb
+                bra    RAM6
+RAM5            lsra
+                rorb
+RAM6            std    ,X++
+                exg    X,D                      ;  SINCE IRQ RUNS OUT OF RAM, STROKE ROVER
+                tstb
+                bne    RAM6B                    ;  EVERY 256!
+                ldb    #WDATA
+                stb    WDOG                     ;  HAVE A BONE..EVER BEEN BONED.....
+                tfr    DP,B                     ;  CHECK IS NORMAL DIAGS
+                cmpb    #$FF                    ;  FF MEANS FRONT DOOR
+                bne    RAM6C
+                ldb    PIA0                     ;  CHECK FOR ADV.
+                bitb    #2
+                beq    RAM6C                    ;  NOT PRESSED.
+                jmp    ,Y                       ;  TIME TO RETURN
+RAM6C           clrb                            ;  RETURN B TO ZERO
+RAM6B           exg    X,D                      ;  TRADE BACK
+                cmpx    #$C000                  ;  DONE??
+                bne    RAM3                     ;  NOPE..CONTINUE
 
-        TFR    U,D                      ;  RESTORE SEED.
-        LDX    #0
-RAM7    COMB
-        BITB    #9
-        BNE    RAM8
-        COMB
-        RORA
-        RORB
-        BRA    RAM10
-RAM8    COMB
-        BITB    #9
-        BNE    RAM9
-        RORA
-        RORB
-        BRA    RAM10
-RAM9    LSRA
-        RORB
-RAM10   CMPD    ,X++
-        BNE    RERROR                   ;  RAM ERROR!
-RAM25   EXG    X,D                      ;  CHECK FOR END OF PAGE
-        TSTB
-        BNE    RAM17
-        LDB    #WDATA
-        STB    WDOG
-        TFR    DP,B                     ;  SEE IF NORMAL RUN
-        CMPB    #$FF                    ;  FRONT DOOR??
-        BNE    RAM17C                   ;  NOPE
-        LDB    PIA0                     ;  CHECK ADV.
-        BITB    #2
-        BEQ    RAM17C
-        JMP    ,Y                       ;  JUST RETURN (NO ERRORS)
-RAM17C  CLRB
-RAM17   EXG    X,D                      ;  TRADE BACK
-        CMPX    #$C000                  ;  DONE??
-        BNE    RAM7
-        TFR    D,U                      ;  SHOVE NEW SEED OVER
-        TFR    DP,A
-        CMPA    #$FF                    ;  FF INDICATES FRONT DOOR
-        BNE    RAM99
-        TFR    U,D
-        JMP    RAM0                     ;  DO ANOTHER ITERATION IN THIS TEST.
-RAM99   DECA                            ;  TAKE ONE AWAY
-        TFR    A,DP                     ;  RETURN
-        CMPA    #$80                    ;  ZERO OUT IN AUTO CYCLE???
-        BEQ    RAM99_                   ;  YEP....
-        TSTA                            ;  SET FOR BELOW BRANCH
-        TFR    U,D                      ;  MAKE SEED AND SAVED SEED LOOK ALIKE
-        LBNE    RAM0                    ;  DO ANOTHER ITERATION
-RAM99_  LDB    #1                       ;  SET BACK TO ROM
-        STB    RWCNTL
-        JMP    ,Y                       ;  RETURN
-RERROR  LEAX    -2,X                    ;  BACK TO ERROR POINT
-        EORA    ,X                      ;  FIND DIFFERENCE.
-        EORB    1,X
-        TSTA                            ;  NO DIFFERENCE?
-        BNE    RERR2                    ;  DIFF.
-        TSTB
-        BNE    RERR2
-        LEAX    2,X                     ;  UNDO THIS BULLSHIT...MAYBE ALPHA BABY.
-        BRA    RAM25                    ;  AND CONTINUE
-RERR2   LDU    #$30                     ;  FIND BANK NUMBER
-        EXG    X,D
-        CLRB
-        EXG    X,D
-RERR0   CMPX    #0
-        BEQ    RERR1                    ;  DONE.
-        LEAX    -$100,X
-        LEAU    $10,U
-        CMPU    #$30
-        BLS    RERR0
-        LDU    #$10
-        BRA    RERR0
-RERR1   LEAU    1,U
-        ASRA
-        BCS    RERR5                    ;  THIS IS THE BIT
-        ASRB
-        BCS    RERR5
-        BRA    RERR1
-RERR5   TFR    U,D                      ;  BRING THE BANK,BIT INTO B
-        LDA    #1                       ;  INDICATE RAM ERROR
-        STA    RWCNTL                   ;  BACK TO THAT JAZZ
-        LDS    #RERR6                   ;  RETURN HERE
-        JMP    PULSE                    ;  PULSE THE LEDS
-RERR6   LDA    #RAM>>8
-        TFR    A,DP
-        TFR    CC,A
-        COMA
-        BITA    #$C0                    ;  INITIAL TEST???
-        BEQ    RER098                   ;  YEP
-        LDA    #FDRAMM
-        BRA    RER099
-RER098  LDA    #RERRM
-RER099  LDS    #HSTK                    ;  SET UP THE STACK
-        JSR    SCRCLR
-        JSR    WRD7V                    ;  PRINT THE MESSAGE.
-        TFR    CC,A                     ;  SEE WHICH TEST
-        BITA    #$40                    ;  FIRQ SAYS FRONT DOOR
-        BNE    REROR7                   ;  NOPE
-        JMP    FDRET                    ;  DO THE FRONT DOOR RETURN
-REROR7  LDY    #INITV                   ;  OTHERWISE START...TRY AND RUN THE GAME.
-        BRA    DELAY
+                tfr    U,D                      ;  RESTORE SEED.
+                ldx    #0
+RAM7            comb
+                bitb    #9
+                bne    RAM8
+                comb
+                rora
+                rorb
+                bra    RAM10
+RAM8            comb
+                bitb    #9
+                bne    RAM9
+                rora
+                rorb
+                bra    RAM10
+RAM9            lsra
+                rorb
+RAM10           cmpd    ,X++
+                bne    RERROR                   ;  RAM ERROR!
+RAM25           exg    X,D                      ;  CHECK FOR END OF PAGE
+                tstb
+                bne    RAM17
+                ldb    #WDATA
+                stb    WDOG
+                tfr    DP,B                     ;  SEE IF NORMAL RUN
+                cmpb    #$FF                    ;  FRONT DOOR??
+                bne    RAM17C                   ;  NOPE
+                ldb    PIA0                     ;  CHECK ADV.
+                bitb    #2
+                beq    RAM17C
+                jmp    ,Y                       ;  JUST RETURN (NO ERRORS)
+RAM17C          clrb
+RAM17           exg    X,D                      ;  TRADE BACK
+                cmpx    #$C000                  ;  DONE??
+                bne    RAM7
+                tfr    D,U                      ;  SHOVE NEW SEED OVER
+                tfr    DP,A
+                cmpa    #$FF                    ;  FF INDICATES FRONT DOOR
+                bne    RAM99
+                tfr    U,D
+                jmp    RAM0                     ;  DO ANOTHER ITERATION IN THIS TEST.
+RAM99           deca                            ;  TAKE ONE AWAY
+                tfr    A,DP                     ;  RETURN
+                cmpa    #$80                    ;  ZERO OUT IN AUTO CYCLE???
+                beq    RAM99_                   ;  YEP....
+                tsta                            ;  SET FOR BELOW BRANCH
+                tfr    U,D                      ;  MAKE SEED AND SAVED SEED LOOK ALIKE
+                lbne    RAM0                    ;  DO ANOTHER ITERATION
+RAM99_          ldb    #1                       ;  SET BACK TO ROM
+                stb    RWCNTL
+                jmp    ,Y                       ;  RETURN
+RERROR          leax    -2,X                    ;  BACK TO ERROR POINT
+                eora    ,X                      ;  FIND DIFFERENCE.
+                eorb    1,X
+                tsta                            ;  NO DIFFERENCE?
+                bne    RERR2                    ;  DIFF.
+                tstb
+                bne    RERR2
+                leax    2,X                     ;  UNDO THIS BULLSHIT...MAYBE ALPHA BABY.
+                bra    RAM25                    ;  AND CONTINUE
+RERR2           ldu    #$30                     ;  FIND BANK NUMBER
+                exg    X,D
+                clrb
+                exg    X,D
+RERR0           cmpx    #0
+                beq    RERR1                    ;  DONE.
+                leax    -$100,X
+                leau    $10,U
+                cmpu    #$30
+                bls    RERR0
+                ldu    #$10
+                bra    RERR0
+RERR1           leau    1,U
+                asra
+                bcs    RERR5                    ;  THIS IS THE BIT
+                asrb
+                bcs    RERR5
+                bra    RERR1
+RERR5           tfr    U,D                      ;  BRING THE BANK,BIT INTO B
+                lda    #1                       ;  INDICATE RAM ERROR
+                sta    RWCNTL                   ;  BACK TO THAT JAZZ
+                lds    #RERR6                   ;  RETURN HERE
+                jmp    PULSE                    ;  PULSE THE LEDS
+RERR6           lda    #RAM>>8
+                tfr    A,DP
+                tfr    CC,A
+                coma
+                bita    #$C0                    ;  INITIAL TEST???
+                beq    RER098                   ;  YEP
+                lda    #FDRAMM
+                bra    RER099
+RER098          lda    #RERRM
+RER099          lds    #HSTK                    ;  SET UP THE STACK
+                jsr    SCRCLR
+                jsr    WRD7V                    ;  PRINT THE MESSAGE.
+                tfr    CC,A                     ;  SEE WHICH TEST
+                bita    #$40                    ;  FIRQ SAYS FRONT DOOR
+                bne    REROR7                   ;  NOPE
+                jmp    FDRET                    ;  DO THE FRONT DOOR RETURN
+REROR7          ldy    #INITV                   ;  OTHERWISE START...TRY AND RUN THE GAME.
+                bra    DELAY
 
-DELAY   LDA    #32
-DELA1   LDX    #$5800
-DELA2   LEAX    -1,X
-        LDB    #WDATA
-        STB    WDOG
-        CMPX    #0
-        BNE    DELA2
-        DECA
-        BNE    DELA1
-        JMP    ,Y                       ;  RETURN
+DELAY           lda    #32
+DELA1           ldx    #$5800
+DELA2           leax    -1,X
+                ldb    #WDATA
+                stb    WDOG
+                cmpx    #0
+                bne    DELA2
+                deca
+                bne    DELA1
+                jmp    ,Y                       ;  RETURN
 
 ;
 ;     PULSE......PUT SOME CRAP IN LED'S
@@ -1095,141 +1095,141 @@ DELA2   LEAX    -1,X
 ;     BOTH HALVES OF B ARE THE RELEVANT DATA.
 ;
 
-PULSE   TFR    D,U                      ;  SAVE A,B
-        LDA    #2
-        TFR    A,DP
-PULSE0  TFR    U,D
-        LDY    #PULSE1
-        JMP    PSSUB
-PULSE1  LDA    #2
-        LDY    #PULSE2
-        JMP    DELA1
-PULSE2  LDY    #PULSE3
-        JMP    BLKLED
-PULSE3  LDA    #1
-        LDY    #PULSE4
-        JMP    DELA1
-PULSE4  TFR    U,D                      ;  GET DATA BACK
-        TFR    B,A                      ;  SHIFT B DOWN
-        LSRA
-        LSRA
-        LSRA
-        LSRA                            ;  PROPER HALF
-        LDY    #PULSE5
-        BRA    PSSUB                    ;  PULSE IT.
-PULSE5  LDA    #2
-        LDY    #PULSE6
-        BRA    DELA1
-PULSE6  LDY    #PULSE7
-        BRA    BLKLED
-PULSE7  LDA    #1
-        LDY    #PULSE8
-        BRA    DELA1
-PULSE8  TFR    U,D
-        TFR    B,A
-        LDY    #PULSE9
-        BRA    PSSUB
-PULSE9  LDA    #2
-        LDY    #PULS10
-        BRA    DELA1
-PULS10  LDY    #PULS11
-        BRA    BLKLED
-PULS11  LDA    #5
-        LDY    #PULS12
-        JMP    DELA1
-PULS12  TFR    DP,A                     ;  SEE IF FIRST PASS??
-        DECA
-        TFR    A,DP
-        BNE    PULSE0
-        LDY    #PULS95
-        BRA    BLKLED                   ;  BLANK EM.
-PULS95  TFR    U,D                      ;  RESTORE D
-        JMP    ,S                       ;  AND RETURN
+PULSE           tfr    D,U                      ;  SAVE A,B
+                lda    #2
+                tfr    A,DP
+PULSE0          tfr    U,D
+                ldy    #PULSE1
+                jmp    PSSUB
+PULSE1          lda    #2
+                ldy    #PULSE2
+                jmp    DELA1
+PULSE2          ldy    #PULSE3
+                jmp    BLKLED
+PULSE3          lda    #1
+                ldy    #PULSE4
+                jmp    DELA1
+PULSE4          tfr    U,D                      ;  GET DATA BACK
+                tfr    B,A                      ;  SHIFT B DOWN
+                lsra
+                lsra
+                lsra
+                lsra                            ;  PROPER HALF
+                ldy    #PULSE5
+                bra    PSSUB                    ;  PULSE IT.
+PULSE5          lda    #2
+                ldy    #PULSE6
+                bra    DELA1
+PULSE6          ldy    #PULSE7
+                bra    BLKLED
+PULSE7          lda    #1
+                ldy    #PULSE8
+                bra    DELA1
+PULSE8          tfr    U,D
+                tfr    B,A
+                ldy    #PULSE9
+                bra    PSSUB
+PULSE9          lda    #2
+                ldy    #PULS10
+                bra    DELA1
+PULS10          ldy    #PULS11
+                bra    BLKLED
+PULS11          lda    #5
+                ldy    #PULS12
+                jmp    DELA1
+PULS12          tfr    DP,A                     ;  SEE IF FIRST PASS??
+                deca
+                tfr    A,DP
+                bne    PULSE0
+                ldy    #PULS95
+                bra    BLKLED                   ;  BLANK EM.
+PULS95          tfr    U,D                      ;  RESTORE D
+                jmp    ,S                       ;  AND RETURN
 
-BLKLED  LDA    #$3C
-        STA    PIA0_ctrl
-        INCA
-        STA    PIA1_ctrl
-        LDA    #$C0
-        STA    PIA1
-        JMP    ,Y                       ;  AND RETURN
+BLKLED          lda    #$3C
+                sta    PIA0_ctrl
+                inca
+                sta    PIA1_ctrl
+                lda    #$C0
+                sta    PIA1
+                jmp    ,Y                       ;  AND RETURN
 
 ;     PSSUB - PUT LOW HALF OF A TO LEDS
 
-PSSUB   TFR    A,B                      ;  SAVE A COPY.
-        RORA                            ;  BIT 0 - CARRY
-        RORA                            ;  BIT 0 - BIT 7
-        RORA                            ;  BIT 0 - BIT 6
-        ANDA    #$C0
-        STA    PIA1                     ;  THOSE BITS OUT.
-        LDA    #$34                     ;  ASSUME ZERO
-        BITB    #$4                     ;  SEE IF 1
-        BEQ    PSSUB1                   ;  NOPE
-        LDA    #$3C
-PSSUB1  STA    PIA1_ctrl                ;  THATS ALL FOR THAT BIT
-        LDA    #$34
-        BITB    #$8
-        BEQ    PSSUB2
-        LDA    #$3C
-PSSUB2  STA    PIA0_ctrl
-        JMP    ,Y                       ;  AND RETURN
+PSSUB           tfr    A,B                      ;  SAVE A COPY.
+                rora                            ;  BIT 0 - CARRY
+                rora                            ;  BIT 0 - BIT 7
+                rora                            ;  BIT 0 - BIT 6
+                anda    #$C0
+                sta    PIA1                     ;  THOSE BITS OUT.
+                lda    #$34                     ;  ASSUME ZERO
+                bitb    #$4                     ;  SEE IF 1
+                beq    PSSUB1                   ;  NOPE
+                lda    #$3C
+PSSUB1          sta    PIA1_ctrl                ;  THATS ALL FOR THAT BIT
+                lda    #$34
+                bitb    #$8
+                beq    PSSUB2
+                lda    #$3C
+PSSUB2          sta    PIA0_ctrl
+                jmp    ,Y                       ;  AND RETURN
 
-ROMTST  ORCC    #$3F                    ;  NO INTERRUPTS WHILE THIS RUNS
-        LDX    #ROMTAB                  ;  INDEX INTO TABLE
-ROM0    CMPX    #ROMEND                 ;  DONE??
-        BEQ    ROMDUN                   ;  YEP
-        LDA    1,X                      ;  LOOK TO SEE IF PART STUFFED??
-        BEQ    ROMBOT                   ;  NOPE...MOVE TO NEXT
-        LDA    ,X                       ;  GET BASE
-        CLRB
-        TFR    D,U                      ;  USE U TO POINT THROUGH
-        LDA    #WDATA                   ;  FOR ROVER
-ROM1    ADDB    ,U+                     ;  ADD A BYTE
-        STA    WDOG
-        EXG    D,U                      ;  SEE IF DUN
-        CMPA    2,X                     ;  ARE WE TO NEXT PART
-        EXG    D,U                      ;  CHANGE BACK
-        BNE    ROM1                     ;  NOPE
-        CMPB    1,X                     ;  EXPECTED SUM???
-        BNE    ROMERR                   ;  NOPE....LETS SEND OUT PROBLEM WARNING.
-ROMBOT  LEAX    2,X                     ;  MOVE TO NEXT PART
-        BRA    ROM0
-ROMERR  LDA    ,X                       ;  GET THE ADDRESS OF THE BAD PART
-        LSRA
-        LSRA
-        LSRA
-        LSRA
-        CMPA    #$D                     ;  ONE OF TOP 3 PARTS??
-        BLO    ROMER1                   ;  NOPE
-        SUBA    #4                      ;  GROUP THEM WITH THE LOWER PARTS
-ROMER1  ADDA    #1                      ;  MAKE ERRORS FROM 1-12
-        DAA                             ;  AND MAKE BCK
-        TFR    A,B
-        LDA    #2                       ;  ROM ERROR
-        LDS    #RERR3                   ;  RETURN
-        JMP    PULSE                    ;  AND SEND OUT THE CODE
-RERR3   LDA    #RAM>>8
-        TFR    A,DP
-        LDA    #WDATA
-        STA    WDOG
-        LDS    #HSTK
-        JSR    SCRCLR
-        TFR    CC,A
-        COMA
-        BITA    #$C0                    ;  INITIAL TEST??
-        BEQ    RERR94
-        LDA    #FDROMM
-        BRA    RERR95
-RERR94  LDA    #ROMERM
-RERR95  JSR    WRD7V                    ;  PUT THE MESSAGE ON THE SCREEN
-        TFR    CC,B                     ;  SEE WHERE WE CAM FROM
-        BITB    #$40                    ;  FIRQ SAYS FRONT DOOR
-        BNE    ROMER3
-        JMP    FDROM
-ROMER3  LDY    #INITV                   ;  NOW TRY AND RUN THE GAME
-        JMP    DELAY                    ;  BUT NOT UNTIL A SHORT DELAY.
+ROMTST          orcc    #$3F                    ;  NO INTERRUPTS WHILE THIS RUNS
+                ldx    #ROMTAB                  ;  INDEX INTO TABLE
+ROM0            cmpx    #ROMEND                 ;  DONE??
+                beq    ROMDUN                   ;  YEP
+                lda    1,X                      ;  LOOK TO SEE IF PART STUFFED??
+                beq    ROMBOT                   ;  NOPE...MOVE TO NEXT
+                lda    ,X                       ;  GET BASE
+                clrb
+                tfr    D,U                      ;  USE U TO POINT THROUGH
+                lda    #WDATA                   ;  FOR ROVER
+ROM1            addb    ,U+                     ;  ADD A BYTE
+                sta    WDOG
+                exg    D,U                      ;  SEE IF DUN
+                cmpa    2,X                     ;  ARE WE TO NEXT PART
+                exg    D,U                      ;  CHANGE BACK
+                bne    ROM1                     ;  NOPE
+                cmpb    1,X                     ;  EXPECTED SUM???
+                bne    ROMERR                   ;  NOPE....LETS SEND OUT PROBLEM WARNING.
+ROMBOT          leax    2,X                     ;  MOVE TO NEXT PART
+                bra    ROM0
+ROMERR          lda    ,X                       ;  GET THE ADDRESS OF THE BAD PART
+                lsra
+                lsra
+                lsra
+                lsra
+                cmpa    #$D                     ;  ONE OF TOP 3 PARTS??
+                blo    ROMER1                   ;  NOPE
+                suba    #4                      ;  GROUP THEM WITH THE LOWER PARTS
+ROMER1          adda    #1                      ;  MAKE ERRORS FROM 1-12
+                daa                             ;  AND MAKE BCK
+                tfr    A,B
+                lda    #2                       ;  ROM ERROR
+                lds    #RERR3                   ;  RETURN
+                jmp    PULSE                    ;  AND SEND OUT THE CODE
+RERR3           lda    #RAM>>8
+                tfr    A,DP
+                lda    #WDATA
+                sta    WDOG
+                lds    #HSTK
+                jsr    SCRCLR
+                tfr    CC,A
+                coma
+                bita    #$C0                    ;  INITIAL TEST??
+                beq    RERR94
+                lda    #FDROMM
+                bra    RERR95
+RERR94          lda    #ROMERM
+RERR95          jsr    WRD7V                    ;  PUT THE MESSAGE ON THE SCREEN
+                tfr    CC,B                     ;  SEE WHERE WE CAM FROM
+                bitb    #$40                    ;  FIRQ SAYS FRONT DOOR
+                bne    ROMER3
+                jmp    FDROM
+ROMER3          ldy    #INITV                   ;  NOW TRY AND RUN THE GAME
+                jmp    DELAY                    ;  BUT NOT UNTIL A SHORT DELAY.
 
-ROMDUN  JMP    ,Y                       ;  ALL ROMS OK...RETURN.
+ROMDUN          jmp    ,Y                       ;  ALL ROMS OK...RETURN.
 
 ;     ROMTAB    - THIS TABLE INDICATES THE BASE OF THE PART, AND THE
 ;     RESULTING SUM.    IF SUM=0 THEN PART IS NOT STUFFED.

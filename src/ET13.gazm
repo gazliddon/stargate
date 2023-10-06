@@ -20,477 +20,477 @@ SCFLG     RMB 1                             ; SCROLL DIRECTION 0=RT.,$FF=LFT.
 
 ; VECTORS
                 ORG BGORG
-BGINIT          JMP BGI                           ;;; INIT TERRAIN Vector
-BGOUT           JMP BGO                           ;;; OUTPUT TERRAIN Vector
-BGERAS          JMP BGE_label                     ;;; ERASE TERRAIN vector
-PXVCT           JMP LEDEX                         ;;; PLAYER EXPLOSION
+BGINIT          jmp BGI                           ;;; INIT TERRAIN Vector
+BGOUT           jmp BGO                           ;;; OUTPUT TERRAIN Vector
+BGERAS          jmp BGE_label                     ;;; ERASE TERRAIN vector
+PXVCT           jmp LEDEX                         ;;; PLAYER EXPLOSION
 
 ;;; TERRAIN INITIALIZE
-BGI     LDX #$D004
+BGI             ldx #$D004
 
-        LDA STATUS
-        BMI !next                        ; Game over
+                lda STATUS
+                bmi !next                        ; Game over
 
-        CLRA
-!loop   ADDA  ,X
-        LEAX  $9,X
-        CMPX  #$F000
-        BLO   !loop
+                clra
+!loop           adda  ,X
+                leax  $9,X
+                cmpx  #$F000
+                blo   !loop
 
-        CMPA  #$56                      ; THIS
-        BEQ   !next
-        LDB   HSEED
-        CMPB  #$16
-        BHI   !next
-        LDB   SEED
-        LDA   #$9C
-        TFR   D,Y
-        COM   ,Y
+                cmpa  #$56                      ; THIS
+                beq   !next
+                ldb   HSEED
+                cmpb  #$16
+                bhi   !next
+                ldb   SEED
+                lda   #$9C
+                tfr   D,Y
+                com   ,Y
 
-!next   JSR BGALT                       ; INIT ALTITUDE TABLE
-        JSR BGSI                        ; INIT ERASE TABLE
-        LDX #TERTF0                     ; SETUP OUTPUT TABLE CURSOR
-        STX TTBLP
-        LDA #$E0
-        STA TOFF0                       ; ALT OFFSETFLAV 0
-        LDB #1
-        LDA TDATA0                      ; CALC OFFSET FLAV 1
-        ASLA
-        BCS !skip_neg
-        NEGB
+!next           jsr BGALT                       ; INIT ALTITUDE TABLE
+                jsr BGSI                        ; INIT ERASE TABLE
+                ldx #TERTF0                     ; SETUP OUTPUT TABLE CURSOR
+                stx TTBLP
+                lda #$E0
+                sta TOFF0                       ; ALT OFFSETFLAV 0
+                ldb #1
+                lda TDATA0                      ; CALC OFFSET FLAV 1
+                asla
+                bcs !skip_neg
+                negb
 
 !skip_neg
-        ADDB  #$E0
-        STB TOFF1
-        LDA #$FF
-        STA TCNT                        ; NIBBLE COUNT
-        LDA #$80                        ; DATA TABLE OFFSET
-        STA TDPTR
-        CLR SCFLG                       ; SCROLLING RT.
+                addb  #$E0
+                stb TOFF1
+                lda #$FF
+                sta TCNT                        ; NIBBLE COUNT
+                lda #$80                        ; DATA TABLE OFFSET
+                sta TDPTR
+                clr SCFLG                       ; SCROLLING RT.
 
                                         ; SCROLL RT. 1ST SCREEN
-        LDA #$4D
-        STA SSTACK
-!loop2  JSR SCROLR
-        DEC SSTACK
-        BNE !loop2
+                lda #$4D
+                sta SSTACK
+!loop2          jsr SCROLR
+                dec SSTACK
+                bne !loop2
                                         ; SCROLL TO BGL
-        LDX #0
-        STX SSTACK
-!loop3  LDX SSTACK
-        LEAX  $80,X
-        BEQ !done                        ; NO INFINITE LOOP
-        STX SSTACK
-        CMPX  BGL
-        BHS !done
-        JSR SCROLR
-        BRA !loop3
-!done   LDD BGL
-        ANDB  #$80
-        STD BGLXX                       ; INIT OLDIE
-        RTS
+                ldx #0
+                stx SSTACK
+!loop3          ldx SSTACK
+                leax  $80,X
+                beq !done                        ; NO INFINITE LOOP
+                stx SSTACK
+                cmpx  BGL
+                bhs !done
+                jsr SCROLR
+                bra !loop3
+!done           ldd BGL
+                andb  #$80
+                std BGLXX                       ; INIT OLDIE
+                rts
 ;
 ; ALTITUDE TABLE INIT
 ;
 
-BGALT   LDX #TDATA0
-        LDU #ALTBL
-        LDB #$E0                          ; INIT ALT
-        STB ,U+                           ; FIRST ONE
-ALTLP   LDY #4                            ; BIT COUNTER
-        LDA ,X+
-ALT0    ASLA
-        BCC ALT1
-        INCB
-        BRA ALT2
-ALT1    DECB
-ALT2    ASLA
-        BCC ALT3
-        INCB
-        BRA ALT4
-ALT3    DECB
-ALT4    CMPU  #ALTBL+$400
-        BEQ ALTX
-        STB ,U+
-        LEAY  -1,Y
-        BNE ALT0
-        BRA ALTLP
-ALTX    RTS
+BGALT           ldx #TDATA0
+                ldu #ALTBL
+                ldb #$E0                          ; INIT ALT
+                stb ,U+                           ; FIRST ONE
+ALTLP           ldy #4                            ; BIT COUNTER
+                lda ,X+
+ALT0            asla
+                bcc ALT1
+                incb
+                bra ALT2
+ALT1            decb
+ALT2            asla
+                bcc ALT3
+                incb
+                bra ALT4
+ALT3            decb
+ALT4            cmpu  #ALTBL+$400
+                beq ALTX
+                stb ,U+
+                leay  -1,Y
+                bne ALT0
+                bra ALTLP
+ALTX            rts
 
 ; ERASE TABLE INIT
 ; PUT 0-99 IN ERASE TABLE MSB`S
 
-BGSI    LDX #STBL
-        CLRA
-        CLRB
-BGSI1   STD ,X++
-        INCA
-        CMPA  #$99
-        BLS BGSI1
-        RTS
+BGSI            ldx #STBL
+                clra
+                clrb
+BGSI1           std ,X++
+                inca
+                cmpa  #$99
+                bls BGSI1
+                rts
 ;
 ; TERRAIN ERASE
 ;
 
 BGE_label
-        CLRA
-        CLRB
-        LDX #STBL
-BGE1    STD [,X++]
-        CMPX  #STBL+$9A*2
-        BNE BGE1
-        RTS
+                clra
+                clrb
+                ldx #STBL
+BGE1            std [,X++]
+                cmpx  #STBL+$9A*2
+                bne BGE1
+                rts
 ;
 ; TERRAIN OUTPUT
 ;
 
-BGO     LDD BGL
-        ANDB  #$80                    ; SCROLL?
-        SUBD  BGLXX
-        ASLB
-        ROLA                          ; A=DELTA CNT
-        BEQ TOUT                      ; NO SCROLL
-        STA SSTACK                    ; SAVE IT
-        BMI BGT10                     ; SCROLL LFT.
+BGO             ldd BGL
+                andb  #$80                    ; SCROLL?
+                subd  BGLXX
+                aslb
+                rola                          ; A=DELTA CNT
+                beq TOUT                      ; NO SCROLL
+                sta SSTACK                    ; SAVE IT
+                bmi BGT10                     ; SCROLL LFT.
 
 ; SCROLL right
 
-        LDA SCFLG
-        BPL BGT1                      ; NO DIR CHANGE
-        JSR RCHG                      ; CHANGE DIR
-BGT1    JSR SCROLR                    ; SCROLL `EM
-        DEC SSTACK
-        BNE BGT1
-        BRA TOUT0                     ; GO DO IT
+                lda SCFLG
+                bpl BGT1                      ; NO DIR CHANGE
+                jsr RCHG                      ; CHANGE DIR
+BGT1            jsr SCROLR                    ; SCROLL `EM
+                dec SSTACK
+                bne BGT1
+                bra TOUT0                     ; GO DO IT
 
 ; SCROLL letf
 
-BGT10   LDA SCFLG
-        BMI BGT11 ; NO CHANGE
-        JSR LCHG
-BGT11   JSR SCROLL
-        INC SSTACK
-        BNE BGT11
-TOUT0   LDD BGL ; NEW OLDIE
-        ANDB  #$80
-        STD BGLXX
+BGT10           lda SCFLG
+                bmi BGT11 ; NO CHANGE
+                jsr LCHG
+BGT11           jsr SCROLL
+                inc SSTACK
+                bne BGT11
+TOUT0           ldd BGL ; NEW OLDIE
+                andb  #$80
+                std BGLXX
 ; TERRAIN OUTPUT INIT
 
-TOUT    STS SSTACK                  ; SAVE STACK
-        LDD BGL
-        LDS TTBLP                   ; OUTPUT PTR
-        BITB  #$20                  ; FLAVOR?
-        BEQ TOUT1
-        LEAS  $9A*6,S               ; ODD FLAVOR TABLE
-TOUT1   BITB  #$40                  ; SKIP BYTE?
-        BEQ TOUT2                   ; NO
-        LEAS  3,S                   ; YES
-TOUT2   LDX #0
-        LDA #9                      ; 9X16 LOOP
-        LDY #STBL+4                 ; SKIP TWO
-        LEAS  6,S                   ; SKIP FIRST 2
+TOUT            sts SSTACK                  ; SAVE STACK
+                ldd BGL
+                lds TTBLP                   ; OUTPUT PTR
+                bitb  #$20                  ; FLAVOR?
+                beq TOUT1
+                leas  $9A*6,S               ; ODD FLAVOR TABLE
+TOUT1           bitb  #$40                  ; SKIP BYTE?
+                beq TOUT2                   ; NO
+                leas  3,S                   ; YES
+TOUT2           ldx #0
+                lda #9                      ; 9X16 LOOP
+                ldy #STBL+4                 ; SKIP TWO
+                leas  6,S                   ; SKIP FIRST 2
 
 ; OUTPUT....
 
-TOUT3   STX [,Y]                    ; ERASE OLDIE
-        PULS  B,U                   ; GET NEW ALT&DATA
-        STB 1,Y                     ; NEW ALT
-        STU [,Y]                    ; STORE NEW DATA
+TOUT3           stx [,Y]                    ; ERASE OLDIE
+                puls  B,U                   ; GET NEW ALT&DATA
+                stb 1,Y                     ; NEW ALT
+                stu [,Y]                    ; STORE NEW DATA
 
-        STX [2,Y]
-        PULS  B,U
-        STB 3,Y
-        STU [2,Y]
+                stx [2,Y]
+                puls  B,U
+                stb 3,Y
+                stu [2,Y]
 
-        STX [4,Y]
-        PULS  B,U
-        STB 5,Y
-        STU [4,Y]
+                stx [4,Y]
+                puls  B,U
+                stb 5,Y
+                stu [4,Y]
 
-        STX [6,Y]
-        PULS  B,U
-        STB 7,Y
-        STU [6,Y]
+                stx [6,Y]
+                puls  B,U
+                stb 7,Y
+                stu [6,Y]
 
-        STX [8,Y]
-        PULS  B,U
-        STB 9,Y
-        STU [8,Y]
+                stx [8,Y]
+                puls  B,U
+                stb 9,Y
+                stu [8,Y]
 
-        STX [10,Y]
-        PULS  B,U
-        STB 11,Y
-        STU [10,Y]
+                stx [10,Y]
+                puls  B,U
+                stb 11,Y
+                stu [10,Y]
 
-        STX [12,Y]
-        PULS  B,U
-        STB 13,Y
-        STU [12,Y]
+                stx [12,Y]
+                puls  B,U
+                stb 13,Y
+                stu [12,Y]
 
-        STX [14,Y]
-        PULS  B,U
-        STB 15,Y
-        STU [14,Y]
+                stx [14,Y]
+                puls  B,U
+                stb 15,Y
+                stu [14,Y]
 
-        STX [16,Y]
-        PULS  B,U
-        STB 17,Y
-        STU [16,Y]
+                stx [16,Y]
+                puls  B,U
+                stb 17,Y
+                stu [16,Y]
 
-        STX [18,Y]
-        PULS  B,U
-        STB 19,Y
-        STU [18,Y]
+                stx [18,Y]
+                puls  B,U
+                stb 19,Y
+                stu [18,Y]
 
-        STX [20,Y]
-        PULS  B,U
-        STB 21,Y
-        STU [20,Y]
+                stx [20,Y]
+                puls  B,U
+                stb 21,Y
+                stu [20,Y]
 
-        STX [22,Y]
-        PULS  B,U
-        STB 23,Y
-        STU [22,Y]
+                stx [22,Y]
+                puls  B,U
+                stb 23,Y
+                stu [22,Y]
 
-        STX [24,Y]
-        PULS  B,U
-        STB 25,Y
-        STU [24,Y]
+                stx [24,Y]
+                puls  B,U
+                stb 25,Y
+                stu [24,Y]
 
-        STX [26,Y]
-        PULS  B,U
-        STB 27,Y
-        STU [26,Y]
+                stx [26,Y]
+                puls  B,U
+                stb 27,Y
+                stu [26,Y]
 
-        STX [28,Y]
-        PULS  B,U
-        STB 29,Y
-        STU [28,Y]
+                stx [28,Y]
+                puls  B,U
+                stb 29,Y
+                stu [28,Y]
 
-        STX [30,Y]
-        PULS  B,U
-        STB 31,Y
-        STU [30,Y]
+                stx [30,Y]
+                puls  B,U
+                stb 31,Y
+                stu [30,Y]
 
-        LEAY  32,Y
-        DECA
-        LBNE  TOUT3
+                leay  32,Y
+                deca
+                lbne  TOUT3
 ;
 ; GET LAST 4
 ;
 
-        STX [,Y]
-        PULS  B,U
-        STB 1,Y
-        STU [,Y]
+                stx [,Y]
+                puls  B,U
+                stb 1,Y
+                stu [,Y]
 
-        STX [2,Y]
-        PULS  B,U
-        STB 3,Y
-        STU [2,Y]
+                stx [2,Y]
+                puls  B,U
+                stb 3,Y
+                stu [2,Y]
 
-        STX [4,Y]
-        PULS  B,U
-        STB 5,Y
-        STU [4,Y]
+                stx [4,Y]
+                puls  B,U
+                stb 5,Y
+                stu [4,Y]
 
-        STX [6,Y]
-        PULS  B,U
-        STB 7,Y
-        STU [6,Y]
+                stx [6,Y]
+                puls  B,U
+                stb 7,Y
+                stu [6,Y]
 
-        LDS SSTACK                            ; RESTORE
-        RTS
+                lds SSTACK                            ; RESTORE
+                rts
 ;
 ; CHANGE TO RT. SCROLL
 ;
 
-RCHG    COM SCFLG                             ; CHGE DIR FLAG
-        LDA TDPTR                             ; CALC NEW DATA PTR
-RCHG1   ADDA  #$27
-        STA TDPTR
-        LDX TTBLP
-        LEAX  $99*3,X                         ; GET RT. MOST ENTRY
-        LDA 1,X                               ; CHECK SKEW
-        LDB ,X
-        ANDA  #$0F                            ; 0110?
-        BNE RCHG2                             ; YES 0 SKEW
-        INCB
-RCHG2   STB TOFF0                             ; FLAV 0
+RCHG            com SCFLG                             ; CHGE DIR FLAG
+                lda TDPTR                             ; CALC NEW DATA PTR
+RCHG1           adda  #$27
+                sta TDPTR
+                ldx TTBLP
+                leax  $99*3,X                         ; GET RT. MOST ENTRY
+                lda 1,X                               ; CHECK SKEW
+                ldb ,X
+                anda  #$0F                            ; 0110?
+                bne RCHG2                             ; YES 0 SKEW
+                incb
+RCHG2           stb TOFF0                             ; FLAV 0
 
 ; FLAVOR 1
 
-        LDA $9A*6+1,X
-        LDB $9A*6,X                           ; GET ALT
-        ANDA  #$0F                            ; 0110?
-        BNE RCHG3                             ; YES 0 SKEW
-        INCB
-RCHG3   STB TOFF1
-        RTS
+                lda $9A*6+1,X
+                ldb $9A*6,X                           ; GET ALT
+                anda  #$0F                            ; 0110?
+                bne RCHG3                             ; YES 0 SKEW
+                incb
+RCHG3           stb TOFF1
+                rts
 ;
 ; CHANGE TO LEFT SCROLL
 ;
 
-LCHG    COM SCFLG
-        LDA TDPTR                           ; GET DATA PTR
-LCHG1   SUBA  #$27
-        STA TDPTR                           ; NEW DATA PTR
-        LDX TTBLP                           ; CALC NEW ALT OFFSET
-        LDA 1,X                             ; SKEW
-        LDB ,X                              ; GET ALT
-        ANDA  #$0F                          ; 1001?
-        BEQ LCHG2                           ; YES 0 SKEW
-        INCB
-LCHG2   STB TOFF0
+LCHG            com SCFLG
+                lda TDPTR                           ; GET DATA PTR
+LCHG1           suba  #$27
+                sta TDPTR                           ; NEW DATA PTR
+                ldx TTBLP                           ; CALC NEW ALT OFFSET
+                lda 1,X                             ; SKEW
+                ldb ,X                              ; GET ALT
+                anda  #$0F                          ; 1001?
+                beq LCHG2                           ; YES 0 SKEW
+                incb
+LCHG2           stb TOFF0
 
 ; CALC SKEW FLAVOR 1
-        LDA $9A*6+1,X
-        LDB $9A*6,X
-        ANDA  #$0F                          ; 1001?
-        BEQ LCHG3                           ; YES 0 SKEW
-        INCB
-LCHG3   STB TOFF1
-        RTS
+                lda $9A*6+1,X
+                ldb $9A*6,X
+                anda  #$0F                          ; 1001?
+                beq LCHG3                           ; YES 0 SKEW
+                incb
+LCHG3           stb TOFF1
+                rts
 
 ; SCROLL LFT. 1 NIBBLE
 
-SCROLL  LDX #TDATA0+$80
-        LDB TDPTR
-        LDD B,X
-        ASLB                                    ; 1 MORE SHIFT TO THE LEFT
-        ROLA
-        ASLB
-        ROLA
-        TFR A,B
-        RORA                                    ; FLAVOR 1
-        COM TCNT
-        BMI SCL1
-        LSRA
-        LSRA
-        LSRA
-        LSRA
-        LSRB
-        LSRB
-        LSRB
-        LSRB
-        DEC TDPTR
-SCL1    ANDA  #$F
-        ANDB  #$F
-        LDX #SCLTAB
-        ASLA
-        ASLA
-        ASLA                                    ; X8
-        ASLB
-        ASLB
-        ASLB                                    ; X8
-        LEAY  B,X                               ; FLAV 1
-        LEAX  A,X                               ; FLAV 0
-        LDU TTBLP
-        LEAU  -6,U
-        CMPU  #TERTF0                           ; END OF TABLE?
-        BHS SCL3
-        LDU #TERTF0+$98*3                       ; HYPER PTR
-SCL3    STU TTBLP                               ; NEW INDEX
-        LDD 2,X
-        ADDB  TOFF0
-        STD 2,U
-        STD $9A*3+2,U
-        LDD ,X
-        ADDA  3,U                               ; OFFSET
-        ADDA  7,X                               ; SKEW1
-        STD ,U
-        STD $9A*3,U
-        ADDA  6,X
-        STA TOFF0                               ; NEW OFFSET
-        LDD 4,X
-        STD 4,U
-        STD $9A*3+4,U
-        LEAX  $9A*6,U                           ; FLAV1 PTR
-        LDD 2,Y
-        ADDB  TOFF1
-        STD 2,X
-        STD $9A*3+2,X
-        LDD ,Y
-        ADDA  3,X                               ; OFFSET
-        ADDA  7,Y                               ; SKEW1
-        STD ,X
-        STD $9A*3,X
-        ADDA  6,Y
-        STA TOFF1
-        LDD 4,Y
-        STD 4,X
-        STD $9A*3+4,X
-        RTS
+SCROLL          ldx #TDATA0+$80
+                ldb TDPTR
+                ldd B,X
+                aslb                                    ; 1 MORE SHIFT TO THE LEFT
+                rola
+                aslb
+                rola
+                tfr A,B
+                rora                                    ; FLAVOR 1
+                com TCNT
+                bmi SCL1
+                lsra
+                lsra
+                lsra
+                lsra
+                lsrb
+                lsrb
+                lsrb
+                lsrb
+                dec TDPTR
+SCL1            anda  #$F
+                andb  #$F
+                ldx #SCLTAB
+                asla
+                asla
+                asla                                    ; X8
+                aslb
+                aslb
+                aslb                                    ; X8
+                leay  B,X                               ; FLAV 1
+                leax  A,X                               ; FLAV 0
+                ldu TTBLP
+                leau  -6,U
+                cmpu  #TERTF0                           ; END OF TABLE?
+                bhs SCL3
+                ldu #TERTF0+$98*3                       ; HYPER PTR
+SCL3            stu TTBLP                               ; NEW INDEX
+                ldd 2,X
+                addb  TOFF0
+                std 2,U
+                std $9A*3+2,U
+                ldd ,X
+                adda  3,U                               ; OFFSET
+                adda  7,X                               ; SKEW1
+                std ,U
+                std $9A*3,U
+                adda  6,X
+                sta TOFF0                               ; NEW OFFSET
+                ldd 4,X
+                std 4,U
+                std $9A*3+4,U
+                leax  $9A*6,U                           ; FLAV1 PTR
+                ldd 2,Y
+                addb  TOFF1
+                std 2,X
+                std $9A*3+2,X
+                ldd ,Y
+                adda  3,X                               ; OFFSET
+                adda  7,Y                               ; SKEW1
+                std ,X
+                std $9A*3,X
+                adda  6,Y
+                sta TOFF1
+                ldd 4,Y
+                std 4,X
+                std $9A*3+4,X
+                rts
                                                 ;
                                                 ; SCROLL RT. 1 NIBBLE
                                                 ;
 
-SCROLR  LDX #TDATA0+$80
-        LDB TDPTR
-        LDD B,X
-        ASLB
-        ROLA
-        TFR A,B                               ; FLAV1
-        RORA                                  ; FLAV0
-        COM TCNT
-        BMI SCR1
-        LSRA
-        LSRA
-        LSRA
-        LSRA
-        LSRB
-        LSRB
-        LSRB
-        LSRB
-        BRA SCR2
-SCR1    ANDA  #$F
-        ANDB  #$F
-        INC TDPTR
-SCR2    LDX #SCRTAB
-        ASLA
-        ASLA
-        ASLA
-        ASLB
-        ASLB
-        ASLB
-        LEAY  B,X                             ; FLAV1
-        LEAX  A,X                             ; FLAV0
-        LDU TTBLP
-        LDD ,X
-        ADDA  TOFF0
-        STD ,U
-        STD $9A*3,U
-        LDD 2,X
-        ADDB  ,U                              ; OFFSET
-        ADDB  6,X                             ; SKEW1
-        STD 2,U
-        STD $9A*3+2,U
-        ADDB  7,X                             ; NEW OFFSET
-        STB TOFF0
-        LDD 4,X
-        STD 4,U
-        STD $9A*3+4,U
-        LEAX  $9A*6,U                         ; FLAV1 PTR
-        LDD ,Y
-        ADDA  TOFF1
-        STD ,X
-        STD $9A*3,X
-        LDD 2,Y
-        ADDB  ,X                              ; OFFSET1
-        ADDB  6,Y                             ; SKEW1
-        STD 2,X
-        STD $9A*3+2,X
-        ADDB  7,Y
-        STB TOFF1
-        LDD 4,Y
-        STD 4,X
-        STD $9A*3+4,X
-        LEAU  6,U
-        CMPU  #$9A*3+TERTF0                   ; CHECK WRAP
-        BLO SCR3
-        LDU #TERTF0
-SCR3    STU TTBLP
-        RTS
+SCROLR          ldx #TDATA0+$80
+                ldb TDPTR
+                ldd B,X
+                aslb
+                rola
+                tfr A,B                               ; FLAV1
+                rora                                  ; FLAV0
+                com TCNT
+                bmi SCR1
+                lsra
+                lsra
+                lsra
+                lsra
+                lsrb
+                lsrb
+                lsrb
+                lsrb
+                bra SCR2
+SCR1            anda  #$F
+                andb  #$F
+                inc TDPTR
+SCR2            ldx #SCRTAB
+                asla
+                asla
+                asla
+                aslb
+                aslb
+                aslb
+                leay  B,X                             ; FLAV1
+                leax  A,X                             ; FLAV0
+                ldu TTBLP
+                ldd ,X
+                adda  TOFF0
+                std ,U
+                std $9A*3,U
+                ldd 2,X
+                addb  ,U                              ; OFFSET
+                addb  6,X                             ; SKEW1
+                std 2,U
+                std $9A*3+2,U
+                addb  7,X                             ; NEW OFFSET
+                stb TOFF0
+                ldd 4,X
+                std 4,U
+                std $9A*3+4,U
+                leax  $9A*6,U                         ; FLAV1 PTR
+                ldd ,Y
+                adda  TOFF1
+                std ,X
+                std $9A*3,X
+                ldd 2,Y
+                addb  ,X                              ; OFFSET1
+                addb  6,Y                             ; SKEW1
+                std 2,X
+                std $9A*3+2,X
+                addb  7,Y
+                stb TOFF1
+                ldd 4,Y
+                std 4,X
+                std $9A*3+4,X
+                leau  6,U
+                cmpu  #$9A*3+TERTF0                   ; CHECK WRAP
+                blo SCR3
+                ldu #TERTF0
+SCR3            stu TTBLP
+                rts
 
 ; SCROLL RIGHT TABLE
 ; DH1,DATA1,DH2,DATA2,SKEW1,SKEW2
@@ -560,44 +560,44 @@ TDATA0  FCB $55,$40,$00,$00,$00,$00,$3F,$FF,$FF,$FF,$FC,$00,$07,$FF,$FF,$D3
 ; LINKY PLAYER EXPLOSION
 ;
 
-LEDEX   PULS  D                               ; GET RETURN ADDRESS
-        STD proc.data+6,U                            ; SAVE IN CONVENTIONAL SPOT
-        STX proc.data+3,U                            ; SAVE EXPLOSION UPPER LEFT
-        TFR X,D                               ; POINT TO EXPLODE
-        JSR GETOB                             ; GET A PLACEBO OBJECT
-        STX proc.data,U                              ; SAVE PHONEY OBJECT.
-        STB OY16,X                            ; SAVE THE 16 BIT Y
-        LSRA                                  ; X ADDRESS IN BYTE...SHOUL HAVE 6 FRACS. IN WORLD COORDS
-        RORB
-        LSRA
-        RORB                                  ; DONE.
-        ADDD  BGL                             ; ADD LEFT
-        STD OX16,X                            ; OK SO FAR.
-        LDD #PHAPIC                           ; WHICH PHONEY PICTURE??
-        TST NPLAD
-        BPL LEDEX0                            ; FACING RIGHT...OK
-        LDD #PHBPIC                           ; FACING LEFT
-LEDEX0  STD OPICT,X                           ; SAVE PICTURE
-        LDA #13                               ; 13 BLOWS
-        STA proc.data+2,U                            ; PLACE TO COUNT EM.
+LEDEX           puls  D                               ; GET RETURN ADDRESS
+                std proc.data+6,U                            ; SAVE IN CONVENTIONAL SPOT
+                stx proc.data+3,U                            ; SAVE EXPLOSION UPPER LEFT
+                tfr X,D                               ; POINT TO EXPLODE
+                jsr GETOB                             ; GET A PLACEBO OBJECT
+                stx proc.data,U                              ; SAVE PHONEY OBJECT.
+                stb OY16,X                            ; SAVE THE 16 BIT Y
+                lsra                                  ; X ADDRESS IN BYTE...SHOUL HAVE 6 FRACS. IN WORLD COORDS
+                rorb
+                lsra
+                rorb                                  ; DONE.
+                addd  BGL                             ; ADD LEFT
+                std OX16,X                            ; OK SO FAR.
+                ldd #PHAPIC                           ; WHICH PHONEY PICTURE??
+                tst NPLAD
+                bpl LEDEX0                            ; FACING RIGHT...OK
+                ldd #PHBPIC                           ; FACING LEFT
+LEDEX0          std OPICT,X                           ; SAVE PICTURE
+                lda #13                               ; 13 BLOWS
+                sta proc.data+2,U                            ; PLACE TO COUNT EM.
         MAKP  (COLR)                          ; GET THE LASER COLOR ROLLING
         MAKP  (CBOMB)                         ; AND THE BOMB COLOR
         MAKP  (TIECOL)                        ; AND THE TIE COLOR
-LEDEX1  LDX proc.data,U                              ; GET OBJECT
-        LDA LSEED                             ; TRY LEFT SEED
-        ANDA  #$7                             ; 3 BITS FOR RANDOM X DEFLECTION
-        LDB HSEED
-        ANDB  #$03                            ; 2 BITS OF RANDOM Y DEFLECTION
-        INCB                                  ; CENTER THE 4 PIXEL RANGE
-        ADDD  proc.data+3,U                          ; ADD UPPER LEFT
-        STD CENTMP                            ; AND PUT AWAY
-        JSR XSVCT                             ; GO AND DO IT SAM
-        DEC proc.data+2,U
-        BEQ LEDEX2
+LEDEX1          ldx proc.data,U                              ; GET OBJECT
+                lda LSEED                             ; TRY LEFT SEED
+                anda  #$7                             ; 3 BITS FOR RANDOM X DEFLECTION
+                ldb HSEED
+                andb  #$03                            ; 2 BITS OF RANDOM Y DEFLECTION
+                incb                                  ; CENTER THE 4 PIXEL RANGE
+                addd  proc.data+3,U                          ; ADD UPPER LEFT
+                std CENTMP                            ; AND PUT AWAY
+                jsr XSVCT                             ; GO AND DO IT SAM
+                dec proc.data+2,U
+                beq LEDEX2
         NAP (1,LEDEX1)
 LEDEX2  
         NAP ($60,LEDEX3)
-LEDEX3  JMP [proc.data+6,U]                          ; AND RETURN
+LEDEX3          jmp [proc.data+6,U]                          ; AND RETURN
 
 PHAPIC  FCB 8,6
         FDB PLAD10,PLAD10

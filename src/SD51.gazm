@@ -38,399 +38,399 @@ SWTAB1
         FDB CCOIN
         FCB CTYPE,0
 ; ARBITRARILY MISC. VECTORS
-PLENDV  JMP PLENDD
- LDISPV       JMP LDISP
- SBDSPV       JMP SBDISP
- GETWVV       JMP GETWV
- TDISPV       JMP TDISP
- RPHK         JMP RPHKK
- INVSTV       JMP INVST
- PLNDV1       JMP PLEND
- WVCHKV       JMP WVCHK
- ENDWVV       JMP ENDWAV
- INITV        JMP INIT__
+PLENDV          jmp PLENDD
+ LDISPV         jmp LDISP
+ SBDSPV         jmp SBDISP
+ GETWVV         jmp GETWV
+ TDISPV         jmp TDISP
+ RPHK           jmp RPHKK
+ INVSTV         jmp INVST
+ PLNDV1         jmp PLEND
+ WVCHKV         jmp WVCHK
+ ENDWVV         jmp ENDWAV
+ INITV          jmp INIT__
  RIPTV        FDB RIPTAB-$7F
- PLINV        JMP PLINIT
- ONCOLV       JMP ONCOL
- GETW0V       JMP GETWV0
- PTRANV       JMP PTRANS
- INT20V       JMP INIT20
- DIMV         JMP DIM
- BRTV         JMP BRT
- SGSTV        JMP SGSTRT
+ PLINV          jmp PLINIT
+ ONCOLV         jmp ONCOL
+ GETW0V         jmp GETWV0
+ PTRANV         jmp PTRANS
+ INT20V         jmp INIT20
+ DIMV           jmp DIM
+ BRTV           jmp BRT
+ SGSTV          jmp SGSTRT
         FCC " COPYRIGHT (C) 1981 WILLIAMS ELECTRONICS INC."
         FCC " ALL RIGHTS RESERVED "
 
 ;;;  REPLAY HOOK
-RPHKK   INC PLAS,X
-        INC PSBC,X
-        PSHS X
-        LDX #GA1+12
-        JSR RCMOSA
-        JSR BCDHEX                      ; DEHUMANIZE>>>>
-        PULS X
-        ADDA PINV,X
-        BCS RPHK1
-        STA PINV,X
-RPHK1   JMP IVDISP                      ; DISPLAY INVISO
+RPHKK           inc PLAS,X
+                inc PSBC,X
+                pshs X
+                ldx #GA1+12
+                jsr RCMOSA
+                jsr BCDHEX                      ; DEHUMANIZE>>>>
+                puls X
+                adda PINV,X
+                bcs RPHK1
+                sta PINV,X
+RPHK1           jmp IVDISP                      ; DISPLAY INVISO
 
 ;;; INITIIALIZE
 ;;; PIA INIT TAB
 PIATAB  FDB $0034,$FF35,$0034,$003E
         FDB PIA0,PIA1,PIA2,PIA3
 ;
-INIT__  ORCC #$FF                       ; NO INTERRUPTS YET PLEASE
-        LDS #HSTK                       ; ONLY SETUP HARDWARE STACK
-        LDA #RAM>>8                     ; SETUP DIRECT PAGE
-        TFR A,DP
-        LDA #1
-        STA RWCNTL                      ; LETS RUN OUT OF ROMS TODAY.
+INIT__          orcc #$FF                       ; NO INTERRUPTS YET PLEASE
+                lds #HSTK                       ; ONLY SETUP HARDWARE STACK
+                lda #RAM>>8                     ; SETUP DIRECT PAGE
+                tfr A,DP
+                lda #1
+                sta RWCNTL                      ; LETS RUN OUT OF ROMS TODAY.
 ;  PIAS INITIALIZED HERE.
-        LDX #PIATAB
-INIT1   CLRA
-        CLRB
-        STD [8,X]                       ; CLEAR CR, SELECT DDR
-        LDD ,X++
-        STD [6,X]                       ; SET DDR,CR
-        CMPX #PIATAB+8
-        BNE INIT1
-        JSR SCRCLR                      ; CLEAR THE SCREEN
-        LDA #$3F
-        STA SOUND                       ; GET READY TO SEND A WHETEVER TO THE SOUND
+                ldx #PIATAB
+INIT1           clra
+                clrb
+                std [8,X]                       ; CLEAR CR, SELECT DDR
+                ldd ,X++
+                std [6,X]                       ; SET DDR,CR
+                cmpx #PIATAB+8
+                bne INIT1
+                jsr SCRCLR                      ; CLEAR THE SCREEN
+                lda #$3F
+                sta SOUND                       ; GET READY TO SEND A WHETEVER TO THE SOUND
 ; CLEAR RAM STORAGE
-        LDX #$9C00
-INIT10  CLR ,X+
-        LDB #WDATA
-        STB WDOG
-        CMPX #HSTK+1
-        BNE INIT10
-        JSR CMINIT                      ; INIT CMOS
-        LDX #CREDST                     ; GET CREDITS IN CMOS
-        JSR RCMOSB
-        TFR B,A
-        CMPA #$20                       ; TOO HI??
-        BHI INIT11
-        ANDA #$F
-        CMPA #9                         ; NON BCD LSD???
-        BLS INIT12
-INIT11  CLRB
-INIT12  STB CREDIT                      ; INTO RAM
-        LDD #$A55A
-        STD HSEED
-        LDD #$FF70
-        STD XXX1
-        CLR XXX3
-        LDB #$FF
-        STD PIA01                       ; COINS STUCK
-        LDA #$55
-        STA SCNCOL
-        JSR P1SW                        ; UPRIGHT SCREEN
-        JSR PINIT                       ; INIT PROCESSES
-        BSR INIT20                      ; MISC ROUTINES
-        JSR PRINV                       ; INIT TEXT
+                ldx #$9C00
+INIT10          clr ,X+
+                ldb #WDATA
+                stb WDOG
+                cmpx #HSTK+1
+                bne INIT10
+                jsr CMINIT                      ; INIT CMOS
+                ldx #CREDST                     ; GET CREDITS IN CMOS
+                jsr RCMOSB
+                tfr B,A
+                cmpa #$20                       ; TOO HI??
+                bhi INIT11
+                anda #$F
+                cmpa #9                         ; NON BCD LSD???
+                bls INIT12
+INIT11          clrb
+INIT12          stb CREDIT                      ; INTO RAM
+                ldd #$A55A
+                std HSEED
+                ldd #$FF70
+                std XXX1
+                clr XXX3
+                ldb #$FF
+                std PIA01                       ; COINS STUCK
+                lda #$55
+                sta SCNCOL
+                jsr P1SW                        ; UPRIGHT SCREEN
+                jsr PINIT                       ; INIT PROCESSES
+                bsr INIT20                      ; MISC ROUTINES
+                jsr PRINV                       ; INIT TEXT
         NEWP (ATTR,ATYPE)
-        LDA #$C                         ; BACKGROUND SOUND OFF TO SILENCE
-        STA SOUND
-        COM STATUS                      ; FF---STATUS
-        ANDCC #$00                      ; ENABLE IRQ,FIRQ
-        JMP EXEC
+                lda #$C                         ; BACKGROUND SOUND OFF TO SILENCE
+                sta SOUND
+                com STATUS                      ; FF---STATUS
+                andcc #$00                      ; ENABLE IRQ,FIRQ
+                jmp EXEC
 ;
 ; MISC INIT ROUTINES
 ;
-INIT20  JSR CRINIT
-        JSR FISS                        ; INIT LASR EXHAUST TABLE
-        JSR STINIT                      ; INIT STARS
-        JSR OINIT                       ; INIT OBJECT LIST
-        JSR SCLEAN                      ; INITIALIZE SAM EXPLOSION/APPEAR DATA BASE
-        JMP THINIT                      ; INIT THRUST
+INIT20          jsr CRINIT
+                jsr FISS                        ; INIT LASR EXHAUST TABLE
+                jsr STINIT                      ; INIT STARS
+                jsr OINIT                       ; INIT OBJECT LIST
+                jsr SCLEAN                      ; INITIALIZE SAM EXPLOSION/APPEAR DATA BASE
+                jmp THINIT                      ; INIT THRUST
 ;
 ; ONE PLAYER START
 ;
-ST1     LDA STATUS
-        BPL ST2X
-        LDA FREEPL+1                    ; CHECK FREEPLAY
-        ANDA #$F
-        BEQ ST1A
-        LDA #1
-        STA CREDIT
-ST1A    LDA CREDIT
-        BEQ ST2X
-        LDX #ST1SND
-        LDA #1                          ; # TO START
-        BRA ST2B
+ST1             lda STATUS
+                bpl ST2X
+                lda FREEPL+1                    ; CHECK FREEPLAY
+                anda #$F
+                beq ST1A
+                lda #1
+                sta CREDIT
+ST1A            lda CREDIT
+                beq ST2X
+                ldx #ST1SND
+                lda #1                          ; # TO START
+                bra ST2B
 
 ;;; TWO PLAYER START
-ST2     LDA STATUS
-        BPL ST2X
-        LDA FREEPL+1
-        ANDA #$F
-        BEQ ST2A
-        LDA #2
-        STA CREDIT
-ST2A    LDA CREDIT
-        CMPA #2                         ; NO CREDY NO GAMEY POOH
-        BLO ST2X
-        LDX #ST2SND
-        LDA #2
-ST2B    BSR START
-ST2X    JMP SUCIDE
+ST2             lda STATUS
+                bpl ST2X
+                lda FREEPL+1
+                anda #$F
+                beq ST2A
+                lda #2
+                sta CREDIT
+ST2A            lda CREDIT
+                cmpa #2                         ; NO CREDY NO GAMEY POOH
+                blo ST2X
+                ldx #ST2SND
+                lda #2
+ST2B            bsr START
+ST2X            jmp SUCIDE
 
 ;;; START GAME
 ;;; X=SOUND,A =# TO START
-START   LDU #CHKS1-$4E
-        STA PLRCNT
-        TFR X,D
-        JSR SNDLD
-        CLR CUNITS
-        CLR BUNITS
-        JSR GNCIDE                      ; Kill all procs
-        JSR SCRCLR                      ; Clear screen
+START           ldu #CHKS1-$4E
+                sta PLRCNT
+                tfr X,D
+                jsr SNDLD
+                clr CUNITS
+                clr BUNITS
+                jsr GNCIDE                      ; Kill all procs
+                jsr SCRCLR                      ; Clear screen
 
-        LDY #0                          ; CALCULATE HIDDEN CHECKSUM
-        CLRA                            ; seems to sum every 16th byte from 0 - $8fff
-!loop   ADDA ,Y
-        LEAY $10,Y
-        CMPY #$9000
-        BLO !loop
+                ldy #0                          ; CALCULATE HIDDEN CHECKSUM
+                clra                            ; seems to sum every 16th byte from 0 - $8fff
+!loop           adda ,Y
+                leay $10,Y
+                cmpy #$9000
+                blo !loop
 
-        STA $4E,U
-        LDA #$7F
-        STA STATUS
-        LDA #1
-        STA CURPLR
-        STA PDFLG                       ; DISPLAY PROMPT
-        LDX #PLDATA
-START1  CLR ,X+
-        CMPX #PLDEND
-        BNE START1
-        LDA #10
-        STA .P1TRG
-        LDA PLRCNT
-        LDB #8                          ; TOTAL PLAYS IS AUDIT 8
-        JSR AUD
-        PSHS X
-        LDX #N2SHIP                     ; SEE IF 2 CREDIT GAME ALLOWED??
-        JSR RCMOSB
-        PULS X
-        TSTB
-        BEQ STR3__                      ; NOT ALLOWED
-        ASLA                            ; 2	CREDIT GAME??
-        LDU #N2SHIP
-        CMPA CREDIT
-        BLS START2
-        LSRA
-STR3__  LDU #NSHIP
-START2  TFR A,B                         ; COUNT IN B
-        LDA CREDIT
-STR2_   ADDA #$99
-        DAA
-        DECB
-        BNE STR2_
-        STA CREDIT
-        LDX #CREDST                     ; BACKUP CREDITS
-        JSR WCMOSA
-        TFR U,X                         ; GET SHIP #
-        JSR RCMOSA
-        JSR BCDHEX                      ; CONVERT TO HUMAN
-        STA .P1LAS
-        STA .P1SBC
-        LDX #GA1+12
-        TFR A,B                         ; SAVE LASER #
-        JSR RCMOSA                      ; INITIAL INVISO TIME
-        JSR BCDHEX
-        MUL
-        STB .P1INV
-        LDX #PLDATA
-        JSR GETWV
-        LDX #REPLAY
-        JSR RCMOSB
-        CLRA
-        ASLB
-        ROLA
-        ASLB
-        ROLA
-        ASLB
-        ROLA
-        ASLB
-        ROLA
-        STD REPLA
-        STD .P1RP+1
-        LDX #PLDATA
-STTRAN  LDA ,X+                         ; COPY INTO SECOND PLAYER
-        STA PLDLEN-1,X
-        CMPX #.P1END
-        BNE STTRAN
-        NEWP (PLSTRT,STYPE)                 ; START PLAYER GOING
-DRTS    equ *
-STARTX  RTS
+                sta $4E,U
+                lda #$7F
+                sta STATUS
+                lda #1
+                sta CURPLR
+                sta PDFLG                       ; DISPLAY PROMPT
+                ldx #PLDATA
+START1          clr ,X+
+                cmpx #PLDEND
+                bne START1
+                lda #10
+                sta .P1TRG
+                lda PLRCNT
+                ldb #8                          ; TOTAL PLAYS IS AUDIT 8
+                jsr AUD
+                pshs X
+                ldx #N2SHIP                     ; SEE IF 2 CREDIT GAME ALLOWED??
+                jsr RCMOSB
+                puls X
+                tstb
+                beq STR3__                      ; NOT ALLOWED
+                asla                            ; 2	CREDIT GAME??
+                ldu #N2SHIP
+                cmpa CREDIT
+                bls START2
+                lsra
+STR3__          ldu #NSHIP
+START2          tfr A,B                         ; COUNT IN B
+                lda CREDIT
+STR2_           adda #$99
+                daa
+                decb
+                bne STR2_
+                sta CREDIT
+                ldx #CREDST                     ; BACKUP CREDITS
+                jsr WCMOSA
+                tfr U,X                         ; GET SHIP #
+                jsr RCMOSA
+                jsr BCDHEX                      ; CONVERT TO HUMAN
+                sta .P1LAS
+                sta .P1SBC
+                ldx #GA1+12
+                tfr A,B                         ; SAVE LASER #
+                jsr RCMOSA                      ; INITIAL INVISO TIME
+                jsr BCDHEX
+                mul
+                stb .P1INV
+                ldx #PLDATA
+                jsr GETWV
+                ldx #REPLAY
+                jsr RCMOSB
+                clra
+                aslb
+                rola
+                aslb
+                rola
+                aslb
+                rola
+                aslb
+                rola
+                std REPLA
+                std .P1RP+1
+                ldx #PLDATA
+STTRAN          lda ,X+                         ; COPY INTO SECOND PLAYER
+                sta PLDLEN-1,X
+                cmpx #.P1END
+                bne STTRAN
+                NEWP (PLSTRT,STYPE)                 ; START PLAYER GOING
+DRTS
+STARTX          rts
 ;
 ; PLAYER START PROCESS
 ;
-PLSTRT  LDB #7                          ; HIT SHIP COUNTER
-        JSR AUD1
+PLSTRT          ldb #7                          ; HIT SHIP COUNTER
+                jsr AUD1
 
-PLSTR0  JSR SCLR1                       ; Clear the screen
-        JSR INIT20                      ; RE:INIT THE BOYS
-        JSR GNCIDE
-        LDA #$7F
-        STA STATUS
-        LDX CRPROC
-        CMPX ACTIVE
-        BNE PLSTR1
-        LDX ,X
-        BEQ PLSTR2
+PLSTR0          jsr SCLR1                       ; Clear the screen
+                jsr INIT20                      ; RE:INIT THE BOYS
+                jsr GNCIDE
+                lda #$7F
+                sta STATUS
+                ldx CRPROC
+                cmpx ACTIVE
+                bne PLSTR1
+                ldx ,X
+                beq PLSTR2
 PLSTR1
-        NAP (15,PLST1A)                 ; WAIT FOR COINS TO FINISH
-PLST1A  LDA LCCNT
-        ORA RCCNT
-        ORA LCCNT
-        BNE PLSTR1
-PLSTR2  JSR PINIT                       ; REINIT
-        NEWP (PLSTR3,STYPE)
-        JMP EXEC
-PLSTR3  LDA PIA3
-        BMI PLSR2                       ; COCKTAIL
-        JSR P1SW                        ; ASSURE IRQ VECTOR RESTORED
-        BRA PLSTR5                      ; (NO COCKTAIL)
-PLSR2   JSR SCRCLR
-        LDA CURPLR                      ; PLAYER?
-        DECA
-        BNE PLST3A
-        JSR P1SW                        ; PLAYER 1
-        BRA PLSTR4
-PLST3A  JSR P2SW
-PLSTR4  LDA #$FF                        ; STICK SWITCHES
-        STA PIA21
-        STA PIA22
-PLSTR5  CLRA
-        CLRB
-        STD BGL
-        STD BGLX
-        JSR BGINIT
-        JSR PLINIT                      ; INIT THE PLAYER
-        LDX #TLIST
-        STX TPTR
-        JSR PLINDX                      ; REDUCE LASER COUNT
-        STX PLRX                        ; INDEX TO PLAYER STORE AREA
-        LDA PWAV,X
-        ANDA #$F
-        LDU #WCTAB
-        LDA A,U
-        STA SCNCOL                      ; CURRENT BORDER COLOR
-        DEC PLAS,X
-        JSR TDISP
-        LDD .P1SCR
-        BNE PL00                        ; NOT START OF GAME
-        LDD .P1SCR+2
-        BNE PL00
-        CLR MESSSP
-        LDA #120
-        STA MESSTM
-        LDX #MESSUL+$200                ; WILLY CP MESSAGE
-        LDA #CP2M
-        JSR WRD5FV
+                SLEEP(15)                 ; WAIT FOR COINS TO FINISH
+                lda LCCNT
+                ora RCCNT
+                ora LCCNT
+                bne PLSTR1
+PLSTR2          jsr PINIT                       ; REINIT
+                NEWP (PLSTR3,STYPE)
+                jmp EXEC
+PLSTR3          lda PIA3
+                bmi PLSR2                       ; COCKTAIL
+                jsr P1SW                        ; ASSURE IRQ VECTOR RESTORED
+                bra PLSTR5                      ; (NO COCKTAIL)
+PLSR2           jsr SCRCLR
+                lda CURPLR                      ; PLAYER?
+                deca
+                bne PLST3A
+                jsr P1SW                        ; PLAYER 1
+                bra PLSTR4
+PLST3A          jsr P2SW
+PLSTR4          lda #$FF                        ; STICK SWITCHES
+                sta PIA21
+                sta PIA22
+PLSTR5          clra
+                clrb
+                std BGL
+                std BGLX
+                jsr BGINIT
+                jsr PLINIT                      ; INIT THE PLAYER
+                ldx #TLIST
+                stx TPTR
+                jsr PLINDX                      ; REDUCE LASER COUNT
+                stx PLRX                        ; INDEX TO PLAYER STORE AREA
+                lda PWAV,X
+                anda #$F
+                ldu #WCTAB
+                lda A,U
+                sta SCNCOL                      ; CURRENT BORDER COLOR
+                dec PLAS,X
+                jsr TDISP
+                ldd .P1SCR
+                bne PL00                        ; NOT START OF GAME
+                ldd .P1SCR+2
+                bne PL00
+                clr MESSSP
+                lda #120
+                sta MESSTM
+                ldx #MESSUL+$200                ; WILLY CP MESSAGE
+                lda #CP2M
+                jsr WRD5FV
 PL00
-        MAKP (SCPROC)
-        JSR ONCOL                       ; GET COLORING PROCS
-        LDA PDFLG                       ; NO CHANGE IN PLAYER
-        BEQ PLS01
-        LDB PLRCNT                      ; 2 PLAYER GAME?
-        DECB
-        BEQ PLS01                       ; NO
-PL01_   LDB CURPLR                      ; OUTPUT YOUR PLAYER UP MESSAGE
-        LDA #PLYRM
-        LDX #$3F80
-        BSR CHSUB                       ; CHALLENGE??
-        BCC PL03_
-        LDX #$3F4A
-PL03_   JSR WRD7FV
-        BSR CHSUB
-        BCS PLS01                       ; NO SLEEPY IF MORE TEXT COMING
-        LDA #$80
-        LDX #PLS01
-        JMP SLEEP
-PLS01   BSR CHSUB                       ; IS IT CHALLENGE TIME????
-        BCC PLS5_
-        JSR PRCHM                       ; JUMP TO THE ARCHAIC ROUTINE TO DO IT.
-        NAP ($80,PLS5_)
-PLS5_   JSR SCLR1
-        LDB #$00
-        LDX PLRX
-        LDA PTARG,X
-        JSR STCHKA
-        JSR ASTRES                      ; GET ASTROS GOING
-        LDX #$20FB                      ; 'HIDDEN MESSAGE'
-        LDY #HIDTAB
-HIDLP   LDA ,Y+
-        EORA #$5A
-        BEQ PLS00
-        JSR PR35V
-        BRA HIDLP
+                MAKP (SCPROC)
+                jsr ONCOL                       ; GET COLORING PROCS
+                lda PDFLG                       ; NO CHANGE IN PLAYER
+                beq PLS01
+                ldb PLRCNT                      ; 2 PLAYER GAME?
+                decb
+                beq PLS01                       ; NO
+PL01_           ldb CURPLR                      ; OUTPUT YOUR PLAYER UP MESSAGE
+                lda #PLYRM
+                ldx #$3F80
+                bsr CHSUB                       ; CHALLENGE??
+                bcc PL03_
+                ldx #$3F4A
+PL03_           jsr WRD7FV
+                bsr CHSUB
+                bcs PLS01                       ; NO SLEEPY IF MORE TEXT COMING
+                lda #$80
+                ldx #PLS01
+                jmp SLEEP
+PLS01           bsr CHSUB                       ; IS IT CHALLENGE TIME????
+                bcc !PLS5_
+                jsr PRCHM                       ; JUMP TO THE ARCHAIC ROUTINE TO DO IT.
+                SLEEP($80)
+!PLS5_          jsr SCLR1
+                ldb #$00
+                ldx PLRX
+                lda PTARG,X
+                jsr STCHKA
+                jsr ASTRES                      ; GET ASTROS GOING
+                ldx #$20FB                      ; 'HIDDEN MESSAGE'
+                ldy #HIDTAB
+HIDLP           lda ,Y+
+                eora #$5A
+                beq PLS00
+                jsr PR35V
+                bra HIDLP
 
-PLS00   CLR OVCNT
-        CLR TIMER
-        LDA #16
-        STA STRCNT
+PLS00           clr OVCNT
+                clr TIMER
+                lda #16
+                sta STRCNT
 
 
-        LDA #$60
-        LDX #!sleep
-        JMP SLEEP
+                lda #$60
+                ldx #!sleep
+                jmp SLEEP
 
-!sleep  JSR PLRES
-        CLR OVCNT
-        CLR TIMER
-        LDA #16
-        STA STRCNT
-        CLR PDFLG
-        INC SCRFLG
-        JMP GEXEC                       ; GAME HANDLER
+!sleep          jsr PLRES
+                clr OVCNT
+                clr TIMER
+                lda #16
+                sta STRCNT
+                clr PDFLG
+                inc SCRFLG
+                jmp GEXEC                       ; GAME HANDLER
 ;
 ;  CHECK IF CURRENT START IS BEGINNING OF CHALLANGE WAVE.
 ;
-CHSUB   PSHS X,A
-        LDX PLRX                        ; GET THE CURRENT PLAYER INDEX
-        LDA PWAV,X
-        JSR HEXBCD
-        ANDA #$F
-        BEQ CHYES1
-        CMPA #$5
-        BEQ CHYES2
-CHNO    ANDCC #$FE                      ; CLC
-        PULS A,X,PC
-CHYES1  JSR LNKCHK                      ; SEE HOW MANY ENEMIES OUT
-        CMPA #19                        ; 19 OBJECTS IN WAVE 10
-        BNE CHNO                        ; NOT GOOD
-        BRA CHYES3
-CHYES2  JSR LNKCHK
-        CMPA #36                        ; 22-Y, 8-S, 6-D
-        BNE CHNO
-CHYES3  ORCC #$01                       ; SEC
-        PULS A,X,PC
+CHSUB           pshs X,A
+                ldx PLRX                        ; GET THE CURRENT PLAYER INDEX
+                lda PWAV,X
+                jsr HEXBCD
+                anda #$F
+                beq CHYES1
+                cmpa #$5
+                beq CHYES2
+CHNO            andcc #$FE                      ; CLC
+                puls A,X,PC
+CHYES1          jsr LNKCHK                      ; SEE HOW MANY ENEMIES OUT
+                cmpa #19                        ; 19 OBJECTS IN WAVE 10
+                bne CHNO                        ; NOT GOOD
+                bra CHYES3
+CHYES2          jsr LNKCHK
+                cmpa #36                        ; 22-Y, 8-S, 6-D
+                bne CHNO
+CHYES3          orcc #$01                       ; SEC
+                puls A,X,PC
 ;
-LNKCHK  LDX PLRX                        ; GET THE CURRENT PLAYER
-        LDA PENEMY+PRBCNT-ELIST,X
-        ADDA PENEMY+SWCNT-ELIST,X
-        ADDA PENEMY+YLCNT-ELIST,X
-        ADDA PENEMY+DYNCNT-ELIST,X
-        ADDA PENEMY+FBCNT-ELIST,X
-        RTS
+LNKCHK          ldx PLRX                        ; GET THE CURRENT PLAYER
+                lda PENEMY+PRBCNT-ELIST,X
+                adda PENEMY+SWCNT-ELIST,X
+                adda PENEMY+YLCNT-ELIST,X
+                adda PENEMY+DYNCNT-ELIST,X
+                adda PENEMY+FBCNT-ELIST,X
+                rts
 
 ;;;  PRINT CHALLENGE ROUND MESSAGE
-PRCHM   PSHS X,Y,D
-        LDY PLRX                        ; GET THE PLAYER
-        LDA PWAV,Y
-        JSR HEXBCD
-        TFR A,B                         ; PASS IN B.
-        ANDA #$0F
-        BEQ PRCHM1
-        LDA #CHYLM
-        LDX PLRX
-        CLR PTARG,X                     ; CLEAR OUT PLANET FOR A DOGFIGHT
-        BRA PRCHM2
-PRCHM1  LDA #CHFBM
-PRCHM2  JSR WRD7V
-        PULS X,Y,D,PC
+PRCHM           pshs X,Y,D
+                ldy PLRX                        ; GET THE PLAYER
+                lda PWAV,Y
+                jsr HEXBCD
+                tfr A,B                         ; PASS IN B.
+                anda #$0F
+                beq PRCHM1
+                lda #CHYLM
+                ldx PLRX
+                clr PTARG,X                     ; CLEAR OUT PLANET FOR A DOGFIGHT
+                bra PRCHM2
+PRCHM1          lda #CHFBM
+PRCHM2          jsr WRD7V
+                puls X,Y,D,PC
 
 ; 'HIDDEN' MESAGE TABLE
 ;
@@ -444,419 +444,416 @@ HIDTAB
         FCB ' '^$5A,  'I'^$5A, 'N'^$5A,'C'^ $5A                ; ,
         fcb $3D^$5A, 0^$5A
 
-;
-; COLORING PROCESS START
-;
+;;; COLORING PROCESS START
 ONCOL
-        MAKP (COLR)
-        MAKP (THPROC)
-        MAKP (CBOMB)
-        MAKP (TIECOL)
-        MAKP (CTERR)                    ; MAKE A NORMAL PROCESS TERRAIN COLORING
-        RTS
-;
-; PLAYER INITILAIZATION
-;
-PLINIT  equ *
-        LDD #$0300
-        STD PLADIR                      ; THRUST+DIRECTION
-        STD NPLAD
-        CLR SGDFLG
-        CLR THFLG
-        CLR LFLG
-        CLR SCRFLG                      ; NO SCORE
-        CLR REVFLG
-        CLR SBFLG
-        CLR BMBCNT
-        CLR MANCTR
-        CLR SWEXC
-        CLR RIPOFF
-        LDD #$2080                      ; INIT COORD
-        STD NPLAXC
-        STD PLAXC
-        LDD #$2000
-        STD PLAX16
-        LDD #$2000>>2
-        ADDD BGL
-        STD PLABX
-        LDD #$8000
-        STD PLAY16
-        CLRD()
-        STD PLAXV
-        STA PLAXV+2
-        STD PLAYV
-        STD INVFLG
-        RTS
+                MAKP (COLR)
+                MAKP (THPROC)
+                MAKP (CBOMB)
+                MAKP (TIECOL)
+                MAKP (CTERR)                    ; MAKE A NORMAL PROCESS TERRAIN COLORING
+                rts
+;;; PLAYER INITILAIZATION
+PLINIT          ldd #$0300
+                std PLADIR                      ; THRUST+DIRECTION
+                std NPLAD
+                clr SGDFLG
+                clr THFLG
+                clr LFLG
+                clr SCRFLG                      ; NO SCORE
+                clr REVFLG
+                clr SBFLG
+                clr BMBCNT
+                clr MANCTR
+                clr SWEXC
+                clr RIPOFF
+                ldd #$2080                      ; INIT COORD
+                std NPLAXC
+                std PLAXC
+                ldd #$2000
+                std PLAX16
+                ldd #$2000>>2
+                addd BGL
+                std PLABX
+                ldd #$8000
+                std PLAY16
+                CLRD()
+                std PLAXV
+                sta PLAXV+2
+                std PLAYV
+                std INVFLG
+                rts
 ;
 ; CHECK IF PLAYER REALLY DEAD
 ;
-PLENDD  LDA INVFLG                      ; INVISIBLE?
-        BNE PLDDX
-        MAKP (PLEND)
-        LDA STATUS
-        ORA #8
-        STA STATUS
-PLDDX   RTS
+PLENDD          lda INVFLG                      ; INVISIBLE?
+                bne PLDDX
+                MAKP (PLEND)
+                lda STATUS
+                ora #8
+                sta STATUS
+PLDDX           rts
 OUTSND  FCB $EC,$01,$10,$08,0
 ;
 ;  CALLED ON SCAN OF INVISO BUTTON
 ;
-INVST   LDA STATUS                      ; STATUS CHECK
-        BITA #$E8
-        BNE PLDDX
-        LDA INVFLG
-        BNE PLDDX                       ; ALREADY GONE
-        CLRA
-        LDX #INVISO
-        JMP MKPROC                      ; MAKE THE PROCESS AND DROP DEAD (OR RETURN ANYWAYS)
+INVST           lda STATUS                      ; STATUS CHECK
+                bita #$E8
+                bne PLDDX
+                lda INVFLG
+                bne PLDDX                       ; ALREADY GONE
+                clra
+                ldx #INVISO
+                jmp MKPROC                      ; MAKE THE PROCESS AND DROP DEAD (OR RETURN ANYWAYS)
 ;
 ; TURN INVISIBLE
 ;
-INVISO  LDX PLRX
-        LDA PINV,X                      ; TIME
-        BNE INVIS0
-        LDA OSNDD                       ; ALREADY MADE
-        BNE INVXX                       ; STALL IN PROGRESS
-        INC OSNDD
-        LDD #OUTSND
-        JSR SNDLD
-        JMP SUCIDE
-INVIS0  STA INVFLG
-        LDA STATUS                      ; OFF PLAYER
-        ORA #$10
-        STA STATUS
-        ORCC #$10                       ; SEI MAKE SURE WE ERASE HIM
-        JSR THOFF                       ; OFF PLAYER AND THRUST
-        JSR THOFF1
-        JSR POFF
-        ANDCC #$EF                      ; CLI
+INVISO          ldx PLRX
+                lda PINV,X                      ; TIME
+                bne INVIS0
+                lda OSNDD                       ; ALREADY MADE
+                bne INVXX                       ; STALL IN PROGRESS
+                inc OSNDD
+                ldd #OUTSND
+                jsr SNDLD
+                jmp SUCIDE
+INVIS0          sta INVFLG
+                lda STATUS                      ; OFF PLAYER
+                ora #$10
+                sta STATUS
+                orcc #$10                       ; SEI MAKE SURE WE ERASE HIM
+                jsr THOFF                       ; OFF PLAYER AND THRUST
+                jsr THOFF1
+                jsr POFF
+                andcc #$EF                      ; CLI
 ; BLOW UP THE PLAYER
-        LDX OFREE
-        BEQ INVL                        ; NOTHING LEFT
-        LDD #PLAPIC
-        TST PLADIR
-        BPL INVIS1
-        LDD #PLBPIC
-INVIS1  STD OPICT,X
-        LDD PLABX
-        STD OX16,X
-        LDD PLAY16
-        STD OY16,X
-        LDD PLAXC
-        ADDD #$0403
-        STD CENTMP
-        JSR XSVCT
-INVL    JSR IVDISP                      ; DISPLAY BAR GRAPH
-        LDX PLRX
-        DEC PINV,X
-        BEQ INVX                        ; OUT
-        LDA PINV,X
-        CMPA #10                        ; LESS THAN 1 SEC.
-        BHI INV2                        ; FLASH REDD
-        LDA #$7
-        STA PCRAM
+                ldx OFREE
+                beq INVL                        ; NOTHING LEFT
+                ldd #PLAPIC
+                tst PLADIR
+                bpl INVIS1
+                ldd #PLBPIC
+INVIS1          std OPICT,X
+                ldd PLABX
+                std OX16,X
+                ldd PLAY16
+                std OY16,X
+                ldd PLAXC
+                addd #$0403
+                std CENTMP
+                jsr XSVCT
+INVL            jsr IVDISP                      ; DISPLAY BAR GRAPH
+                ldx PLRX
+                dec PINV,X
+                beq INVX                        ; OUT
+                lda PINV,X
+                cmpa #10                        ; LESS THAN 1 SEC.
+                bhi INV2                        ; FLASH REDD
+                lda #$7
+                sta PCRAM
 INV2
-        NAP (3,INV4)
-INV4    CLR PCRAM
-        LDA PIA31                       ; SWITCH GONE?
-        BITA #$2
-        BEQ INVX                        ; YES
+        SLEEP(3)
+                clr PCRAM
+                lda PIA31                       ; SWITCH GONE?
+                bita #$2
+                beq INVX                        ; YES
         NAP (3,INVL)
-INVX    CLR INVFLG
-        LDA STATUS
-        ANDA #$EF
-        STA STATUS
-        JSR IVDISP                      ; SHOW YOUR UNITS
-INVXX   JMP SUCIDE
+INVX            clr INVFLG
+                lda STATUS
+                anda #$EF
+                sta STATUS
+                jsr IVDISP                      ; SHOW YOUR UNITS
+INVXX           jmp SUCIDE
 
 ;;; PLAYER end
-PLEND   LDA #DTYPE                      ; Set this proc to player death type
-        LDU CRPROC
-        STA proc.type,U
-        LDA STATUS                      ; Is the game over?
-        BPL PLEND1                      ; no!
+PLEND           lda #DTYPE                      ; Set this proc to player death type
+                ldu CRPROC
+                sta proc.type,U
+                lda STATUS                      ; Is the game over?
+                bpl PLEND1                      ; no!
 
 ; Set status to game_over, controls inactive, player invisible, player dead
-        LDA #$D8            
-        STA STATUS 
-        BRA PLEND2
+                lda #$D8            
+                sta STATUS 
+                bra PLEND2
 
 ; Set 
-PLEND1  LDB #$58                        
-        JSR STCHK0
-PLEND2  LDD BGL
-        STD BGLX                        ; NOMO SCROLL
-        LDX PLAXC
-        LDD #$0806
-        JSR BLKCLR                      ; OFF PLAYER
-        JSR PLSAV
-        LDD #PDSND
-        JSR SNDLD
+PLEND1          ldb #$58                        
+                jsr STCHK0
+PLEND2          ldd BGL
+                std BGLX                        ; NOMO SCROLL
+                ldx PLAXC
+                ldd #$0806
+                jsr BLKCLR                      ; OFF PLAYER
+                jsr PLSAV
+                ldd #PDSND
+                jsr SNDLD
 
 ;;; PLAYER DEATH
-PDEATH  LDY #PLAPIC
-        LDA NPLAD
-        BPL PDTH1
-        LDY #PLBPIC
-PDTH1   LDX #PXCTB                      ; INIT COLOR
-        STX proc.data ,U
-        LDU #MONOTB
-        JSR MONO
-        TFR U,X                         ; PSEUDO VECTOR
-        LDU CRPROC
-        STX proc.data +4,U
-PDTHL   LDD NPLAXC
-        LDY proc.data +4,U
-        JSR COFF                        ; BLANK
-        LDA #2
-        LDX #PDTH2
-        JMP SLEEP
-PDTH2   LDD NPLAXC
-        LDY proc.data +4,U
-        JSR CWRIT
-        LDX proc.data ,U
-        LDA ,X+
-        BEQ PDTH4
-        STA PCRAM+$B
-        CLR PCRAM                       ; BLACK SCREEN
-        STX proc.data ,U
-PDTH3   LDA #2
-        LDX #PDTHL
-        JMP SLEEP
-PDTH4   TST STATUS                      ; ATTR??
-        BPL PDTH4A
-        LDA #$DA                        ; DIE ATTR  GUYS
-        STA STATUS
-        JMP SUCIDE
-PDTH4A  LDA #$7B
-        STA STATUS
-        LDA #$FF
-        STA PCRAM
-        LDA #2
-        LDX #PDTH5
-        JMP SLEEP
-PDTH5   CLR PCRAM
-        JSR GNCIDE
-        LDA SAMEXC                      ; ARE THE EXPLOSIONS LOCKED OUT??
-        BEQ PDTHH6                      ; NOPE...CONTINUE
-        JSR SCLEAN                      ; THEN INITILIZE THAT DATABASE TO BLOW!
-PDTHH6  LDX NPLAXC
-        TST OFREE
-        BEQ PDTHH7                      ; NO OBJS LEFT
-        JSR PXVCT
+PDEATH          ldy #PLAPIC
+                lda NPLAD
+                bpl PDTH1
+                ldy #PLBPIC
+PDTH1           ldx #PXCTB                      ; INIT COLOR
+                stx proc.data ,U
+                ldu #MONOTB
+                jsr MONO
+                tfr U,X                         ; PSEUDO VECTOR
+                ldu CRPROC
+                stx proc.data +4,U
+PDTHL           ldd NPLAXC
+                ldy proc.data +4,U
+                jsr COFF                        ; BLANK
+                lda #2
+                ldx #PDTH2
+                jmp SLEEP
+PDTH2           ldd NPLAXC
+                ldy proc.data +4,U
+                jsr CWRIT
+                ldx proc.data ,U
+                lda ,X+
+                beq PDTH4
+                sta PCRAM+$B
+                clr PCRAM                       ; BLACK SCREEN
+                stx proc.data ,U
+PDTH3           lda #2
+                ldx #PDTHL
+                jmp SLEEP
+PDTH4           tst STATUS                      ; ATTR??
+                bpl PDTH4A
+                lda #$DA                        ; DIE ATTR  GUYS
+                sta STATUS
+                jmp SUCIDE
+PDTH4A          lda #$7B
+                sta STATUS
+                lda #$FF
+                sta PCRAM
+                lda #2
+                ldx #PDTH5
+                jmp SLEEP
+PDTH5           clr PCRAM
+                jsr GNCIDE
+                lda SAMEXC                      ; ARE THE EXPLOSIONS LOCKED OUT??
+                beq PDTHH6                      ; NOPE...CONTINUE
+                jsr SCLEAN                      ; THEN INITILIZE THAT DATABASE TO BLOW!
+PDTHH6          ldx NPLAXC
+                tst OFREE
+                beq PDTHH7                      ; NO OBJS LEFT
+                jsr PXVCT
 
-PDTHH7  CLR SNDTMR                      ; OFF SOUND
-        LDB #$13
-        JSR SNDOUT
-        JSR WVCHK
-        BNE PLE01
-        JSR BONEME
-        JSR SCLR1
-PLE01   LDA CURPLR                      ; SHIPS LEFT?
-        LDX PLRX
-        LDB PLAS,X
-        BNE PLE02                       ; YES
-        LDB PLRCNT                      ; 1 PLAYER?
-        DECB
-        BEQ PLE2                        ; YES, GAME OVER
-        EORA #$3                        ; OTHER GUY HAS SHIPS?
-        JSR PLDX
-        LDB PLAS,X
-        BEQ PLE2                        ; NO,GAME OVER
-        LDB CURPLR
-        LDA #PLYRM
-        LDX #$3F78
-        JSR WRD7FV
-        LDA #GOM
-        LDX #$3D88
-        JSR WRD7FV
-        NAP ($60,PLE02)
-PLE02   LDA CURPLR
-PLELP   INCA
-        CMPA PLRCNT
-        BLS PLE1
-        LDA #1
-PLE1    JSR PLDX
-        LDB PLAS,X
-        BEQ PLELP
-        STA CURPLR
-        INC PDFLG
-        JMP PLSTRT
-PLE2    LDA #$FF
-        STA STATUS
-        LDA #GOM
-        LDX #$3D80
-        JSR WRD7FV
+PDTHH7          clr SNDTMR                      ; OFF SOUND
+                ldb #$13
+                jsr SNDOUT
+                jsr WVCHK
+                bne PLE01
+                jsr BONEME
+                jsr SCLR1
+PLE01           lda CURPLR                      ; SHIPS LEFT?
+                ldx PLRX
+                ldb PLAS,X
+                bne !PLE02                       ; YES
+                ldb PLRCNT                      ; 1 PLAYER?
+                decb
+                beq PLE2                        ; YES, GAME OVER
+                eora #$3                        ; OTHER GUY HAS SHIPS?
+                jsr PLDX
+                ldb PLAS,X
+                beq PLE2                        ; NO,GAME OVER
+                ldb CURPLR
+                lda #PLYRM
+                ldx #$3F78
+                jsr WRD7FV
+                lda #GOM
+                ldx #$3D88
+                jsr WRD7FV
+        SLEEP ($60)
+!PLE02          lda CURPLR
+PLELP           inca
+                cmpa PLRCNT
+                bls PLE1
+                lda #1
+PLE1            jsr PLDX
+                ldb PLAS,X
+                beq PLELP
+                sta CURPLR
+                inc PDFLG
+                jmp PLSTRT
+PLE2            lda #$FF
+                sta STATUS
+                lda #GOM
+                ldx #$3D80
+                jsr WRD7FV
 
-        CLR SNDTMR                      ; OFF SOUNDS
-        LDB #$13
-        JSR SNDOUT
-        NAP ($60,PLE3)
-PLE3    JMP ENDPRC
-; PLAYER GLOW TABLE
-PXCTB   FCB 7,$F,$3F,$7F,$FF,$17,0
-; WALL COLOR TABLE
-WCTAB   FCB $00,$BB,$33,$22,$11,$44,$66,$77
-        FCB $00,$99,$FF,$88,$11,$77,$99,$44
+                clr SNDTMR                      ; OFF SOUNDS
+                ldb #$13
+                jsr SNDOUT
+        SLEEP($60)
+                jmp ENDPRC
+
+;;; PLAYER GLOW TABLE
+PXCTB           FCB 7,$F,$3F,$7F,$FF,$17,0
+
+;;; WALL COLOR TABLE
+WCTAB           FCB $00,$BB,$33,$22,$11,$44,$66,$77
+                FCB $00,$99,$FF,$88,$11,$77,$99,$44
+
 ;;; SAVE PLAYER STATE
-PLSAV   PSHS D,X,U
-        LDU PLRX
-        LEAU PTARG,U
-        LDA #PLDLEN-PTARG
-PLSAV1  CLR ,U+                         ; CLEAR AREA
-        DECA
-        BNE PLSAV1
-; SAVE	ASTROS
-        LDU PLRX
-        LDA ASTCNT
-        STA PTARG,U
-; SAVE ENEMY COUNTS
-        LEAU PENEMY,U
-        LDX #ELIST
-PLSAV6  LDA ,X+
-        CMPX #ELIST1
-        BHI PLSAV7
-        ADDA ELEND-ELIST-1,X                ; RES=ACT+RES
-PLSAV7  STA ,U+
-        CMPX #ELEND
-        BNE PLSAV6
-        PULS D,X,U,PC
-;
-; RESTORE YOUR ASTRONAUTS
-;
-ASTRES  LDX ASTPT                       ; GET FROM FIXED INDIRECT (ADDRESS OF ASTRO ROUTINE)
-        LDA #STYPE
-        JSR MKPROC
-        LDU #TLIST
-        LEAY ,U
-        STU proc.data ,X                ; INIT PTR
-ASTS1   CLR ,U+                         ; CLEAR LIST
-        CMPU #TLEND
-        BNE ASTS1
-        LDU PLRX
-        LDA PTARG,U
-        STA ASTCNT
-        BEQ ASTSX
-        CMPA #7
-        BLS ASTS1B
-        LSRA
-        LSRA
-        CLRB
-ASTS1A  JSR ASTST                       ; QUADRANT AT AT TIME
-        ADDB #$40
-        BNE ASTS1A
-        ASLA
-        ASLA
-        NEGA
-        ADDA PTARG,U                    ; GET LEFTOVERS
-        BEQ ASTSX
-ASTS1B  STA XTEMP
-ASTS1C  LDB HSEED
-        LDA #1
-        JSR ASTST
-        DEC XTEMP
-        BNE ASTS1C
-ASTSX   RTS
+PLSAV           pshs D,X,U
+                ldu PLRX
+                leau PTARG,U
+                lda #PLDLEN-PTARG
+!clear          clr ,U+                         ; CLEAR AREA
+                deca
+                bne !clear
+// SAVE	ASTROS
+                ldu PLRX
+                lda ASTCNT
+                sta PTARG,U
+// SAVE ENEMY COUNTS
+                leau PENEMY,U
+                ldx #ELIST
+!PLSAV6         lda ,X+
+                cmpx #ELIST1
+                bhi !PLSAV7
+                adda ELEND-ELIST-1,X                ; RES=ACT+RES
+!PLSAV7         sta ,U+
+                cmpx #ELEND
+                bne !PLSAV6
+                puls D,X,U,PC
+
+;;; RESTORE YOUR ASTRONAUTS
+ASTRES          ldx ASTPT                       ; GET FROM FIXED INDIRECT (ADDRESS OF ASTRO ROUTINE)
+                lda #STYPE
+                jsr MKPROC
+                ldu #TLIST
+                leay ,U
+                stu proc.data ,X                ; INIT PTR
+!ASTS1          clr ,U+                         ; CLEAR LIST
+                cmpu #TLEND
+                bne !ASTS1
+                ldu PLRX
+                lda PTARG,U
+                sta ASTCNT
+                beq !exit
+                cmpa #7
+                bls !ASTS1B
+                lsra
+                lsra
+                clrb
+!ASTS1A         jsr ASTST                       ; QUADRANT AT AT TIME
+                addb #$40
+                bne !ASTS1A
+                asla
+                asla
+                nega
+                adda PTARG,U                    ; GET LEFTOVERS
+                beq !exit
+!ASTS1B         sta XTEMP
+!ASTS1C         ldb HSEED
+                lda #1
+                jsr ASTST
+                dec XTEMP
+                bne !ASTS1C
+!exit           rts
 
 ;;; TRANSFER PARAMETERS PENEMY-ELIST
 ;;; X=PLAYER INDEX
-PTRANS  PSHS X,U
-        LDU #ELIST2
-        LEAX PENEMY+ELIST2-ELIST,X
-PTRLP   LDA ,X+
-        STA ,U+
-        CMPU #ELEND
-        BNE PTRLP
-        PULS X,U,PC
+PTRANS          pshs X,U
+                ldu #ELIST2
+                leax PENEMY+ELIST2-ELIST,X
+!loop           lda ,X+
+                sta ,U+
+                cmpu #ELEND
+                bne !loop
+                puls X,U,PC
 
 ;;; PLAYER RESTORE
 ;;; GET ENEMY COUNTS+PARAMS
 ;;; ENEMY COUNTS
-PLRES   LDU PLRX
-        LEAU PENEMY,U
-        LDX #ELIST
-ELS1    LDA ,U+
-        STA ,X+
-        CMPX #ELEND
-        BNE ELS1
-; CLEAR ACTIVE COUNTS
-        LDX #ECNTS
-ELS2    CLR ,X+
-        CMPX #ECEND
-        BNE ELS2
-; GET ZERO WAVE
-        LDX PLRX
-        LDA PWAV,X
-        DECA
-        BNE RSW
-        JSR GETWV0
-        JSR PTRANS
-; RESTORE YOUR SWARMERS
-RSW     LDA SWCNT
-        CLR SWCNT
-        BRA RSW2
-RSW0    JSR GETOB                       ; GET PHONY OBJECT
-        LDA SEED
-        LSRA
-        ADDA #YMIN
-        STA OY16,X
-        JSR RAND
-        ANDA #$3F
-        ADDA #$80
-        ADDD BGL
-        STD OX16,X
-        LDA XTEMP2
-        CMPA #6
-        BLS RSW1
-        LDA #6
-RSW1    LEAY ,X
-        JSR MMSW
-        LDX OFREE
-        STX ,Y                          ; KILL THE PHONY
-        STY OFREE
-        NEGA
-        ADDA XTEMP2
-RSW2    STA XTEMP2
-        BNE RSW0
+PLRES           ldu PLRX
+                leau PENEMY,U
+                ldx #ELIST
+!loop            lda ,U+
+                sta ,X+
+                cmpx #ELEND
+                bne !loop
+// CLEAR ACTIVE COUNTS
+                ldx #ECNTS
+!clear          clr ,X+
+                cmpx #ECEND
+                bne !clear
+// GET ZERO WAVE
+                ldx PLRX
+                lda PWAV,X
+                deca
+                bne !RSW
+                jsr GETWV0
+                jsr PTRANS
+// RESTORE YOUR SWARMERS
+!RSW             lda SWCNT
+                clr SWCNT
+                bra !RSW2
+!RSW0           jsr GETOB                       ; GET PHONY OBJECT
+                lda SEED
+                lsra
+                adda #YMIN
+                sta OY16,X
+                jsr RAND
+                anda #$3F
+                adda #$80
+                addd BGL
+                std OX16,X
+                lda XTEMP2
+                cmpa #6
+                bls !RSW1
+                lda #6
+!RSW1            leay ,X
+                jsr MMSW
+                ldx OFREE
+                stx ,Y                          ; KILL THE PHONY
+                sty OFREE
+                nega
+                adda XTEMP2
+!RSW2           sta XTEMP2
+                bne !RSW0
 ; RESTORE SCHITZOS
-RSWX    LDA SCZCNT
-        BEQ RSCZX
-        CLR SCZCNT
-        JSR SCZST
+RSWX            lda SCZCNT
+                beq RSCZX
+                clr SCZCNT
+                jsr SCZST
 ; RESTORE PROBES
-RSCZX   LDA PRBCNT
-        BEQ TIER
-        JSR PRBST
+RSCZX           lda PRBCNT
+                beq TIER
+                jsr PRBST
 ; RESTORE TIES
-TIER    LDA TIECNT
-        BRA TIER2
-TIER0   CMPA #3
-        BLS TIER1
-        LDA #3
-TIER1   PSHS A
-        JSR TIEST
-        LDA XTEMP2
-        SUBA ,S+
-TIER2   STA XTEMP2
-        BNE TIER0
-TIERX   LDA SGCNT
-        BEQ SGSRX
-        JSR SGSTRT                      ; START YOUR STAR GATES
-SGSRX   LDA YLCNT                       ; START YLLABS
-        BEQ YLRX
-        CLR YLCNT
-        JSR YLST
+TIER            lda TIECNT
+                bra TIER2
+TIER0           cmpa #3
+                bls TIER1
+                lda #3
+TIER1           pshs A
+                jsr TIEST
+                lda XTEMP2
+                suba ,S+
+TIER2           sta XTEMP2
+                bne TIER0
+TIERX           lda SGCNT
+                beq SGSRX
+                jsr SGSTRT                      ; START YOUR STAR GATES
+SGSRX           lda YLCNT                       ; START YLLABS
+                beq YLRX
+                clr YLCNT
+                jsr YLST
 ;
 ;       TIME FOR SOME PRETTY FORMATTED CODE
 ;
-YLRX    LDA FBCNT                       ; CHECK OUT FIREBOMBERS
-        BEQ FBBYE                       ; NONE...KAY BYE
-        JSR FBSTRT                      ; START EM UP.
-FBBYE   LDA DYNCNT                      ; ANY DYNAMOS???
-        BEQ DYNBYE
-        JSR DYNSTV                      ; YEP...START EM
-DYNBYE  CLR TIMER                       ; NO ENEMY HYPERING
-        RTS
+YLRX            lda FBCNT                       ; CHECK OUT FIREBOMBERS
+                beq FBBYE                       ; NONE...KAY BYE
+                jsr FBSTRT                      ; START EM UP.
+FBBYE           lda DYNCNT                      ; ANY DYNAMOS???
+                beq DYNBYE
+                jsr DYNSTV                      ; YEP...START EM
+DYNBYE          clr TIMER                       ; NO ENEMY HYPERING
+                rts
 ;
 ;;; GAME EXEC
 ;;; CHECKS END OF WAVE
@@ -864,344 +861,345 @@ DYNBYE  CLR TIMER                       ; NO ENEMY HYPERING
 ;;; DISPATCHES SPOILERS
 ;;; PD=INTRAWALL CNTR,PD2=BOZ0 FLAG
 
-GEXEC   LDU CRPROC
-        LDA #40                         ; DELTA COUNTER
-        STA proc.data ,U
-        LDA UFOTIM
-        STA UFOTMR
-        LDA #1
-        STA WAVTMR
-        CLR proc.d2,U                       ; CLEAR BOZO FLAG
-GEX0    LDA PIA31                       ; SCAN INVISO SWITCH
-        BITA #$2
-        BNE GEX00_
-        CLR OSNDD                       ; INDICATE SWITCH OPEN.
-GEX00_  LDA STATUS
-        BITA #8
-        LBNE GEX3                       ; PLAYER DEAD
-        JSR WVCHK
-        BNE GEX00
-GEX888  LDY AFALLP                      ; WAIT FOR FALLING DUDE
-        JSR PCHEK
-        BNE GEX999
-        NAP (15,GEX888)
+GEXEC           ldu CRPROC
+                lda #40                         ; DELTA COUNTER
+                sta proc.data ,U
+                lda UFOTIM
+                sta UFOTMR
+                lda #1
+                sta WAVTMR
+                clr proc.d2,U                       ; CLEAR BOZO FLAG
+GEX0            lda PIA31                       ; SCAN INVISO SWITCH
+                bita #$2
+                bne GEX00_
+                clr OSNDD                       ; INDICATE SWITCH OPEN.
+GEX00_          lda STATUS
+                bita #8
+                lbne GEX3                       ; PLAYER DEAD
+                jsr WVCHK
+                bne GEX00
+GEX888          ldy AFALLP                      ; WAIT FOR FALLING DUDE
+                jsr PCHEK
+                bne GEX999
+                NAP (15,GEX888)
 ENDWAV
-GEX999  LDA #$77
-        STA STATUS
-        JSR GNCIDE
-        JSR PLSAV
-        NAP (1,GEXBON)                  ; LET THE SAM ROUTINE GET IN TO CLEAN UP THE WORD GARBAGE BUG.
-GEXBON  LDY #CHKS1-$62
-        MAKP (COLR)
-        MAKP (CBOMB)
-        MAKP (TIECOL)
-        LDA #$37                        ; HIDDEN CHECKSUM
-        CMPA $62,Y
-        BEQ GEXBN1
-        LDA SEED                        ; LOOK AT SEED
-        CMPA #$30                       ; 1 IN 5 BONUSES
-        BHS GEXBN1
-        LDB HSEED
-        LDA #$9C
-        TFR D,X
-        COM ,X
-GEXBN1  JSR BONEME                      ; SETUP PARAMETERS AND MESSAGE FOR BONUS SUBROUTINE
-        LDX PLRX
-        INC PLAS,X
-        JMP PLSTR0                      ; CYCLE
-GEX00   CMPA #8                         ; ACCELERATE?
-        BHI GEX002
-        LDB UFOTIM
-        LSRB
-        CMPA #3
-        BHI GEX001
-        LSRB
-GEX001  INCB
-        CMPB UFOTMR
-        BHS GEX002
-        STB UFOTMR
-GEX002  DEC UFOTMR
-        BNE GEX11
-        CMPA #4
-        LDA UFOTIM
-        BHS GEX003
-        LSRA
-        LSRA
-        JSR RMAX
-GEX003  STA UFOTMR
-        LDA UFOCNT
-        CMPA #12
-        BHS GEX11
-        JSR UFOST
-GEX11   DEC WAVTMR
-        BEQ GEX2
-        LDA LNDCNT
-        BNE GEX3
-GEX2    LDA WAVTIM
-        STA WAVTMR
-        LDA LNDRES
-        BEQ GEX3
-        LDA LNDCNT
-        CMPA #8
-        BHS GEX3
-        LDA WAVSIZ
-        CMPA LNDRES
-        BLS GEX20
-        LDA LNDRES
-GEX20   JSR LANDST                      ; START A SQUAD
-        NEGA
-        ADDA LNDRES
-        STA LNDRES
-GEX3    LDA STRCNT                      ; GET STARS GOING AFTER OVERFLOW
-        CMPA #16
-        BHS GEX5
-        INC STRCNT
-GEX5    LDA GTIME
-        INCA
-        CMPA #210
-        BLS GEX50
-        LDB #$06                        ; METER 6
-        JSR AUD1
-        CLRA
-GEX50   STA GTIME
-        LDU CRPROC
-        DEC proc.data ,U
-        BNE GEX6
-        LDB #2
-        LDY #ELIST
-        JSR WDELT
-        LDA #40
-        STA proc.data ,U
+GEX999          lda #$77
+                sta STATUS
+                jsr GNCIDE
+                jsr PLSAV
+                SLEEP (1)                       ; LET THE SAM ROUTINE GET IN TO CLEAN UP THE WORD GARBAGE BUG.
+GEXBON          ldy #CHKS1-$62
+                MAKP (COLR)
+                MAKP (CBOMB)
+                MAKP (TIECOL)
+                lda #$37                        ; HIDDEN CHECKSUM
+                cmpa $62,Y
+                beq GEXBN1
+                lda SEED                        ; LOOK AT SEED
+                cmpa #$30                       ; 1 IN 5 BONUSES
+                bhs GEXBN1
+                ldb HSEED
+                lda #$9C
+                tfr D,X
+                com ,X
+GEXBN1          jsr BONEME                      ; SETUP PARAMETERS AND MESSAGE FOR BONUS SUBROUTINE
+                ldx PLRX
+                inc PLAS,X
+                jmp PLSTR0                      ; CYCLE
+GEX00           cmpa #8                         ; ACCELERATE?
+                bhi GEX002
+                ldb UFOTIM
+                lsrb
+                cmpa #3
+                bhi GEX001
+                lsrb
+GEX001          incb
+                cmpb UFOTMR
+                bhs GEX002
+                stb UFOTMR
+GEX002          dec UFOTMR
+                bne GEX11
+                cmpa #4
+                lda UFOTIM
+                bhs GEX003
+                lsra
+                lsra
+                jsr RMAX
+GEX003          sta UFOTMR
+                lda UFOCNT
+                cmpa #12
+                bhs GEX11
+                jsr UFOST
+GEX11           dec WAVTMR
+                beq GEX2
+                lda LNDCNT
+                bne GEX3
+GEX2            lda WAVTIM
+                sta WAVTMR
+                lda LNDRES
+                beq GEX3
+                lda LNDCNT
+                cmpa #8
+                bhs GEX3
+                lda WAVSIZ
+                cmpa LNDRES
+                bls GEX20
+                lda LNDRES
+GEX20           jsr LANDST                      ; START A SQUAD
+                nega
+                adda LNDRES
+                sta LNDRES
+GEX3            lda STRCNT                      ; GET STARS GOING AFTER OVERFLOW
+                cmpa #16
+                bhs GEX5
+                inc STRCNT
+GEX5            lda GTIME
+                inca
+                cmpa #210
+                bls GEX50
+                ldb #$06                        ; METER 6
+                jsr AUD1
+                clra
+GEX50           sta GTIME
+                ldu CRPROC
+                dec proc.data ,U
+                bne GEX6
+                ldb #2
+                ldy #ELIST
+                jsr WDELT
+                lda #40
+                sta proc.data ,U
 ; CHECK WALL 1 BOZO MODE
-GEX6    LDX PLRX
-        LDA PWAV,X
-        DECA
-        BNE GEX60                       ;  NOT WALL 1
-        LDA proc.d2,U
-        BNE GEX60                       ;  ALREADY DID IT
-        LDA MANCTR                      ;  EVER BEEN BONED UP THE ASS FOR BEING A WISE GUY??
-        BNE GEX6A                       ;  YIP...
-        LDD PSCOR+1,X
-        CMPD #$0020                     ;  2K??
-        BHS GEX6A
-        LDA PLAS,X
-        CMPA #1
-        BLS GEX60
-        LDD PSCOR+1,X
-        CMPD #$0010
-        BLO GEX60
-GEX6A   LDA STATUS                      ;  NO BOZO IF PLAYER IS DEAD
-        BITA #8
-        BNE GEX60
-        LDA #1
-        STA proc.d2,U
-        JSR GETWV0
-        JSR PTRANS
-        JSR BOZOV                       ;  WISE UP THE LANDERS
+GEX6            ldx PLRX
+                lda PWAV,X
+                deca
+                bne GEX60                       ;  NOT WALL 1
+                lda proc.d2,U
+                bne GEX60                       ;  ALREADY DID IT
+                lda MANCTR                      ;  EVER BEEN BONED UP THE ASS FOR BEING A WISE GUY??
+                bne GEX6A                       ;  YIP...
+                ldd PSCOR+1,X
+                cmpd #$0020                     ;  2K??
+                bhs GEX6A
+                lda PLAS,X
+                cmpa #1
+                bls GEX60
+                ldd PSCOR+1,X
+                cmpd #$0010
+                blo GEX60
+GEX6A           lda STATUS                      ;  NO BOZO IF PLAYER IS DEAD
+                bita #8
+                bne GEX60
+                lda #1
+                sta proc.d2,U
+                jsr GETWV0
+                jsr PTRANS
+                jsr BOZOV                       ;  WISE UP THE LANDERS
 
 ;;; MEN MESSAGES
-GEX60       lda     ASTCNT                      ;  MEN LEFT???
-            beq     GEX66                       ;  NO
-            lda     MANCTR                      ;  IS HE HOLDING ANY??
-            bne     GEX66                       ;  THEN HE'S OK
-            jsr     LEDTRG                      ;  ANY ON GROUND??
-            beq     GEX66                       ;  YEP....NO TROUBLE
-            ldx     #BLOMES                     ;  SEE IF THE MESSAGE IS THERE.
-            cmpx    MESSST
-            beq     GEXT0                       ;  YEP...DON'T RE-SEND
-            ldd     #$18FF                      ;  BLINK RATE,COLOR
-            std     MESSBL                      ;  GIVE IT TO THE MESSAGE UTILITY
-            jsr     MESLDV                      ;  SEND THE MESSAGE.
-GEXT0       lda     #$FF                        ;  FLASH THE TERRAIN TO INDICATE TROUBLE
-            sta     PCRAM+7
-            NAP     (5,GEXT1)
+GEX60           lda     ASTCNT                      ;  MEN LEFT???
+                beq     GEX66                       ;  NO
+                lda     MANCTR                      ;  IS HE HOLDING ANY??
+                bne     GEX66                       ;  THEN HE'S OK
+                jsr     LEDTRG                      ;  ANY ON GROUND??
+                beq     GEX66                       ;  YEP....NO TROUBLE
+                ldx     #BLOMES                     ;  SEE IF THE MESSAGE IS THERE.
+                cmpx    MESSST
+                beq     GEXT0                       ;  YEP...DON'T RE-SEND
+                ldd     #$18FF                      ;  BLINK RATE,COLOR
+                std     MESSBL                      ;  GIVE IT TO THE MESSAGE UTILITY
+                jsr     MESLDV                      ;  SEND THE MESSAGE.
+GEXT0           lda     #$FF                        ;  FLASH THE TERRAIN TO INDICATE TROUBLE
+                sta     PCRAM+7
+            SLEEP(5)
 
-GEXT1       lda     #$FF
-            sta     PCRAM+7
-            NAP     (4,GEXT2)
-GEXT2       clr     PCRAM+7
+                lda     #$FF
+                sta     PCRAM+7
+            SLEEP(4)
+GEXT2           clr     PCRAM+7
             NAP     (6,GEX0)
-GEX66       ldx     #BLOMES                     ;  IS THE CURRENT MESSAGE DANGER??
-            cmpx    MESSST
-            bne     GEX666
-            lda     #1
-            sta     MESSTM                      ;  MAKE THE TIME GO AWAY!
-GEX666      lda     PIA21                       ;  CHECK FOR RIPOFF MESSGE
-            cmpa     #$E2                       ;  DN-REV-START1-THRUST ONLY
-            bne     GEX777
-            jsr     RIPV
+
+GEX66           ldx     #BLOMES                     ;  IS THE CURRENT MESSAGE DANGER??
+                cmpx    MESSST
+                bne     GEX666
+                lda     #1
+                sta     MESSTM                      ;  MAKE THE TIME GO AWAY!
+GEX666          lda     PIA21                       ;  CHECK FOR RIPOFF MESSGE
+                cmpa     #$E2                       ;  DN-REV-START1-THRUST ONLY
+                bne     GEX777
+                jsr     RIPV
 GEX777
             NAP    (15,GEX0)
 
 BLOMES      FCB  $F0,CLEAR+BLINK,$FF,TBLOM                ;  TERRAIN IN TROUBLE MESSAGE
 
 ;;; CHECK END OF WAVE
-WVCHK       lda  LNDCNT                      ; END OF WAVE
-            adda LNDRES
-            adda TIECNT
-            adda PRBCNT
-            adda SWCNT
-            adda SCZCNT
-            adda YLCNT
-            adda FBCNT
-            adda DYNCNT
-            rts
+WVCHK           lda  LNDCNT                      ; END OF WAVE
+                adda LNDRES
+                adda TIECNT
+                adda PRBCNT
+                adda SWCNT
+                adda SCZCNT
+                adda YLCNT
+                adda FBCNT
+                adda DYNCNT
+                rts
 
 ;;;     MANCHK - X = PLAYER SAVE AREA.....RESTORES MEN IF THE RIGHT WAVE.
-MANCHK      PSHS D,X                        ; SAVE THE STUFF WE BASH
-            LDA #5
-            LDB PWAV,X
-            DECB
-            BSR REM
-            BNE MANCKX
-            LDA #10
-            STA PTARG,X
-MANCKX      PULS D,X,PC                     ; DONE
+MANCHK          pshs D,X                        ; SAVE THE STUFF WE BASH
+                lda #5
+                ldb PWAV,X
+                decb
+                bsr REM
+                bne MANCKX
+                lda #10
+                sta PTARG,X
+MANCKX          puls D,X,PC                     ; DONE
 ;
 ; FIND REMAINDER
 ; A=DIVISOR,B=DIVIDEND
 ; RET EQ IF REMAINDER=0
-REM     PSHS A,B
-REMLP   SUBB ,S
-        BLO REMX
-        BNE REMLP
-REMX    PULS A,B,PC
+REM             pshs A,B
+REMLP           subb ,S
+                blo REMX
+                bne REMLP
+REMX            puls A,B,PC
 ;
 ; GET ENEMY COUNTS A=WAVE#
 ;
-GETCT   PSHS D,X,Y,U
-        LDU #WVTAB
-        JSR PLINDX
-        LEAX PENEMY,X
-        ADDA #4
-        LDY #ELIST2-ELIST                ; GET BYTE COUNT
-GETCTL  LDB A,U
-        STB ,X+
-        LEAU $10,U
-        LEAY -1,Y
-        BNE GETCTL
-        PULS D,X,Y,U,PC
+GETCT           pshs D,X,Y,U
+                ldu #WVTAB
+                jsr PLINDX
+                leax PENEMY,X
+                adda #4
+                ldy #ELIST2-ELIST                ; GET BYTE COUNT
+GETCTL          ldb A,U
+                stb ,X+
+                leau $10,U
+                leay -1,Y
+                bne GETCTL
+                puls D,X,Y,U,PC
 ;
 ; GET NEW WAVE PARAMS
 ; X=PLAYER INDEX
-GETWV0  PSHS X,U,D
-        BRA GTWV02
-GETWV   PSHS X,U,D
-        INC PWAV,X
-        BSR MANCHK
-GTWV01  LDA PWAV,X
-GTWV02  PSHS A
-        CMPA #11
-        BLS GETWV1
-        LDA #11
-GETWV1  LDU #WVTAB
-        ADDA #4                         ; OFFSET ADJUST
-        LEAX PENEMY,X
-GETWV2  LDB A,U
-        STB ,X+
-        LEAU $10,U
-        CMPU #WVTEND
-        BNE GETWV2
-        LDB ,S
-        LDA #5
-        BSR REM
-        BNE GTWV2B
-        BSR GETCT
-GTWV2A  LDA #10
-        BSR REM
-        BNE GTWV2B
-        BSR GETCT
-GTWV2B  LDA ,S                          ; HIGHER THAN 11?
-        SUBA #11
-        BHS GTWV30
-        CLRA
-GTWV30  STA XTEMP
+GETWV0          pshs X,U,D
+                bra GTWV02
+GETWV           pshs X,U,D
+                inc PWAV,X
+                bsr MANCHK
+GTWV01          lda PWAV,X
+GTWV02          pshs A
+                cmpa #11
+                bls GETWV1
+                lda #11
+GETWV1          ldu #WVTAB
+                adda #4                         ; OFFSET ADJUST
+                leax PENEMY,X
+GETWV2          ldb A,U
+                stb ,X+
+                leau $10,U
+                cmpu #WVTEND
+                bne GETWV2
+                ldb ,S
+                lda #5
+                bsr REM
+                bne GTWV2B
+                bsr GETCT
+GTWV2A          lda #10
+                bsr REM
+                bne GTWV2B
+                bsr GETCT
+GTWV2B          lda ,S                          ; HIGHER THAN 11?
+                suba #11
+                bhs GTWV30
+                clra
+GTWV30          sta XTEMP
 ; CALC SLOPE PARAMETERS
-        LDX #GA1+6
-        JSR RCMOSD
-        JSR BCDHEX
-        CMPA ,S                         ; BEGIN SLOPE HI CURRENT WAVE #?
-        BHI GTWV3B                      ; YES FORGET IT
-        EXG A,B
-        JSR BCDHEX
-        CMPA ,S                         ; END SLOPE LS CURRENT??
-        BLS GTWV3A                      ; YES
-        LDA ,S                          ; NO USE CURRENT
-GTWV3A  PSHS B
-        SUBA ,S+                        ; FIND DIFF
-        INCA
-        LDB GA1+11                      ; GET SLOPE DELTA
-        ANDB #$F
-        MUL
-        ADDB XTEMP
-        STB XTEMP
-GTWV3B  LEAS 1,S                        ; CLEAN UP STACK
-        LDX #GA1+2
-        JSR RCMOSD
-        JSR BCDHEX
-        ADDA XTEMP
-        STA XTEMP                       ; ADD INITIAL DELTA
-        BEQ GETWVX
-        TFR B,A
-        JSR BCDHEX                      ; CHECK CEILING
-        CMPA XTEMP
-        BHS GTWV31
-        STA XTEMP
-GTWV31  LDA XTEMP
-GETWV4  LDB #3
-        JSR PLINDX
-        LEAY PENEMY,X
-        BSR WDELT                       ; GET YUR DELTAS
-        DECA
-        BNE GETWV4
-GETWVX  PULS X,U,D,PC
-;
-; INTRA/INTER-WALL DELTA
-; B=2 FOR INTRA,3=INTER
-; Y=PENEMY FOR INTER-WALL
-; Y=ELIST FOR INTRA-WALL
-;
-WDELT   PSHS A,X,Y
-        LDX #WVTAB
-WD0     LDA B,X
-        BMI WD1
-        ADDA ,Y
-        BCS WDL                         ; OVERFLOW
-        CMPA ,X
-        BHI WDL                         ; MAXED OUT
-        BRA WD2
-WD1     ADDA ,Y
-        BCC WDL                         ; UNDERFLOW
-        CMPA 1,X
-        BLO WDL                         ; MINNED
-WD2     STA ,Y
-WDL     LEAY 1,Y                        ; STEP THRU
-        LEAX $10,X
-        CMPX #WVTEND
-        BNE WD0
-        PULS A,X,Y,PC
+                ldx #GA1+6
+                jsr RCMOSD
+                jsr BCDHEX
+                cmpa ,S                         ; BEGIN SLOPE HI CURRENT WAVE #?
+                bhi GTWV3B                      ; YES FORGET IT
+                exg A,B
+                jsr BCDHEX
+                cmpa ,S                         ; END SLOPE LS CURRENT??
+                bls GTWV3A                      ; YES
+                lda ,S                          ; NO USE CURRENT
+GTWV3A          pshs B
+                suba ,S+                        ; FIND DIFF
+                inca
+                ldb GA1+11                      ; GET SLOPE DELTA
+                andb #$F
+                mul
+                addb XTEMP
+                stb XTEMP
+GTWV3B          leas 1,S                        ; CLEAN UP STACK
+                ldx #GA1+2
+                jsr RCMOSD
+                jsr BCDHEX
+                adda XTEMP
+                sta XTEMP                       ; ADD INITIAL DELTA
+                beq GETWVX
+                tfr B,A
+                jsr BCDHEX                      ; CHECK CEILING
+                cmpa XTEMP
+                bhs GTWV31
+                sta XTEMP
+GTWV31          lda XTEMP
+GETWV4          ldb #3
+                jsr PLINDX
+                leay PENEMY,X
+                bsr WDELT                       ; GET YUR DELTAS
+                deca
+                bne GETWV4
+GETWVX          puls X,U,D,PC
 
-BONEME  LDX PLRX
-        LDA PWAV,X
-        JSR HEXBCD
-        ANDA #$F                        ; END IN 0 (SHOWDOWN)
-        CMPA #$5
-        BNE EXMES1
-        LDD #$225
-        JSR SCORE
-        LDA #YLDUNM
-        CLR PCRAM
-        JSR SCLR1
-        JSR WRD7V
-        PULS X
-        STX proc.data ,U
-        NAP ($C0,EXME99)
-EXME99  LDX PLRX
-        JSR GETWVV
-        LDU CRPROC
-        JMP [proc.data,U]
-EXMES1  JSR BSET
-        JMP BONUS
+;;; INTRA/INTER-WALL DELTA
+;;; B=2 FOR INTRA,3=INTER
+;;; Y=PENEMY FOR INTER-WALL
+;;; Y=ELIST FOR INTRA-WALL
+
+WDELT           pshs A,X,Y
+                ldx #WVTAB
+WD0             lda B,X
+                bmi !WD1
+                adda ,Y
+                bcs !WDL                         ; OVERFLOW
+                cmpa ,X
+                bhi !WDL                         ; MAXED OUT
+                bra !WD2
+!WD1            adda ,Y
+                bcc !WDL                         ; UNDERFLOW
+                cmpa 1,X
+                blo !WDL                         ; MINNED
+!WD2            sta ,Y
+!WDL            leay 1,Y                        ; STEP THRU
+                leax $10,X
+                cmpx #WVTEND
+                bne WD0
+                puls A,X,Y,PC
+
+BONEME          ldx PLRX
+                lda PWAV,X
+                jsr HEXBCD
+                anda #$F                        ; END IN 0 (SHOWDOWN)
+                cmpa #$5
+                bne EXMES1
+                ldd #$225
+                jsr SCORE
+                lda #YLDUNM
+                clr PCRAM
+                jsr SCLR1
+                jsr WRD7V
+                puls X
+                stx proc.data ,U
+            SLEEP($C0)
+                ldx PLRX
+                jsr GETWVV
+                ldu CRPROC
+                jmp [proc.data,U]
+EXMES1          jsr BSET
+                jmp BONUS
 
 ;
 ; WAVE DATA
@@ -1313,33 +1311,33 @@ RIPTAB  FCB $01,$0C,$28,$26,$1A,$1B,$25,$0C,$1B,$25
 
 ;;; COLOR TERRAIN+ CURRENT GATE
 ;;; U = current proc
-CTERR   lda    BGL                      ; get the x pos of the terrain
-        ldx    #TERCTB
-        lsra                            ; div by 8
-        lsra
-        lsra
-        anda   #$7F                     ; DITCH LAST BIT
-        ldb    A,X
-        stb    PCRAM+7                  ; TERRAIN COLOR
-        lsra
-        ldx    #GATCTB                  ; GET YUR GATE COLR
-        ldb    A,X
-        lda    A,X
-        std    GATCL1
-        std    GATCL2
-        std    GATCL3
-        ldb    proc.data ,U
-        incb
-        cmpb   #2
-        bls    CTERR1
-        clrb
-CTERR1  stb    proc.data ,U                        ; TRINARY COUNTER
-        ldx    #GATCL1
-        aslb                            ; X2
-        abx
-        ldd   #$AAAA                      ; LASER COLOR CYCLER
-        std   ,X
-        NAP   (4,CTERR)
+CTERR           lda    BGL                      ; get the x pos of the terrain
+                ldx    #TERCTB
+                lsra                            ; div by 8
+                lsra
+                lsra
+                anda   #$7F                     ; DITCH LAST BIT
+                ldb    A,X
+                stb    PCRAM+7                  ; TERRAIN COLOR
+                lsra
+                ldx    #GATCTB                  ; GET YUR GATE COLR
+                ldb    A,X
+                lda    A,X
+                std    GATCL1
+                std    GATCL2
+                std    GATCL3
+                ldb    proc.data ,U
+                incb
+                cmpb   #2
+                bls    !CTERR1
+                clrb
+!CTERR1         stb    proc.data ,U                        ; TRINARY COUNTER
+                ldx    #GATCL1
+                aslb                            ; X2
+                abx
+                ldd   #$AAAA                      ; LASER COLOR CYCLER
+                std   ,X
+            NAP   (4,CTERR)
 
 ;;; GATE COLOR TABLE COLOR #S
 GATCTB  FDB $22BB,$BBBB,$BBBB,$8888
@@ -1355,333 +1353,334 @@ TERCTB  FDB $C7C7,$C7C7,$C7C7,$8747
 ;;; creates multiple stargates $50 pixels apart?
 ;;; not seen this in the game, not sure if it was used?
 ;;; A = number of stargates
-SGSTRT  sta   XTEMP                 ; loop count
-        lda   #$55
-        ldb   SEED
-        andb  #3
-        bne   !skip
-        incb
-!skip   mul
-        tfr   B,A
-        tfr   D,U                         ; U = initial X
+SGSTRT          sta   XTEMP                 ; loop count
+                lda   #$55
+                ldb   SEED
+                andb  #3
+                bne   !skip
+                incb
+!skip           mul
+                tfr   B,A
+                tfr   D,U                         ; U = initial X
 
 !loop
         ; Crate a stargate object
         OBI   (SGPIC,SGCOL,$1F00)         ; get object x = obj
-        stu   OX16,X                      ; FIXED X
+                stu   OX16,X                      ; FIXED X
 
-        jsr   RAND                        ; ypos = $5c + rand($1f)
-        anda  #$1F
-        adda  #$5C
-        sta   OY16,X                      ; store a X hi
+                jsr   RAND                        ; ypos = $5c + rand($1f)
+                anda  #$1F
+                adda  #$5C
+                sta   OY16,X                      ; store a X hi
 
-        lda   #$11
-        sta   OTYP,X                      ; NON HYP NON SB
+                lda   #$11
+                sta   OTYP,X                      ; NON HYP NON SB
 
-        clra                              ; velocities = 0
-        clrb
-        std   OXV,X
-        std   OYV,X    
+                clra                              ; velocities = 0
+                clrb
+                std   OXV,X
+                std   OYV,X    
 
-        stx   OPTR
-        leau $5000,U                     ; add $50 pixels to x pos
-        dec  XTEMP
-        bne  !loop
+                stx   OPTR
+                leau $5000,U                     ; add $50 pixels to x pos
+                dec  XTEMP
+                bne  !loop
 
-        rts
+                rts
 ;
 ; STAR GATE COLLISION
 ;
-SGCOL   LDA SAMEXC                      ; CAN'T GET AT TERRAIN RAM??
-        BNE SGNK                        ; THEN LEAVE THE GUY THERE.
-        LDA SGDFLG                      ; JUST GOT OUT???
-        BNE SGNK
-        LDA STATUS                      ; PLAYER DEAD??
-        BITA #$8
-        BNE SGNK                        ; YEP
-        LDA PCFLG                       ; PLAYER COLLISON?
-        BEQ SGNK                        ; NO
+SGCOL           lda SAMEXC                      ; CAN'T GET AT TERRAIN RAM??
+                bne SGNK                        ; THEN LEAVE THE GUY THERE.
+                lda SGDFLG                      ; JUST GOT OUT???
+                bne SGNK
+                lda STATUS                      ; PLAYER DEAD??
+                bita #$8
+                bne SGNK                        ; YEP
+                lda PCFLG                       ; PLAYER COLLISON?
+                beq SGNK                        ; NO
         MAKP (SGTRAN)
-SGNK    CLRA
-        PULS D,PC                       ; DONT KILL THE BASTARD
+SGNK            clra
+                puls D,PC                       ; DONT KILL THE BASTARD
 ; STAR GATE TRANSPORT PROCESS
-SGTRAN  LDX #CHKS2+$32
-        LDA STATUS
-        ANDA #$2                        ; SAVE THE TERRAIN BIT
-        STA proc.data ,U                        ; SAVE AWAY IN AN UNLIKELY PLACE
-        LDA #$77
-        STA STATUS                      ; DISABLE SHIT
-        LDB #$56                        ; HIDDEN CHECKSUM
-        CMPB -$32,X
-        BEQ STGT11
-        LDA HSEED                       ; LOOK AT SEED
-        CMPA #$19                       ; 1 IN 10 STARGATE TRIPS
-        BHS STGT11
-        LDB LSEED
-        LDA #$9C
-        TFR D,X
-        DEC ,X
-STGT11  LDA MANCTR
-        LBEQ SGC1                       ; NO WARPIE-POOH
-        LDX #GA1+16                     ; SEE IF BEYOND WARPABLE WAVE
-        JSR RCMOSA                      ; GET THE WAVE
-        JSR BCDHEX
-        LDX PLRX                        ; GET PLAYER STORE AREA.
-        CMPA PWAV,X                     ; CHECK AGAINST WAVE
-        BLO SGC1                        ; OUR CURRENT WAVE IS TOO HIGH TO WARP!
-        LDB GA1+15                      ; GET NUMBER OF MEN NEEDED
-        ANDB #$0F                       ; SAVE A BIT OF TIME!
-        SUBB MANCTR                     ; COMPARE TO THE NUMBER WE HAVE.
-        BHI NOWRPT                      ; NOT ENOUGH..HANDLE AS NORMAL STARGATE!
-        LDA NPLAD                       ; LOOK AT DIRECTION
-        EORA PLAXV                      ; COMPARE TO VELOCITY
-        BMI SGC1                        ; THEY ARE NOT THE SAME....NO WARP!
+SGTRAN          ldx #CHKS2+$32
+                lda STATUS
+                anda #$2                        ; SAVE THE TERRAIN BIT
+                sta proc.data ,U                        ; SAVE AWAY IN AN UNLIKELY PLACE
+                lda #$77
+                sta STATUS                      ; DISABLE SHIT
+                ldb #$56                        ; HIDDEN CHECKSUM
+                cmpb -$32,X
+                beq STGT11
+                lda HSEED                       ; LOOK AT SEED
+                cmpa #$19                       ; 1 IN 10 STARGATE TRIPS
+                bhs STGT11
+                ldb LSEED
+                lda #$9C
+                tfr D,X
+                dec ,X
+STGT11          lda MANCTR
+                lbeq SGC1                       ; NO WARPIE-POOH
+                ldx #GA1+16                     ; SEE IF BEYOND WARPABLE WAVE
+                jsr RCMOSA                      ; GET THE WAVE
+                jsr BCDHEX
+                ldx PLRX                        ; GET PLAYER STORE AREA.
+                cmpa PWAV,X                     ; CHECK AGAINST WAVE
+                blo SGC1                        ; OUR CURRENT WAVE IS TOO HIGH TO WARP!
+                ldb GA1+15                      ; GET NUMBER OF MEN NEEDED
+                andb #$0F                       ; SAVE A BIT OF TIME!
+                subb MANCTR                     ; COMPARE TO THE NUMBER WE HAVE.
+                bhi NOWRPT                      ; NOT ENOUGH..HANDLE AS NORMAL STARGATE!
+                lda NPLAD                       ; LOOK AT DIRECTION
+                eora PLAXV                      ; COMPARE TO VELOCITY
+                bmi SGC1                        ; THEY ARE NOT THE SAME....NO WARP!
 ;
-        LDB #9
-        JSR AUD1                        ; BUMP IT
+                ldb #9
+                jsr AUD1                        ; BUMP IT
 ;
-        BRA WARP
-NOWRPT  LDX #WRPMES                     ; B HAS NUMBER OF MEN NEEDED.
-        CMPB #1                         ; JUST 1??
-        BNE SGCHK0
-        LDX #WRPMS2
-SGCHK0  JSR MESLDV
-        BRA SGC1
+                bra WARP
+NOWRPT          ldx #WRPMES                     ; B HAS NUMBER OF MEN NEEDED.
+                cmpb #1                         ; JUST 1??
+                bne SGCHK0
+                ldx #WRPMS2
+SGCHK0          jsr MESLDV
+                bra SGC1
 ;
-WARP    JSR GNCIDE                      ; KILL EVERYONE!
-        JSR SCRCLR        ; CLEAR THE SCREEN
-        JSR PLSAV                       ; SAVE THE PLAYERS ASTRONAUTS ANYWAYS.
-        NAP (1,WARP1)                   ; TAKE A NAP BEFORE CLOUDING UP THAT RAM
-WARP1   INC SAMEXC                      ; NOW....LOCK HIM OUT HARD
-        JSR ::trek5::WARPV              ; DO THE EFFECT STUPID. (OR IS THAT STUPID EFFECT??)
-        JSR SCLEAN                      ; CLEAN UP SAMRAM
+import ::trek5::WARPV
+
+WARP            jsr GNCIDE                      ; KILL EVERYONE!
+                jsr SCRCLR                      ; CLEAR THE SCREEN
+                jsr PLSAV                       ; SAVE THE PLAYERS ASTRONAUTS ANYWAYS.
+        SLEEP(1)                        ; Sleep for one frame BEFORE CLOUDING UP THAT RAM
+                inc SAMEXC                      ; NOW....LOCK HIM OUT HARD
+                jsr WARPV                       ; DO THE EFFECT STUPID. (OR IS THAT STUPID EFFECT??)
+                jsr SCLEAN                      ; CLEAN UP SAMRAM
         MAKP (COLR)
         MAKP (CBOMB)
         MAKP (TIECOL)
-        JSR TDISP                       ; PUT THE TOP STUFF BACK
-        LDX PLRX                        ; GET THE PLAYER
-        INC PWAV,X                      ; PUSH TO NEXT
-        JSR MANCHK                      ; CHECKMAN RESTORE
-        INC PWAV,X                      ; PUSH AGAIN
-        JSR MANCHK                      ; CHECK MAN RESTORE
-        LDA PWAV,X                      ; GET THE NEW WAVE
-        INCA                            ; COMPUTE THE WAVE HE'S GOING TO
-        JSR HEXBCD                      ; MAKE READABLE
-        TFR A,B                         ; MESSAGABLE
-        LDA #WARPM
-        JSR WRD7FV                      ; PRINT OUT THE MESSAGE
-        LDA #$20                        ; 2000 POINTS PER MAN PLEASE
-        JSR BONUS                       ; DO IT THERE
-        LDX PLRX
-        INC PLAS,X
-        JMP PLSTR0                      ; DO ALL OF THE OTHER SUNDRY STARTUP STUFF AND PRAY
+                jsr TDISP                       ; PUT THE TOP STUFF BACK
+                ldx PLRX                        ; GET THE PLAYER
+                inc PWAV,X                      ; PUSH TO NEXT
+                jsr MANCHK                      ; CHECKMAN RESTORE
+                inc PWAV,X                      ; PUSH AGAIN
+                jsr MANCHK                      ; CHECK MAN RESTORE
+                lda PWAV,X                      ; GET THE NEW WAVE
+                inca                            ; COMPUTE THE WAVE HE'S GOING TO
+                jsr HEXBCD                      ; MAKE READABLE
+                tfr A,B                         ; MESSAGABLE
+                lda #WARPM
+                jsr WRD7FV                      ; PRINT OUT THE MESSAGE
+                lda #$20                        ; 2000 POINTS PER MAN PLEASE
+                jsr BONUS                       ; DO IT THERE
+                ldx PLRX
+                inc PLAS,X
+                jmp PLSTR0                      ; DO ALL OF THE OTHER SUNDRY STARTUP STUFF AND PRAY
 ;
-SGC1    LDB #29                         ; TIME OF EFFECT
-        JSR NITRV                       ; PUT ALL OF THE PROCS TO SLEEP.
-        NAP (1,SGC12)
-SGC12   LDX SPTR                        ; KILL BULLETS
-        BEQ SGC2
-        JSR KILSHL
-        BRA SGC12
-SGC2    LDA #2
-        JSR DIM                         ; DIM THE LIGHTS.
-SGCDIM  JSR SCLR1                       ; OFF
+SGC1            ldb #29                         ; TIME OF EFFECT
+                jsr NITRV                       ; PUT ALL OF THE PROCS TO SLEEP.
+        SLEEP(1)
+!SGC12          ldx SPTR                        ; KILL BULLETS
+                beq !SGC2
+                jsr KILSHL
+                bra !SGC12
+!SGC2           lda #2
+                jsr DIM                         ; DIM THE LIGHTS.
+                jsr SCLR1                       ; OFF
 ;
 ; LOCATE HIGHEST MAN
 ;
-        LDU #TLIST
-        LDA #$FF
-LOCM0   STA XTEMP
-        LDX #0
-LOCML   LDY ,U++
-        BEQ LOCMX
-        LDD OCVECT,Y
-        CMPD ASKILP                     ; IS IT MAN IN AIR???
-        BEQ LOCMX                       ; NO DANGER
-        LDD OBJID,Y
-        BNE LOCMX                       ; FALLING OR CAUGHT
-        LDA OY16,Y
-        CMPA XTEMP
-        BHI LOCMX
-        STA XTEMP
-        LEAX ,Y
-LOCMX   CMPU #TLEND
-        BNE LOCML
-        LEAX ,X
-        BEQ SGC20                       ; NO MAN FOUND
-        CLRA
-        CLRB
-        STD PLAXV
-        STD PLAYV
-        LDA SEED                        ; RANDOM HT.
-        ANDA #7
-        NEGA
-        ADDA OY16,X
-        SUBA #$14
-        CMPA #YMIN+5
-        BHS SG99
-        LDA #YMIN+5
-SG99    CMPA #$68
-        BLS SG100
-        LDA #$68
-SG100   STA PLAY16
-        LDD #$2011
-        TST PLADIR
-        BPL SG200
-        LDD #$7015
-SG200   STA PLAX16
-        PSHS B
-        STA NPLAXC
-        LDD OX16,X                      ; CENTER TARGET
-        SUBA ,S+
-        BRA SGC21
-SGC20   LDD BGL
-        ADDA #$80                       ; HALF WAY AROUND
-SGC21   STD BGL
-        JSR BGINIT
+                ldu #TLIST
+                lda #$FF
+LOCM0           sta XTEMP
+                ldx #0
+LOCML           ldy ,U++
+                beq LOCMX
+                ldd OCVECT,Y
+                cmpd ASKILP                     ; IS IT MAN IN AIR???
+                beq LOCMX                       ; NO DANGER
+                ldd OBJID,Y
+                bne LOCMX                       ; FALLING OR CAUGHT
+                lda OY16,Y
+                cmpa XTEMP
+                bhi LOCMX
+                sta XTEMP
+                leax ,Y
+LOCMX           cmpu #TLEND
+                bne LOCML
+                leax ,X
+                beq SGC20                       ; NO MAN FOUND
+                clra
+                clrb
+                std PLAXV
+                std PLAYV
+                lda SEED                        ; RANDOM HT.
+                anda #7
+                nega
+                adda OY16,X
+                suba #$14
+                cmpa #YMIN+5
+                bhs SG99
+                lda #YMIN+5
+SG99            cmpa #$68
+                bls SG100
+                lda #$68
+SG100           sta PLAY16
+                ldd #$2011
+                tst PLADIR
+                bpl SG200
+                ldd #$7015
+SG200           sta PLAX16
+                pshs B
+                sta NPLAXC
+                ldd OX16,X                      ; CENTER TARGET
+                suba ,S+
+                bra SGC21
+SGC20           ldd BGL
+                adda #$80                       ; HALF WAY AROUND
+SGC21           std BGL
+                jsr BGINIT
         NAP (1,BRIGHT)                  ; LET INIT SLEEP.....THIS IS ALMOST A "JSR"
-SGC3    CLRB
-        LDA INVFLG                      ; RESET STATUS
-        BEQ SG30
-        LDB #$10
-SG30    LDU CRPROC                      ; GET PROPER U
-        ORB proc.data ,U                        ; AND PUT BACK THE OLD TERRAIN BIT.
-        STB STATUS
-        LDA #$28
-        STA SGDFLG
-        LDX #SG31_
-        JMP SLEEP
-SG31_   CLR SGDFLG
-        JMP SUCIDE                      ; THANK GOD ITS OVER...
+SGC3            clrb
+                lda INVFLG                      ; RESET STATUS
+                beq SG30
+                ldb #$10
+SG30            ldu CRPROC                      ; GET PROPER U
+                orb proc.data ,U                        ; AND PUT BACK THE OLD TERRAIN BIT.
+                stb STATUS
+                lda #$28
+                sta SGDFLG
+                ldx #SG31_
+                jmp SLEEP
+SG31_           clr SGDFLG
+                jmp SUCIDE                      ; THANK GOD ITS OVER...
 WRPMES  FCB $80,CLEAR,$90,NWARPM
 WRPMS2  FCB $80,CLEAR,$90,NOWRPM
 ;
 ; DIM THE LIGHTS
 ; A=RATE, 1=FASTEST
 ; PD6,U=RET ADDR;PD4=RATE;PD5=COUNT
-DIM     PULS X
-        STX proc.d6,U
-        STA proc.d4,U
-        LDY #MONOTB+110                 ; SAVE COLORS IN MONO TABLE
-        LDX #PCRAM
-DIM00   LDD ,X++                        ; SAVE TABLE
-        STD ,Y++
-        CMPX #PCRAM+16
-        BNE DIM00
-        LDA #7
-        STA proc.d5,U                       ; SAVE
-DIM0    LDA proc.d4,U
-        LDX #DIM3
-        JMP SLEEP
-DIM3    LDX #PCRAM
-DIM4    BSR DIMSUB
-        CMPX #PCRAM+16
-        BNE DIM4
-        DEC proc.d5,U
-        BPL DIM0
-        JMP [proc.d6,U]
+DIM             puls X
+                stx proc.d6,U
+                sta proc.d4,U
+                ldy #MONOTB+110                 ; SAVE COLORS IN MONO TABLE
+                ldx #PCRAM
+DIM00           ldd ,X++                        ; SAVE TABLE
+                std ,Y++
+                cmpx #PCRAM+16
+                bne DIM00
+                lda #7
+                sta proc.d5,U                       ; SAVE
+DIM0            lda proc.d4,U
+                ldx #DIM3
+                jmp SLEEP
+DIM3            ldx #PCRAM
+DIM4            bsr DIMSUB
+                cmpx #PCRAM+16
+                bne DIM4
+                dec proc.d5,U
+                bpl DIM0
+                jmp [proc.d6,U]
 
 ;       DIMSUB - TAKE AWAY BLUE, GREEN, RED
 
-DIMSUB      LDA ,X                          ; WORKING AREA
-            LDB ,X                          ; GET FOR RED CHECK
-            ANDB #$7                        ; RED??
-            CMPB proc.d5,U                      ; TOO MUCH RED??
-            BLS DIMSB1                      ; NOPE.
-            DECA                            ; TAKE SOME RED AWAY
-DIMSB1      LDB ,X                          ; GET FOR GREEN
-            LSRB
-            LSRB
-            LSRB
-            ANDB #$07
-            CMPB proc.d5,U
-            BLS DIMSB2                      ; NOT ENOUGH GREEN
-            SUBA #$08                       ; TAKE AWAY A GREEN UNIT.
-DIMSB2      LDB ,X
-            LSRB
-            LSRB
-            LSRB
-            LSRB
-            LSRB
-            ANDB #$06                       ; ONLY 2 BITS OF BLUE
-            CMPB proc.d5,U
-            BLS DIMSB3
-            SUBA #$40                       ; TAKE A BLUE AWAY.
-DIMSB3      STA ,X+                         ; RETURN TO SENDER
-            RTS
+DIMSUB          lda ,X                          ; WORKING AREA
+                ldb ,X                          ; GET FOR RED CHECK
+                andb #$7                        ; RED??
+                cmpb proc.d5,U                      ; TOO MUCH RED??
+                bls DIMSB1                      ; NOPE.
+                deca                            ; TAKE SOME RED AWAY
+DIMSB1          ldb ,X                          ; GET FOR GREEN
+                lsrb
+                lsrb
+                lsrb
+                andb #$07
+                cmpb proc.d5,U
+                bls DIMSB2                      ; NOT ENOUGH GREEN
+                suba #$08                       ; TAKE AWAY A GREEN UNIT.
+DIMSB2          ldb ,X
+                lsrb
+                lsrb
+                lsrb
+                lsrb
+                lsrb
+                andb #$06                       ; ONLY 2 BITS OF BLUE
+                cmpb proc.d5,U
+                bls DIMSB3
+                suba #$40                       ; TAKE A BLUE AWAY.
+DIMSB3          sta ,X+                         ; RETURN TO SENDER
+                rts
 
-BRIGHT  LDA proc.data ,U                        ; SAVE STATUS FROM SCANNER CRASH
-        PSHS A
-        JSR ISCAN                       ; RE-DO THE LISTS
-        JSR OSCAN
-        JSR SCNR                        ; DO THE SCANNER
-        LDU CRPROC                      ; RESTORE PROCESS ID
-        PULS A                          ; RESTORE STATUS
-        STA proc.data ,U
-        LDA STATUS                      ; GET THE STATUS
-        ANDA #$DD                       ; TAKE AWAY TERRAIN BIT...ACTIVATE OBJECTS
-        ORA proc.data ,U                        ; PUT TERRAIN BACK IF IT WAS THERE.
-        STA STATUS
-        NAP (1,BRGHOB)
-BRGHOB  LDA STATUS
-        ORA #$20                        ; THEN DISABLE THEM AGAIN
-        STA STATUS
-        LDA #2
-        JSR BRT
-        JMP SGC3
+BRIGHT          lda proc.data ,U                        ; SAVE STATUS FROM SCANNER CRASH
+                pshs A
+                jsr ISCAN                       ; RE-DO THE LISTS
+                jsr OSCAN
+                jsr SCNR                        ; DO THE SCANNER
+                ldu CRPROC                      ; RESTORE PROCESS ID
+                puls A                          ; RESTORE STATUS
+                sta proc.data ,U
+                lda STATUS                      ; GET THE STATUS
+                anda #$DD                       ; TAKE AWAY TERRAIN BIT...ACTIVATE OBJECTS
+                ora proc.data ,U                        ; PUT TERRAIN BACK IF IT WAS THERE.
+                sta STATUS
+        SLEEP (1)
+                lda STATUS
+                ora #$20                        ; THEN DISABLE THEM AGAIN
+                sta STATUS
+                lda #2
+                jsr BRT
+                jmp SGC3
 
         org 0x8f00
-;
 ;    MAKE ROOM FOR BRIGHTIE!
 ;
 ; ON LITES
 ; A=RATE
 ; PD4,U=RATE;PD5,U=COUNT;PD6,U=RET ADDR
 ;
-BRT     PULS X                          ; GET RET ADDR
-        STX proc.d6,U
-        STA proc.d4,U
-        LDA #$7                         ; ITERATIONS
-        STA proc.d5,U
-BRGH2   LDA proc.d4,U
-        LDX #BRGH3
-        JMP SLEEP
-BRGH3   LDX #PCRAM+1
-        LDY #MONOTB+111
-BRGH7   LDA ,X                          ; GET THE CURRENT BYTE
-        LDB ,X
-        ANDA #$7                        ; ONLY RED COUNTS
-        STA XTEMP
-        LDA ,Y                          ; GET ORIGINAL COLOR
-        ANDA #$7
-        CMPA XTEMP                      ; DO WE HAVE ENOUGH RED??
-        BLS BRGH4                       ; YEP
-        INCB
-BRGH4   LDA ,X                          ; GET BACK
-        ANDA #$38                       ; JUST CHECK GREEN
-        STA XTEMP
-        LDA ,Y
-        ANDA #$38
-        CMPA XTEMP
-        BLS BRGH5
-        ADDB #$8                        ; ADD A GREEN
-BRGH5   LDA proc.d5,U                       ; GET INDEX
-        BITA #$1
-        BNE BRGH6                       ; NOT A BLUE FRAME
-        LDA ,X                          ; GET COLOR BACK
-        ANDA #$C0
-        STA XTEMP
-        LDA ,Y
-        ANDA #$C0
-        CMPA XTEMP
-        BLS BRGH6
-        ADDB #$40                       ; ADD A BLUE
-BRGH6   STB ,X+                         ; PUT BACK
-        LEAY 1,Y                        ; KICK OTHER PTR.
-        CMPX #PCRAM+16
-        BNE BRGH7
-        DEC proc.d5,U                       ; DEC IT
-        BNE BRGH2
-        JMP [proc.d6,U]                     ; RETURN
+BRT             puls X                          ; GET RET ADDR
+                stx proc.d6,U
+                sta proc.d4,U
+                lda #$7                         ; ITERATIONS
+                sta proc.d5,U
+BRGH2           lda proc.d4,U
+                ldx #BRGH3
+                jmp SLEEP
+BRGH3           ldx #PCRAM+1
+                ldy #MONOTB+111
+BRGH7           lda ,X                          ; GET THE CURRENT BYTE
+                ldb ,X
+                anda #$7                        ; ONLY RED COUNTS
+                sta XTEMP
+                lda ,Y                          ; GET ORIGINAL COLOR
+                anda #$7
+                cmpa XTEMP                      ; DO WE HAVE ENOUGH RED??
+                bls BRGH4                       ; YEP
+                incb
+BRGH4           lda ,X                          ; GET BACK
+                anda #$38                       ; JUST CHECK GREEN
+                sta XTEMP
+                lda ,Y
+                anda #$38
+                cmpa XTEMP
+                bls BRGH5
+                addb #$8                        ; ADD A GREEN
+BRGH5           lda proc.d5,U                       ; GET INDEX
+                bita #$1
+                bne BRGH6                       ; NOT A BLUE FRAME
+                lda ,X                          ; GET COLOR BACK
+                anda #$C0
+                sta XTEMP
+                lda ,Y
+                anda #$C0
+                cmpa XTEMP
+                bls BRGH6
+                addb #$40                       ; ADD A BLUE
+BRGH6           stb ,X+                         ; PUT BACK
+                leay 1,Y                        ; KICK OTHER PTR.
+                cmpx #PCRAM+16
+                bne BRGH7
+                dec proc.d5,U                       ; DEC IT
+                bne BRGH2
+                jmp [proc.d6,U]                     ; RETURN
 ;  END
 

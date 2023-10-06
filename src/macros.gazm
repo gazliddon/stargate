@@ -15,30 +15,37 @@
 
 ;;; Create a process with a run address of addr
 macro MAKP(addr) {
-    JSR	MAKEP
+                jsr	MAKEP
     fdb addr
 }
 
 ;;; Sleep for time frames and then run from wakeup
 macro NAP(time,wakeup) {
-        LDA    #time                ;TIME
-        LDX    #wakeup              ;WAKEUP ADDR
-        JMP    SLEEP
+                lda    #time                ;TIME
+                ldx    #wakeup              ;WAKEUP ADDR
+                jmp    SLEEP
+}
+;;; Sleep for time frames and continue
+;;; after sleep
+macro SLEEP(time) {
+                lda    #time            ; A = time
+                ldx    #*+6             ; Return address after sleep
+                jmp    SLEEP
 }
 
 macro SHL(a,b,c) {
-        JSR    GETSHL
+                jsr    GETSHL
         FDB    a, b, c
 }
 
 macro KILP (a,b) {
-        JSR    KILPOS
+                jsr    KILPOS
         FDB    a
         FDB    b
 	}
 
 macro KILO(a,b) {
-        JSR    KILOS
+                jsr    KILOS
         FDB  a, b
         }
 
@@ -48,7 +55,7 @@ macro KILO(a,b) {
 ;;;         FDB    \1,\2,\3
 ;;;         ENDM 
 macro OBI(a,b,c) {
-        JSR    OBINIT
+                jsr    OBINIT
         FDB    a,b,c
 }
 
@@ -58,15 +65,15 @@ macro OBI(a,b,c) {
 ;         ENDM 
 
 macro CLRD() {
-	CLRA 
-	CLRB 
+	               clra 
+	               clrb 
 }
 
 ; DIE     MACRO
 ;         JMP    SUCIDE           ;DIE!
 ;         ENDM 
 macro 	DIE()  {
-        JMP    SUCIDE           ;DIE!
+                jmp    SUCIDE           ;DIE!
         }
 
 
@@ -79,9 +86,9 @@ macro 	DIE()  {
 
 
 macro NEWP(addr, type) {
-        LDX    #addr  ;ADDR
-        LDA    #type  ;TYPE
-        JSR    MKPROC
+                ldx    #addr  ;ADDR
+                lda    #type  ;TYPE
+                jsr    MKPROC
 }
 
 ; *
@@ -109,7 +116,7 @@ macro NEWP(addr, type) {
 ;;; c = collision vector
 ;;; d = blip
 macro MKPROB(process,object_pic,collion_vec,blip) {
-     JSR    MPROB
+                jsr    MPROB
      FDB    process,object_pic,collion_vec,blip
 }
 

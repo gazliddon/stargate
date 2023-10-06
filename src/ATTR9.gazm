@@ -5,102 +5,102 @@
         ORG ATRORG
 ;;; __Routine:__ PICKUP
 PICKUP
-        LDA #$FF
-        STA STATUS
-        LDA #$30
-        STA ATRFLG
-        CLR .P1LAS                      ; CLEAR SHIP COUNTS
-        CLR .P2LAS
-        CLR .P1SBC
-        CLR .P2SBC
-        CLR .P1INV
-        CLR .P2INV
-        JSR GNCDAV
-        JSR SCRCLR
-        JSR CRINIT
-        LDA #1
-        LDU CRPROC
-        JSR DIMV
-        LDX #0
-        JSR SCINIT
-        LDA #DEFMES
-        JSR WRD5V
-        LDA #1
-        JSR SGSTV
-        LDD #$3000                      ; ADJUST COORDS
-        STD OX16,X
-        LDA #$80
-        STA OY16,X
-        LDD #KILLNO
-        STD OCVECT,X
-        CLR ATRSW2
-        CLR ATRSW3
-        JSR PHSTV                       ; PHONY LANDER START
-        LDA #st_game_over
-        STA STATUS
-        LDA #2
-        LDU CRPROC
-        JSR BRTV
-        JSR ONCOLV
-        LDD #$0200                      ; NOW THRUST INTO GATE
-        STD ATRSW2
+                lda #$FF
+                sta STATUS
+                lda #$30
+                sta ATRFLG
+                clr .P1LAS                      ; CLEAR SHIP COUNTS
+                clr .P2LAS
+                clr .P1SBC
+                clr .P2SBC
+                clr .P1INV
+                clr .P2INV
+                jsr GNCDAV
+                jsr SCRCLR
+                jsr CRINIT
+                lda #1
+                ldu CRPROC
+                jsr DIMV
+                ldx #0
+                jsr SCINIT
+                lda #DEFMES
+                jsr WRD5V
+                lda #1
+                jsr SGSTV
+                ldd #$3000                      ; ADJUST COORDS
+                std OX16,X
+                lda #$80
+                sta OY16,X
+                ldd #KILLNO
+                std OCVECT,X
+                clr ATRSW2
+                clr ATRSW3
+                jsr PHSTV                       ; PHONY LANDER START
+                lda #st_game_over
+                sta STATUS
+                lda #2
+                ldu CRPROC
+                jsr BRTV
+                jsr ONCOLV
+                ldd #$0200                      ; NOW THRUST INTO GATE
+                std ATRSW2
         NAP ($60,PH1)                   ; WAIT FOR COLLISION
 
-PH1     LDA #$FF
-        STA STATUS
-        LDB #28
-        JSR NITRV
-        LDA #2
-        LDU CRPROC
-        JSR DIMV
-        JSR SCLR1                       ; CLEAR IT
-        JSR PLINV                       ; REINIT PLAYER
-        LDX #$8000
-        STX BGL
-        STX BGLX
-        JSR BGINIT
-        CLR ATRSW2
-        LDA #st_game_over
-        STA STATUS
-        LDU CRPROC
-        JSR SCNR
-        LDA #2
-        LDU CRPROC
-        JSR BRTV                        ; ON AGAIN
-        CLR MANCTR
-        LDA #$14
-        STA LNDCNT
-        LDX #PHSTAB                     ; GET COMMANDS
-        STX proc.data,U
-PHS1    LDX proc.data,U
-PHS1A   LDD ,X++
-        BEQ PH8                         ; ALL OVER
-        CMPA    #$FF                    ; CHECKPOINT
-        BNE PHS1B
-        LDA LNDCNT
-        LDB MANCTR
-        LEAX 1,X
-        CMPD -2,X
-        BNE PH8                         ; ERROR
-        BRA PHS1A
-PHS1B   STX proc.data,U
-        PSHS D
-        BITB #$20
-        BEQ PHS2
+PH1             lda #$FF
+                sta STATUS
+                ldb #28
+                jsr NITRV
+                lda #2
+                ldu CRPROC
+                jsr DIMV
+                jsr SCLR1                       ; CLEAR IT
+                jsr PLINV                       ; REINIT PLAYER
+                ldx #$8000
+                stx BGL
+                stx BGLX
+                jsr BGINIT
+                clr ATRSW2
+                lda #st_game_over
+                sta STATUS
+                ldu CRPROC
+                jsr SCNR
+                lda #2
+                ldu CRPROC
+                jsr BRTV                        ; ON AGAIN
+                clr MANCTR
+                lda #$14
+                sta LNDCNT
+                ldx #PHSTAB                     ; GET COMMANDS
+                stx proc.data,U
+PHS1            ldx proc.data,U
+PHS1A           ldd ,X++
+                beq PH8                         ; ALL OVER
+                cmpa    #$FF                    ; CHECKPOINT
+                bne PHS1B
+                lda LNDCNT
+                ldb MANCTR
+                leax 1,X
+                cmpd -2,X
+                bne PH8                         ; ERROR
+                bra PHS1A
+PHS1B           stx proc.data,U
+                pshs D
+                bitb #$20
+                beq PHS2
         NEWP (LFIRE,LTYPE)
-        LDD 0,S
-PHS2    BITB #$10
-        BEQ PHS3
+                ldd 0,S
+PHS2            bitb #$10
+                beq PHS3
         MAKP (REV)
-        LDD 0,S
-PHS3    ANDB    #$1
-        STB ATRSW3
-        PULS D
-        ANDB #$82
-        STB ATRSW2
-        LDX #PHS1
-        JMP SLEEP
-PH8     BRA FIGHT
+                ldd 0,S
+PHS3            andb    #$1
+                stb ATRSW3
+                puls D
+                andb #$82
+                stb ATRSW2
+                ldx #PHS1
+                jmp SLEEP
+PH8             bra FIGHT
 
 ;;; PHONY CATCH COMMANDS
 ;;; B7=DOWN,B5=LASER,B4=REV,B1=THRUST,B0=UP
@@ -137,165 +137,165 @@ PHSTAB  FCB $30,$02
 ;;; FIGHTING MODE
 ;;; PD,U=TABLE PTR
 ;;; PD2,U=TIMER
-FIGHT   LDX #FITAB
-        STX proc.data,U
-        LDA #$FF
-        STA STATUS
-        JSR GNCDAV                               ; KILL EVERYBODY
-        LDA #3
-        JSR DIMV                                 ; COOL THE LITES
-FITST   LDY proc.data,U
-        LDX ,Y++                                 ; GET BGL
-        CMPX #$FFFF                              ; OVER??
-        LBEQ ENEMY                               ; ONTO NEXT THING
-        PSHS U,Y
-        JSR SCINIT                               ; ONB SETUP
-        CLR ATRSW2
-        CLR ATRSW3
-        LDX #ECNTS                               ; CLEAR ENEMY COUNTS
-FITSS1  CLR ,X+
-        CMPX    #ECEND
-        BNE FITSS1
-        LDA #1
-        STA CURPLR
-        JSR PLINDX                               ; GET PLAYER X
-        STX PLRX
-        LDA #2                                   ; WAVE 2 PARAMS
-        STA PWAV,X
-        JSR GETW0V
-        JSR PTRANV
-        JSR RAND                                 ; RANDOMY
-        ANDA #$3F
-        ADDA #-$20
-        ADDA PLAY16
-        STA  PLAY16
-        STA  PLAYC
-        STA  NPLAYC
-        LDA  LSEED                               ; RANDOM X
-        ANDA #$3F
-        ADDA #-$20
-        ADDA #$50
-        STA PLAXC
-        STA NPLAXC
-        STA PLAX16
-        LDA HSEED
-        BMI FITST0
-        LDD NPLAD
-        COMA
-        COMB
-        ADDD #1
-        STD NPLAD
-        STD PLADIR
-FITST0  LDA #st_game_over
-        STA STATUS
-        PULS U,Y
-        LDA ,Y+                                  ; GET ENEMY #
-        PSHS U,Y
-        JSR [,Y]                                 ; GO START EM UP
-        PULS U,Y
-        LEAY 2,Y
-        LDA ,Y+                                  ; OUTPUT MESSAGE #
-        LDX ,Y++                                 ; MESSAGE ADDR
-        STY proc.data,U
-        JSR WRD5V
-        LDA #3
-        JSR BRTV                                 ; ON LITES
-        JSR ONCOLV
-        LDU CRPROC
-        LDD #$300
-        STD proc.d2,U
-        LDA #1
-        STA proc.d4,U                                ; UP/DOWN TIMER
-        STA proc.d5,U                                ; ACCEL TIMER
-        LDA SEED
-        LSRA
-        STA proc.d6,U                                ; REV TIMER
-FITLP   LDX proc.d2,U                                ; FIGHT TIME-OUT CHECK
-        LDA #16
-        STA STRCNT                               ; KEEP THE STARS GOING
-        LEAX    -1,X
-        STX proc.d2,U
-        LBEQ    FDTIM
-        LDA STATUS                               ; CHECK DEATH
-        CMPA #$DA
-        LBEQ FDIE                                ; WE HAVE DIED
-        LDA PLAY16                               ; Y OUT OF RANGE??
-        CMPA #$48
-        BLS FIT1A
-        CMPA #$C0
-        BHS FIT1AA
-        DEC proc.d4,U                                ; UP/DOWN TIMER
-        BEQ FIT1B
-        JSR RAND                                 ; MAKE A MOVE??
-        CMPA #$FC
-        BLO FIT2                                 ; NO
-        JSR RAND
-        LSRA
-        BCS FIT1A
-FIT1AA  LDD #$0001                               ; UP
-        BRA FIT1X
-FIT1A   LDD #$8000                               ; DOWN
-        BRA FIT1X
-FIT1B   LDD #$0000                               ; LEVEL
-FIT1X   STB ATRSW3
-        LDB ATRSW2
-        ANDB    #$2
-        STB ATRSW2
-        ORA ATRSW2
-        STA ATRSW2
-        JSR RAND
-        LSRA
-        LSRA
-        NOP
-        STA proc.d4,U
-FIT2    DEC proc.d5,U                                ; ACCEL CHANGE??
-        BNE FIT3                                 ; NO
-        JSR RAND
-        LDB     ATRSW2
-        CMPA #$80
-        BHI  FIT2A
-        ORB #2
-        BRA FIT2X
-FIT2A   ANDB #$FD
-FIT2X   STB ATRSW2
-        LDA SEED
-        LSRA
-        LSRA
-        STA proc.d5,U
-FIT3    JSR RAND                                 ; LASER ???
-        CMPA    #$0C
-        BHI FIT4
+FIGHT           ldx #FITAB
+                stx proc.data,U
+                lda #$FF
+                sta STATUS
+                jsr GNCDAV                               ; KILL EVERYBODY
+                lda #3
+                jsr DIMV                                 ; COOL THE LITES
+FITST           ldy proc.data,U
+                ldx ,Y++                                 ; GET BGL
+                cmpx #$FFFF                              ; OVER??
+                lbeq ENEMY                               ; ONTO NEXT THING
+                pshs U,Y
+                jsr SCINIT                               ; ONB SETUP
+                clr ATRSW2
+                clr ATRSW3
+                ldx #ECNTS                               ; CLEAR ENEMY COUNTS
+FITSS1          clr ,X+
+                cmpx    #ECEND
+                bne FITSS1
+                lda #1
+                sta CURPLR
+                jsr PLINDX                               ; GET PLAYER X
+                stx PLRX
+                lda #2                                   ; WAVE 2 PARAMS
+                sta PWAV,X
+                jsr GETW0V
+                jsr PTRANV
+                jsr RAND                                 ; RANDOMY
+                anda #$3F
+                adda #-$20
+                adda PLAY16
+                sta  PLAY16
+                sta  PLAYC
+                sta  NPLAYC
+                lda  LSEED                               ; RANDOM X
+                anda #$3F
+                adda #-$20
+                adda #$50
+                sta PLAXC
+                sta NPLAXC
+                sta PLAX16
+                lda HSEED
+                bmi FITST0
+                ldd NPLAD
+                coma
+                comb
+                addd #1
+                std NPLAD
+                std PLADIR
+FITST0          lda #st_game_over
+                sta STATUS
+                puls U,Y
+                lda ,Y+                                  ; GET ENEMY #
+                pshs U,Y
+                jsr [,Y]                                 ; GO START EM UP
+                puls U,Y
+                leay 2,Y
+                lda ,Y+                                  ; OUTPUT MESSAGE #
+                ldx ,Y++                                 ; MESSAGE ADDR
+                sty proc.data,U
+                jsr WRD5V
+                lda #3
+                jsr BRTV                                 ; ON LITES
+                jsr ONCOLV
+                ldu CRPROC
+                ldd #$300
+                std proc.d2,U
+                lda #1
+                sta proc.d4,U                                ; UP/DOWN TIMER
+                sta proc.d5,U                                ; ACCEL TIMER
+                lda SEED
+                lsra
+                sta proc.d6,U                                ; REV TIMER
+FITLP           ldx proc.d2,U                                ; FIGHT TIME-OUT CHECK
+                lda #16
+                sta STRCNT                               ; KEEP THE STARS GOING
+                leax    -1,X
+                stx proc.d2,U
+                lbeq    FDTIM
+                lda STATUS                               ; CHECK DEATH
+                cmpa #$DA
+                lbeq FDIE                                ; WE HAVE DIED
+                lda PLAY16                               ; Y OUT OF RANGE??
+                cmpa #$48
+                bls FIT1A
+                cmpa #$C0
+                bhs FIT1AA
+                dec proc.d4,U                                ; UP/DOWN TIMER
+                beq FIT1B
+                jsr RAND                                 ; MAKE A MOVE??
+                cmpa #$FC
+                blo FIT2                                 ; NO
+                jsr RAND
+                lsra
+                bcs FIT1A
+FIT1AA          ldd #$0001                               ; UP
+                bra FIT1X
+FIT1A           ldd #$8000                               ; DOWN
+                bra FIT1X
+FIT1B           ldd #$0000                               ; LEVEL
+FIT1X           stb ATRSW3
+                ldb ATRSW2
+                andb    #$2
+                stb ATRSW2
+                ora ATRSW2
+                sta ATRSW2
+                jsr RAND
+                lsra
+                lsra
+                nop
+                sta proc.d4,U
+FIT2            dec proc.d5,U                                ; ACCEL CHANGE??
+                bne FIT3                                 ; NO
+                jsr RAND
+                ldb     ATRSW2
+                cmpa #$80
+                bhi  FIT2A
+                orb #2
+                bra FIT2X
+FIT2A           andb #$FD
+FIT2X           stb ATRSW2
+                lda SEED
+                lsra
+                lsra
+                sta proc.d5,U
+FIT3            jsr RAND                                 ; LASER ???
+                cmpa    #$0C
+                bhi FIT4
         NEWP (LFIRE,LTYPE)
-FIT4    DEC proc.d6,U                                ; REV???
-        BNE FITX
+FIT4            dec proc.d6,U                                ; REV???
+                bne FITX
         MAKP    ( REV )
-        LDA SEED
-        ORA #$10
-        STA proc.d6,U
+                lda SEED
+                ora #$10
+                sta proc.d6,U
 FITX    
         NAP (1,FITLP)
                                                  ; TIME OUT
-FDTIM   JSR     GNCDAV
-        LDA     #st_player_dead                                  ; PLAYER IS DEAD, NO COLLISIONS WITH PROCESSES DEAD
-        ORA     STATUS
-        STA     STATUS
-        LDA     #2
-        JSR     DIMV
-        LDA     #$FF
-        STA     STATUS
-        JMP     FITST
+FDTIM           jsr     GNCDAV
+                lda     #st_player_dead                                  ; PLAYER IS DEAD, NO COLLISIONS WITH PROCESSES DEAD
+                ora     STATUS
+                sta     STATUS
+                lda     #2
+                jsr     DIMV
+                lda     #$FF
+                sta     STATUS
+                jmp     FITST
                                                  ; DEAD
 FDIE    
         MAKP(DIEDIE)
         NAP ($6C,FDTIM)
                                                  ;START OVER AGAIN
-FIGHTX  LDX #FITAB
-        STX proc.data,U
-        JMP FITST
+FIGHTX          ldx #FITAB
+                stx proc.data,U
+                jmp FITST
                                                  ; DYING PROCESS
-DIEDIE  LDX NPLAXC
-        JSR PXVCT                                ; BLOW HIM
-        JMP SUCIDE
+DIEDIE          ldx NPLAXC
+                jsr PXVCT                                ; BLOW HIM
+                jmp SUCIDE
 
 ////////////////////////////////////////////////////////////////////////////////
 // FIGHT TABLEs
@@ -331,108 +331,108 @@ FITAB   FDB $B000                               ; BGL
 ; ON SCANNER,TERRAIN,SCORES,STARS
 ; X=BGL
 
-SCINIT  PSHS X,U,D,Y
-        LDA #$FF
-        STA STATUS
-        JSR SCRCLR
-        LDA #$66
-        STA SCNCOL
-        JSR TDISP
-        LDX #MESSUL
-        LDD #$4005
-        JSR BLKCLR                                  ; CLEAR OUT MESSAGE AREA
-        JSR OINIT
-        LDD 2,S                                     ; GET X
-        STD BGL
-        STD BGLX
-        JSR BGINIT
-        JSR STINIT
-        JSR FISS
-        JSR THINIT
-        JSR PLINV                                   ; INIT PLAYER STUFF
-        JSR SCLEAN                                  ; CLEAN UP SAM
+SCINIT          pshs X,U,D,Y
+                lda #$FF
+                sta STATUS
+                jsr SCRCLR
+                lda #$66
+                sta SCNCOL
+                jsr TDISP
+                ldx #MESSUL
+                ldd #$4005
+                jsr BLKCLR                                  ; CLEAR OUT MESSAGE AREA
+                jsr OINIT
+                ldd 2,S                                     ; GET X
+                std BGL
+                std BGLX
+                jsr BGINIT
+                jsr STINIT
+                jsr FISS
+                jsr THINIT
+                jsr PLINV                                   ; INIT PLAYER STUFF
+                jsr SCLEAN                                  ; CLEAN UP SAM
         MAKP (SCPROC)
-        PULS X,U,D,Y,PC
+                puls X,U,D,Y,PC
 
 ;
 ;START MUNCHIES
 ;
 
-MCHST   LDA #$18
-        STA BMSTIM                                  ; MUNCHY MULTIPLICATION
+MCHST           lda #$18
+                sta BMSTIM                                  ; MUNCHY MULTIPLICATION
         MAKP    (MCHS)
-        RTS
-MCHS    JSR BMSTV
+                rts
+MCHS            jsr BMSTV
         NAP (50,MCHS)
 ;
 ; ENEMIES PAGE
 ;
 
-ENEMY   JSR SCRCLR
-        JSR CRINIT
-        JSR SCLEAN
-        JSR OINIT
-        JSR ONCOLV
-        CLRA
-        CLRB
-        STD BGL
-        STD BGLX
-        LDA #st_init
-        STA STATUS
-        LDU CRPROC
-        LDX #EMTAB                                  ; ENEMIES
-        STX proc.data,U
-ENEMY1  LDY proc.data,U
-        LDD ,Y
-        BEQ ENEMY2
-        JSR GETEM
-        STY proc.data,U
+ENEMY           jsr SCRCLR
+                jsr CRINIT
+                jsr SCLEAN
+                jsr OINIT
+                jsr ONCOLV
+                clra
+                clrb
+                std BGL
+                std BGLX
+                lda #st_init
+                sta STATUS
+                ldu CRPROC
+                ldx #EMTAB                                  ; ENEMIES
+                stx proc.data,U
+ENEMY1          ldy proc.data,U
+                ldd ,Y
+                beq ENEMY2
+                jsr GETEM
+                sty proc.data,U
         NAP (8,ENEMY1)
 
 ENEMY2  
         NAP (01,ENEM2A)
-ENEM2A  LDX #EMESTB                                 ; MESSAGES
-        STX proc.data,U
-ENEM3A  LDY proc.data,U
-        LDA ,Y+
-        BEQ ENEM4
-        LDX ,Y++
-        STY proc.data,U
-        JSR WRD5FV
+ENEM2A          ldx #EMESTB                                 ; MESSAGES
+                stx proc.data,U
+ENEM3A          ldy proc.data,U
+                lda ,Y+
+                beq ENEM4
+                ldx ,Y++
+                sty proc.data,U
+                jsr WRD5FV
         NAP (4,ENEM3A)
-ENEM4   LDA #30
-        STA proc.d2,U
-ENM4AA  CLR proc.d3,U                                   ; FLAVOR
-        LDX #$2F76                                  ; REFRESH CURSOR
-        STX proc.d4,U
-        LDX #SGRTAB
-        STX proc.d6,U
-ENEM4A  LDX #EMESTB                                 ; REFRESH MESSAGES
-        STX proc.data,U
-        DEC proc.d2,U
-        LBEQ HALVCT                                 ; OVER...
-ENEM4B  LDY proc.data,U
-        LDA ,Y+
-        CMPA #SGAM
-        BEQ ENEM4A
-        LDX ,Y++
-        STY proc.data,U
-        JSR WRD5FV
+ENEM4           lda #30
+                sta proc.d2,U
+ENM4AA          clr proc.d3,U                                   ; FLAVOR
+                ldx #$2F76                                  ; REFRESH CURSOR
+                stx proc.d4,U
+                ldx #SGRTAB
+                stx proc.d6,U
+ENEM4A          ldx #EMESTB                                 ; REFRESH MESSAGES
+                stx proc.data,U
+                dec proc.d2,U
+                lbeq HALVCT                                 ; OVER...
+ENEM4B          ldy proc.data,U
+                lda ,Y+
+                cmpa #SGAM
+                beq ENEM4A
+                ldx ,Y++
+                sty proc.data,U
+                jsr WRD5FV
         NAP ($4,ENEM4C)
-ENEM4C  LDA proc.d3,U
-        STA TXFLAV
-        LDX proc.d4,U
-        LDY proc.d6,U
-        CMPY    #SGRTE
-        BEQ ENM4AA
-        LDA ,Y+
-        LDB #$AA
-        STB TEXCOL
-        JSR PR57V
-        LDA TXFLAV
-        STA proc.d3,U
-        STX proc.d4,U
-        STY proc.d6,U
+ENEM4C          lda proc.d3,U
+                sta TXFLAV
+                ldx proc.d4,U
+                ldy proc.d6,U
+                cmpy    #SGRTE
+                beq ENM4AA
+                lda ,Y+
+                ldb #$AA
+                stb TEXCOL
+                jsr PR57V
+                lda TXFLAV
+                sta proc.d3,U
+                stx proc.d4,U
+                sty proc.d6,U
         NAP (2,ENEM4B)
 
 ; REFRESH TABLE
@@ -445,61 +445,61 @@ SGRTE
 ; Y=TABLE: OPICT(2),#ANIMS(1),DELAY(1),SCRN ADDR(2)
 ;
 
-GETEM   PSHS    X,U
+GETEM           pshs    X,U
         MAKP    (ANA)
-        TFR X,U
-        JSR GETOB
-        LDD [,Y++]
-        STD OPICT,X
-        STD proc.d2,U
-        STX proc.data,U
-        LDD ,Y++
-        STD proc.d4,U
-        CLR proc.d6,U
-        CLRA
-        CLRB
-        STD OXV,X
-        STD OYV,X
-        LDD ,Y++
-        STB OY16,X
-        CLR OY16+1,X
-        CLRB
-        LSRA
-        RORB
-        LSRA
-        RORB
-        STD OX16,X
-        LDA #1
-        STA OTYP,X                          ; NON HYPER
-        JSR APVCT
-        PULS    X,U,PC
+                tfr X,U
+                jsr GETOB
+                ldd [,Y++]
+                std OPICT,X
+                std proc.d2,U
+                stx proc.data,U
+                ldd ,Y++
+                std proc.d4,U
+                clr proc.d6,U
+                clra
+                clrb
+                std OXV,X
+                std OYV,X
+                ldd ,Y++
+                stb OY16,X
+                clr OY16+1,X
+                clrb
+                lsra
+                rorb
+                lsra
+                rorb
+                std OX16,X
+                lda #1
+                sta OTYP,X                          ; NON HYPER
+                jsr APVCT
+                puls    X,U,PC
 
 ;
 ; ANIMATION ROUTINE
 ; PD=OBJ,PD2=PICT,PD4=ANI#,PD5=TIME/FRAME,PD6=CURRENT#
 ;
 
-ANA     LDA proc.d4,U
-        CMPA    #1
-        LBEQ    SUCIDE                      ; DIE NO ANIMATION
-ANA0    LDX proc.data,U
-        LDD OPICT,X
-        CMPD    #NULOB
-        BEQ ANASLP
-        LDA proc.d6,U
-        INCA
-        CMPA    proc.d4,U
-        BLO ANA1
-        CLRA
-ANA1    STA proc.d6,U
-        LDB #OBJL
-        MUL
-        LDY proc.d2,U
-        LEAY    D,Y
-        STY OPICT,X
-ANASLP  LDA proc.d5,U
-        LDX #ANA0
-        JMP SLEEP
+ANA             lda proc.d4,U
+                cmpa    #1
+                lbeq    SUCIDE                      ; DIE NO ANIMATION
+ANA0            ldx proc.data,U
+                ldd OPICT,X
+                cmpd    #NULOB
+                beq ANASLP
+                lda proc.d6,U
+                inca
+                cmpa    proc.d4,U
+                blo ANA1
+                clra
+ANA1            sta proc.d6,U
+                ldb #OBJL
+                mul
+                ldy proc.d2,U
+                leay    D,Y
+                sty OPICT,X
+ANASLP          lda proc.d5,U
+                ldx #ANA0
+                jmp SLEEP
 
 ;;; ENEMIES
 ;;; OPICT(2),ANIM#(1),RATE(1),ADDR(2)

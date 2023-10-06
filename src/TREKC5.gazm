@@ -47,7 +47,7 @@ PTABE   EQU  *
         RMB  PSIZZ*4
 
         ORG  BLOWV  ; ROM SPACE FOR BLOW UP
-        JMP  ROCK0  ; GO TO ENTRY POINT
+                jmp  ROCK0  ; GO TO ENTRY POINT
 
 PIECES  FCB  $11
         FCB  $22
@@ -81,283 +81,283 @@ LHSN_   FCB  $E8,$01,$0A,$06,$00
 LASSN_  FCB  $E8,$01,$08,$14,$00
 TIMSN_  FCB  $E8,$01,$08,$01,$01,$01,$13,$00
 
-ROKSUB  CMPX  #PTABE         ; TOO MANY??
-        BHS  ROKSS0          ; YEP..BYE
-ROSSUB  JSR  RANDM
-        ANDB  #$7
-        ASLB
-        LDY  #DISTAB
-        LDY  B,Y
-        STY  TEMP1
-GETBLO  JSR  RANDM
-        LDD  HSDDD           ; GET THE SDDD SET
-        CMPA  #XMAX
-        BHS  GETBLO
-        CMPB  #YMINN
-        BLS  GETBLO
-        CMPB  #YMAXX
-        BHS  GETBLO
-        STD  BLOPT
-        CLRA
-        CLRB
-ROKSB1  STD  TEMP5           ; SAVE INDEX
-        STD  ,X++            ; Y DONE FOR FIRST POINT
-        BSR  RNDDIS          ; GET A RANDMOM DISPLACEMENT IN D
-        STD  ,X++
-        BSR  STORSB          ; STORE THE REST OF THE CRUD
-        LDD  TEMP5           ; GET IT BACK
-        STD  ,X++            ; USE THE SAME Y
-        BSR  RNDDIS
-        COMA
-        COMB
-        ADDD  #1
-        STD  ,X++
-        BSR  STORSB
-        LDD  TEMP5
-        COMA
-        COMB
-        ADDD  #1
-        PSHS  D
-        STD  ,X++
-        BSR  RNDDIS
-        STD  ,X++
-        BSR  STORSB
-        PULS  D
-        STD  ,X++
-        BSR  RNDDIS
-        COMA
-        COMB
-        ADDD  #1
-        STD  ,X++
-        BSR  STORSB
-        CMPX  #PTABE         ; BEYOND TABLE??
-        BHS  ROKSS0          ; THEN GET THE $ OUT OF HERE
-        LDD  TEMP5
-        ADDD  #DELTA         ; MOVE UP TO NEXT
-        CMPD  #RADIUS        ; ARE WE UP TO RADIUS??
-        BLO  ROKSB1          ; NOPE...DO ANOTHER
-ROKSS0  STX  TABPTR          ; THIS IS THE NEW POINTER VALUE
-        RTS
+ROKSUB          cmpx  #PTABE         ; TOO MANY??
+                bhs  ROKSS0          ; YEP..BYE
+ROSSUB          jsr  RANDM
+                andb  #$7
+                aslb
+                ldy  #DISTAB
+                ldy  B,Y
+                sty  TEMP1
+GETBLO          jsr  RANDM
+                ldd  HSDDD           ; GET THE SDDD SET
+                cmpa  #XMAX
+                bhs  GETBLO
+                cmpb  #YMINN
+                bls  GETBLO
+                cmpb  #YMAXX
+                bhs  GETBLO
+                std  BLOPT
+                clra
+                clrb
+ROKSB1          std  TEMP5           ; SAVE INDEX
+                std  ,X++            ; Y DONE FOR FIRST POINT
+                bsr  RNDDIS          ; GET A RANDMOM DISPLACEMENT IN D
+                std  ,X++
+                bsr  STORSB          ; STORE THE REST OF THE CRUD
+                ldd  TEMP5           ; GET IT BACK
+                std  ,X++            ; USE THE SAME Y
+                bsr  RNDDIS
+                coma
+                comb
+                addd  #1
+                std  ,X++
+                bsr  STORSB
+                ldd  TEMP5
+                coma
+                comb
+                addd  #1
+                pshs  D
+                std  ,X++
+                bsr  RNDDIS
+                std  ,X++
+                bsr  STORSB
+                puls  D
+                std  ,X++
+                bsr  RNDDIS
+                coma
+                comb
+                addd  #1
+                std  ,X++
+                bsr  STORSB
+                cmpx  #PTABE         ; BEYOND TABLE??
+                bhs  ROKSS0          ; THEN GET THE $ OUT OF HERE
+                ldd  TEMP5
+                addd  #DELTA         ; MOVE UP TO NEXT
+                cmpd  #RADIUS        ; ARE WE UP TO RADIUS??
+                blo  ROKSB1          ; NOPE...DO ANOTHER
+ROKSS0          stx  TABPTR          ; THIS IS THE NEW POINTER VALUE
+                rts
 
-RNDDIS  JSR  RANDM
-        CLRB                ; FOR THE PERFECT ONES..NO FRACTION
-        LDA  LSDDD          ; GET THE NEW ONE
-        BPL  RNDDS1
-        ORA  TEMP1+1
-        COMB                ; FOR THE PERFECT ONES..NO FRACTION
-        BRA  RNDDS2
-RNDDS1  ANDA  TEMP1
-RNDDS2  SUBD  TEMP5         ; THIS FORMS X.
-        ADDD  #RADIUS
-        ASRA
-        RORB
-        RTS
+RNDDIS          jsr  RANDM
+                clrb                ; FOR THE PERFECT ONES..NO FRACTION
+                lda  LSDDD          ; GET THE NEW ONE
+                bpl  RNDDS1
+                ora  TEMP1+1
+                comb                ; FOR THE PERFECT ONES..NO FRACTION
+                bra  RNDDS2
+RNDDS1          anda  TEMP1
+RNDDS2          subd  TEMP5         ; THIS FORMS X.
+                addd  #RADIUS
+                asra
+                rorb
+                rts
 
-STORSB  LDD  BLOPT          ; GET HIGH HALF OF START POINT
-        STD  ,X++
-        STA  ,X+            ; TOP HALF OF OLD
-        LDA  BLOPT+1        ; OLD
-        STD  ,X++
-        LDA  [FROBPT]
-        STA  ,X+            ; PUT THE FROB DOWN
-        RTS
+STORSB          ldd  BLOPT          ; GET HIGH HALF OF START POINT
+                std  ,X++
+                sta  ,X+            ; TOP HALF OF OLD
+                lda  BLOPT+1        ; OLD
+                std  ,X++
+                lda  [FROBPT]
+                sta  ,X+            ; PUT THE FROB DOWN
+                rts
 
-GETVEL  LDA  HSDDD
-        ANDA  #$7
-        ADDA  #2
-        STA  NUMTER       ; NUMBER OF BITS
-        JSR  RANDM        ; GET NEW RANDOM
-        ORB  #$80
-        ASRB
-        SEX
-        SUBD  #$80
-        STD  TERYV
-        JSR  RANDM
-        SEX
-        ASLB
-        ROLA
-        STD  TERXV
-        RTS
+GETVEL          lda  HSDDD
+                anda  #$7
+                adda  #2
+                sta  NUMTER       ; NUMBER OF BITS
+                jsr  RANDM        ; GET NEW RANDOM
+                orb  #$80
+                asrb
+                sex
+                subd  #$80
+                std  TERYV
+                jsr  RANDM
+                sex
+                aslb
+                rola
+                std  TERXV
+                rts
 
 ;;; __Proc__: ROCK0
-ROCK0   ldu     CRPROC
-        puls    X                     ; GET RETURN ADDRESS
-        stx     proc.data+6,U          ; AND SAVE
-        ldx     IRQHK+1
-        stx     IRQSV
-        ldx     #BLOIRQ                ; USE OUR IRQ
-        stx     IRQHK+1
-        ldd     HSEED                  ; RANDMOMIZE IT
-        std     SDDD
-        ldd     #PIECES
-        std     FROBPT
-        lda     #NRINGS
-        sta     TEMP3
-        lda     #$30                   ; SMALL DELAY UNTIL FIRST RING
-        sta     TEMP2
-        lda     #1
-        sta     TEMP6
-        lda     #$FF
-        sta     PCRAM+7
-        ldx     #PTABLE                ; LETS WALK THROUGH AND INIT THE TABLE
-        ldy     #STBL                  ; START AT BEGINNING
-BTER0   BSR  GETVEL                    ; FILL IN VELOCITY RAM AND PICK RANDOM PT CT.
-BTER1   LDD  TERXV
-        STD  XV,X
-        LDD  TERYV
-        STD  YV,X
-        LDD  ,Y++
-        STD  XPOS,X
-        STD  OLD,X
-        LDA  #$77
-        STA  FROB,X
-        LEAX  PSIZZ,X
-        CMPY  #STBL+($9A*2)
-        BHS  ROCK0_
-        DEC  NUMTER
-        BNE  BTER1
-        BRA  BTER0
+ROCK0           ldu     CRPROC
+                puls    X                     ; GET RETURN ADDRESS
+                stx     proc.data+6,U          ; AND SAVE
+                ldx     IRQHK+1
+                stx     IRQSV
+                ldx     #BLOIRQ                ; USE OUR IRQ
+                stx     IRQHK+1
+                ldd     HSEED                  ; RANDMOMIZE IT
+                std     SDDD
+                ldd     #PIECES
+                std     FROBPT
+                lda     #NRINGS
+                sta     TEMP3
+                lda     #$30                   ; SMALL DELAY UNTIL FIRST RING
+                sta     TEMP2
+                lda     #1
+                sta     TEMP6
+                lda     #$FF
+                sta     PCRAM+7
+                ldx     #PTABLE                ; LETS WALK THROUGH AND INIT THE TABLE
+                ldy     #STBL                  ; START AT BEGINNING
+BTER0           bsr  GETVEL                    ; FILL IN VELOCITY RAM AND PICK RANDOM PT CT.
+BTER1           ldd  TERXV
+                std  XV,X
+                ldd  TERYV
+                std  YV,X
+                ldd  ,Y++
+                std  XPOS,X
+                std  OLD,X
+                lda  #$77
+                sta  FROB,X
+                leax  PSIZZ,X
+                cmpy  #STBL+($9A*2)
+                bhs  ROCK0_
+                dec  NUMTER
+                bne  BTER1
+                bra  BTER0
 
-ROCK0_  STX  TABPTR
+ROCK0_          stx  TABPTR
 
-UPDATE  LDA  TEMP3
-        CMPA  #NRINGS
-        BNE  DATUP0
-        LDA  TEMP2
-        CMPA  #$20
-        BEQ  DATUP2
-        CMPA  #$10
-        BEQ  DATUP2
-        CMPA  #1
-        BNE  DATUP3
-DATUP2  JSR  ACCSUB
-DATUP3  DEC  TEMP6
-        BNE  DATUP0
-        LDA  #3
-        STA  TEMP6
-        LDD  #TIMSN_
-        JSR  SNDLD
-        LDX  #COLTAB
-        JSR  RANDM
-        ANDB  #$1F
-        LDA  B,X
-        STA  PCSAV
-DATUP0  LDA  TEMP2
-        DECA    ; REMOVE ONE
-        STA  TEMP2
-        BNE  UPDT1
-        JSR  NWRING
-        BRA  UPPDT2
+UPDATE          lda  TEMP3
+                cmpa  #NRINGS
+                bne  DATUP0
+                lda  TEMP2
+                cmpa  #$20
+                beq  DATUP2
+                cmpa  #$10
+                beq  DATUP2
+                cmpa  #1
+                bne  DATUP3
+DATUP2          jsr  ACCSUB
+DATUP3          dec  TEMP6
+                bne  DATUP0
+                lda  #3
+                sta  TEMP6
+                ldd  #TIMSN_
+                jsr  SNDLD
+                ldx  #COLTAB
+                jsr  RANDM
+                andb  #$1F
+                lda  B,X
+                sta  PCSAV
+DATUP0          lda  TEMP2
+                deca    ; REMOVE ONE
+                sta  TEMP2
+                bne  UPDT1
+                jsr  NWRING
+                bra  UPPDT2
 UPDT1  
         NAP  (1,UPPDT2)
 
-UPPDT2  LDA  #8
-        STA  OVCNT  ; SIMULATE AN OVERFLOW TO GET TRASH OFF OF SCREEN.
+UPPDT2          lda  #8
+                sta  OVCNT  ; SIMULATE AN OVERFLOW TO GET TRASH OFF OF SCREEN.
 
-        LDX  TABPTR  ; GET THE POINTER
-        CMPX  #PTABLE+(10*PSIZZ) ; LESS THAN TEN POINTS LEFT??
-        BHS  RKKKP2  ; NOPE...CONTINUE
-        LDX  IRQSV  ; RESTORE THE IRQ VECTOR
-        STX  IRQHK+1
-        CLR  PCRAM
-        LDU  CRPROC  ; TIME TO CAN IT
-        JMP  [proc.data+6,U]
+                ldx  TABPTR  ; GET THE POINTER
+                cmpx  #PTABLE+(10*PSIZZ) ; LESS THAN TEN POINTS LEFT??
+                bhs  RKKKP2  ; NOPE...CONTINUE
+                ldx  IRQSV  ; RESTORE THE IRQ VECTOR
+                stx  IRQHK+1
+                clr  PCRAM
+                ldu  CRPROC  ; TIME TO CAN IT
+                jmp  [proc.data+6,U]
 
-RKKKP2  LDX  #PTABLE  ; GET START OF TABLE
-        LDY  #0
+RKKKP2          ldx  #PTABLE  ; GET START OF TABLE
+                ldy  #0
 
-ROKUP2  CMPX  TABPTR  ; AT END???
-        BEQ  UPDATE
-        STY  [OLD,X]  ; ERASES OLD ONE
-        LDD  YV,X
-        ADDD  YPOS,X
-        CMPA  #YMAXX
-        BCC  BYEPT2
-        CMPA  #YMINN
-        BCS  BYEPT2
-        STD  YPOS,X
-        LDD  XV,X
-        ADDD  XPOS,X
-        CMPA  #XMAX
-        BCC  BYEPT2
-        STD  XPOS,X
-        STA  OLD,X
-        LDA  FROB,X
-        LDB  FROB,X
-        STD  [OLD,X]  ; STORE FROB
-        LEAX  PSIZZ,X  ; MOVE TO NEXT
-        BRA  ROKUP2
+ROKUP2          cmpx  TABPTR  ; AT END???
+                beq  UPDATE
+                sty  [OLD,X]  ; ERASES OLD ONE
+                ldd  YV,X
+                addd  YPOS,X
+                cmpa  #YMAXX
+                bcc  BYEPT2
+                cmpa  #YMINN
+                bcs  BYEPT2
+                std  YPOS,X
+                ldd  XV,X
+                addd  XPOS,X
+                cmpa  #XMAX
+                bcc  BYEPT2
+                std  XPOS,X
+                sta  OLD,X
+                lda  FROB,X
+                ldb  FROB,X
+                std  [OLD,X]  ; STORE FROB
+                leax  PSIZZ,X  ; MOVE TO NEXT
+                bra  ROKUP2
 
-BYEPT2  LDU  TABPTR         ; GET THE POINTER
-        LEAU  -PSIZZ,U      ; MOVE DOWN ONE ENTRY
-        STU  TABPTR
-        LDD  XV,U
-        STD  XV,X
-        LDD  YV,U
-        STD  YV,X
-        LDD  XPOS,U
-        STD  XPOS,X
-        LDD  OLD,U
-        STD  OLD,X
-        LDD  OLD+2,U
-        STD  OLD+2,X
-        BRA  ROKUP2
+BYEPT2          ldu  TABPTR         ; GET THE POINTER
+                leau  -PSIZZ,U      ; MOVE DOWN ONE ENTRY
+                stu  TABPTR
+                ldd  XV,U
+                std  XV,X
+                ldd  YV,U
+                std  YV,X
+                ldd  XPOS,U
+                std  XPOS,X
+                ldd  OLD,U
+                std  OLD,X
+                ldd  OLD+2,U
+                std  OLD+2,X
+                bra  ROKUP2
 
-NWRING  LDA  HSDDD
-        ANDA  #$07
-        ADDA  #2
-        STA  TEMP2
-        TST  TEMP3
-        BEQ  !return
-        LDA  #NRINGS
-        SUBA  TEMP3
-        CMPA  #10
-        BLS  !skip  ; TOO LOW FOR FURY
-        CMPA  #20
-        BHI  !skip
-        LDA  #4
-        STA  TEMP2
+NWRING          lda  HSDDD
+                anda  #$07
+                adda  #2
+                sta  TEMP2
+                tst  TEMP3
+                beq  !return
+                lda  #NRINGS
+                suba  TEMP3
+                cmpa  #10
+                bls  !skip  ; TOO LOW FOR FURY
+                cmpa  #20
+                bhi  !skip
+                lda  #4
+                sta  TEMP2
 
-!skip   DEC  TEMP3
-        LDD  FROBPT
-        ADDD  #1
-        CMPD  #ENDPIC  ; END??
-        BNE  !notend
-        LDD  #PIECES
+!skip           dec  TEMP3
+                ldd  FROBPT
+                addd  #1
+                cmpd  #ENDPIC  ; END??
+                bne  !notend
+                ldd  #PIECES
 
-!notend STD  FROBPT
-        BSR  SNDSND
-        LDB  HSDDD
-        ANDB  #$1F
-        LDY  #COLTAB
-        LDB  B,Y
-        STB  PCSAV
-        LDX  TABPTR
-        JMP  ROKSUB  ; ADD THE NEW WAVE AND RETURN
-!return RTS
+!notend         std  FROBPT
+                bsr  SNDSND
+                ldb  HSDDD
+                andb  #$1F
+                ldy  #COLTAB
+                ldb  B,Y
+                stb  PCSAV
+                ldx  TABPTR
+                jmp  ROKSUB  ; ADD THE NEW WAVE AND RETURN
+!return         rts
 
 
-ACCSUB  LDX  #PTABLE
-ACCSB1  CMPX  TABPTR
-        BEQ  NWRTS
-        LDD  XV,X  ; GET THE X VELOCITY
-        ASLB
-        ROLA
-        STD  XV,X
-        LDD  YV,X
-        ASLB
-        ROLA
-        STD  YV,X
-        LEAX  PSIZZ,X
-        BRA  ACCSB1
+ACCSUB          ldx  #PTABLE
+ACCSB1          cmpx  TABPTR
+                beq  NWRTS
+                ldd  XV,X  ; GET THE X VELOCITY
+                aslb
+                rola
+                std  XV,X
+                ldd  YV,X
+                aslb
+                rola
+                std  YV,X
+                leax  PSIZZ,X
+                bra  ACCSB1
 
-SNDSND  JSR  RANDM
-        ANDB  #$E
-        CMPB  #12
-        BHS  SNDSND
-        LDY  #SNDTAB
-        LDD  B,Y
-        JMP  SNDLD  ; MAKE THE SOUND
+SNDSND          jsr  RANDM
+                andb  #$E
+                cmpb  #12
+                bhs  SNDSND
+                ldy  #SNDTAB
+                ldd  B,Y
+                jmp  SNDLD  ; MAKE THE SOUND
 
 ; *AND LDA HSDDD
 ; * ASLA
@@ -369,39 +369,39 @@ SNDSND  JSR  RANDM
 ; * LDB HSDDD RETURN IN B
 ; *WRTS RTS
 
-RANDM   LDD  SDDD
-        RORA
-        RORB                    ; B  NOW HAS HIGH HALF OF NEW SDDD
-        LDA  HSDDD              ; FOR LOW SEVEN BITS
-        ASLA
-        EORA  HSDDD             ; BIT 6-0 IS NOW LOW SEVEN BITS OF NEW SDDD
-        STB  HSDDD              ; NOW STORE OFF B
-        ASLA                    ; BIT 7-1 NOW HAVE LOW SEVEN BITS OF NEW SDDD
-        LDB  LSDDD              ; GET THE EITH BIT FROM THE OLD LOW BIT
-        RORB
-        RORA
-        STA  LSDDD
-        LDB  LSDDD              ; RETURN IN B
-NWRTS   RTS
+RANDM           ldd  SDDD
+                rora
+                rorb                    ; B  NOW HAS HIGH HALF OF NEW SDDD
+                lda  HSDDD              ; FOR LOW SEVEN BITS
+                asla
+                eora  HSDDD             ; BIT 6-0 IS NOW LOW SEVEN BITS OF NEW SDDD
+                stb  HSDDD              ; NOW STORE OFF B
+                asla                    ; BIT 7-1 NOW HAVE LOW SEVEN BITS OF NEW SDDD
+                ldb  LSDDD              ; GET THE EITH BIT FROM THE OLD LOW BIT
+                rorb
+                rora
+                sta  LSDDD
+                ldb  LSDDD              ; RETURN IN B
+NWRTS           rts
 
-BLOIRQ  LDA  VERTCT             ; GET COUNT
-        CMPA  #$10              ; TOO LOW?? HIGH???
-        BHS  IRQX
-        LDA  PCSAV
-        BNE  IRQ0
-        LDA  PCRAM              ; TIME TO FADE
-        BITA  #$C0
-        BEQ  NOBLUE
-        SUBA  #$40
-NOBLUE  BITA  #$38
-        BEQ  NOGRN
-        SUBA  #$08
-NOGRN   BITA  #$7
-        BEQ  IRQ2
-        DECA
-        BRA  IRQ2               ; MINIMIZE THE RACE
-IRQ0    CLR  PCSAV
-IRQ2    STA  PCRAM
-IRQX    JMP  [IRQSV]            ; GO TO NORMAL IRQ ROUTINE NOW
+BLOIRQ          lda  VERTCT             ; GET COUNT
+                cmpa  #$10              ; TOO LOW?? HIGH???
+                bhs  IRQX
+                lda  PCSAV
+                bne  IRQ0
+                lda  PCRAM              ; TIME TO FADE
+                bita  #$C0
+                beq  NOBLUE
+                suba  #$40
+NOBLUE          bita  #$38
+                beq  NOGRN
+                suba  #$08
+NOGRN           bita  #$7
+                beq  IRQ2
+                deca
+                bra  IRQ2               ; MINIMIZE THE RACE
+IRQ0            clr  PCSAV
+IRQ2            sta  PCRAM
+IRQX            jmp  [IRQSV]            ; GO TO NORMAL IRQ ROUTINE NOW
 
   ; END

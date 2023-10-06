@@ -15,47 +15,47 @@ ADVALX      EQU  $59
 
             ORG  TSBORG
 
-ADJV        JMP  ADJUST
-CMINIT      JMP  CKCMOS
-ATMCK       JMP  OPTST_
-GETLT       JMP  GETLET
-CMSMVV      JMP  CMOSMV
+ADJV            jmp  ADJUST
+CMINIT          jmp  CKCMOS
+ATMCK           jmp  OPTST_
+GETLT           jmp  GETLET
+CMSMVV          jmp  CMOSMV
  
 ;;;  CMOS MOVE: DESTINATION=Y, SOURCE=X, COUNT=B
-CMOSMV      PSHS  A           ; NEED A
-CMMV1       LDA  ,X+          ; GET SOURCE
-            EXG  X,Y          ; SWAP
-            JSR  WCMOSA       ; RITE IT
-            EXG  X,Y          ; SWAP BACK
-            DECB              ; DONE?
-            BNE  CMMV1        ; NO,LOOP
-            PULS  A,PC        ; RETURN CLEAN
+CMOSMV          pshs  A           ; NEED A
+CMMV1           lda  ,X+          ; GET SOURCE
+                exg  X,Y          ; SWAP
+                jsr  WCMOSA       ; RITE IT
+                exg  X,Y          ; SWAP BACK
+                decb              ; DONE?
+                bne  CMMV1        ; NO,LOOP
+                puls  A,PC        ; RETURN CLEAN
 
 ;;;  CLEAR CMOS: CRASHES A,B,X
-CLRALL  LDX  #CMOS          ;POINT TO START
-CLRA1   CLR  ,X+
-        CMPX  #CMOS+$400
-        BNE  CLRA1          ; NO, LOOP
-        RTS                 ; BYE
+CLRALL          ldx  #CMOS          ;POINT TO START
+CLRA1           clr  ,X+
+                cmpx  #CMOS+$400
+                bne  CLRA1          ; NO, LOOP
+                rts                 ; BYE
  
 ;  INIT CMOS: SAVES STATE
  
-CMINI_  PSHS  X,Y,D         ; SAVE STATE
-        LDX  #DEFALT        ; POINT TO ROM
-        LDY  #CMOS          ; POINT TO DESTINATION
-        LDB  #DEFSIZ        ; LENGTH
-        BSR  CMOSMV         ; MOVE THEM ALL
-        PULS  X,Y,D,PC      ; ALL DONE
+CMINI_          pshs  X,Y,D         ; SAVE STATE
+                ldx  #DEFALT        ; POINT TO ROM
+                ldy  #CMOS          ; POINT TO DESTINATION
+                ldb  #DEFSIZ        ; LENGTH
+                bsr  CMOSMV         ; MOVE THEM ALL
+                puls  X,Y,D,PC      ; ALL DONE
 
-OPSET   PSHS  X,Y,D
-        LDX  #OPD1
-        LDY  #OPMESS
-        LDB  #52            ; 50 BYTES WORTH
-        BSR  CMOSMV         ; DO THE XFER
-        JSR  OPCHK          ; FIND THE CHECK BYTE
-        LDX  #OMESUM        ; PLACE TO STORE IT
-        JSR  WCMOSA         ; WRITE IT
-        PULS  X,Y,D,PC
+OPSET           pshs  X,Y,D
+                ldx  #OPD1
+                ldy  #OPMESS
+                ldb  #52            ; 50 BYTES WORTH
+                bsr  CMOSMV         ; DO THE XFER
+                jsr  OPCHK          ; FIND THE CHECK BYTE
+                ldx  #OMESUM        ; PLACE TO STORE IT
+                jsr  WCMOSA         ; WRITE IT
+                puls  X,Y,D,PC
                              
                              
 ;  DEFAULT HERE FOR NOW
@@ -330,561 +330,561 @@ GODLT   FCB  0,NOMESS
 ;   U = POINTER TO TABLE ENTRY FOR THIS LOCATION.
 ;   A = TEXT MESSAGE FOR LOCATION
 
-DISADJ  PSHS  A,Y               ; SAVE TEXT
-        LDA  #ADJX              ; ADJUSTMENT X
-        TST  4,U                ; PROTECTED??
-        BEQ  DSADJ1
-        LDA  #ADJX+5            ; THEN INDENT.
-DSADJ1  LDB  5,U                ; GET Y FOR THIS GUY
-        TFR  D,X                ; AND MAKE IT CURSOR
-        LDA  ,S                 ; RESTORE A
-        JSR  WRD5FV             ; PRINT THE NAME OF THE ADJUSTMENT
-        BSR  PRVAL              ; PRINT THE VALUE APPROPRIATELY  (AND MESSAGE)
-        PULS  A,Y,PC            ; AND RETURN
+DISADJ          pshs  A,Y               ; SAVE TEXT
+                lda  #ADJX              ; ADJUSTMENT X
+                tst  4,U                ; PROTECTED??
+                beq  DSADJ1
+                lda  #ADJX+5            ; THEN INDENT.
+DSADJ1          ldb  5,U                ; GET Y FOR THIS GUY
+                tfr  D,X                ; AND MAKE IT CURSOR
+                lda  ,S                 ; RESTORE A
+                jsr  WRD5FV             ; PRINT THE NAME OF THE ADJUSTMENT
+                bsr  PRVAL              ; PRINT THE VALUE APPROPRIATELY  (AND MESSAGE)
+                puls  A,Y,PC            ; AND RETURN
 
-PRVAL   PSHS  Y,D,X
-        EXG  X,Y
-        JSR  RCMOSB             ; GET THE VALUE
-        EXG  X,Y                ; CHANGE BACK
-        EXG  X,D  
-        LDA  #ADVALX
-        LDB  5,U                ; HEIGHT
-        EXG  X,D
-        PSHS  D
-        LDD  #$3C05  
-        JSR  BLKCLR
-        PULS  D
-        BSR  GETMES             ; GET THE ACCOMANYING MESSAGE
-        JSR  WRD5FV             ; AND PRINT
-        PULS  Y,D,PC,X          ; AND RETURN
+PRVAL           pshs  Y,D,X
+                exg  X,Y
+                jsr  RCMOSB             ; GET THE VALUE
+                exg  X,Y                ; CHANGE BACK
+                exg  X,D  
+                lda  #ADVALX
+                ldb  5,U                ; HEIGHT
+                exg  X,D
+                pshs  D
+                ldd  #$3C05  
+                jsr  BLKCLR
+                puls  D
+                bsr  GETMES             ; GET THE ACCOMANYING MESSAGE
+                jsr  WRD5FV             ; AND PRINT
+                puls  Y,D,PC,X          ; AND RETURN
 
-GETMES  PSHS  Y
-        LDY  2,U                ; GET TO AREA TO PARSE
-GETMS1  CMPB  ,Y++              ; DO WE RATE OVER THIS ONE
-        BHS  GETMS1
-        LDA  -3,Y               ; GRAB THE APPROPRIATE MESSAGE POINTER
-        PULS  Y,PC              ; AND RETURN
+GETMES          pshs  Y
+                ldy  2,U                ; GET TO AREA TO PARSE
+GETMS1          cmpb  ,Y++              ; DO WE RATE OVER THIS ONE
+                bhs  GETMS1
+                lda  -3,Y               ; GRAB THE APPROPRIATE MESSAGE POINTER
+                puls  Y,PC              ; AND RETURN
 
-PAGE1  JSR  SCRCLR
-        LDU  #ADJTBL
-        LDY  #CMOS
-        LDA  #ADJMES
-        LDX  #GA1               ; PLACE TO FINISH
-        BSR  PRNPAG             ; PRINT A PAGE
-        LDA  #CONTMS            ; CONTINUATION MESSAGE.
-        JSR  WRD5V              ; PRINT IT
-        LDU  #ADJTB2-6          ; SET TO LAST ENTRY ON PAGE ONE
-        LDY  #GA1-2  
-        LDA  #P2MES-1
-        RTS                     ; AND RETURN
+PAGE1           jsr  SCRCLR
+                ldu  #ADJTBL
+                ldy  #CMOS
+                lda  #ADJMES
+                ldx  #GA1               ; PLACE TO FINISH
+                bsr  PRNPAG             ; PRINT A PAGE
+                lda  #CONTMS            ; CONTINUATION MESSAGE.
+                jsr  WRD5V              ; PRINT IT
+                ldu  #ADJTB2-6          ; SET TO LAST ENTRY ON PAGE ONE
+                ldy  #GA1-2  
+                lda  #P2MES-1
+                rts                     ; AND RETURN
 
-PAGE2   JSR  SCRCLR
-        LDU  #ADJTB2            ; PAGE 2 OF ADJUST TABLE
-        LDY  #GA1               ; START AT GAME ADJUST 1
-        LDA  #P2MES
-        LDX  #ENDADJ
+PAGE2           jsr  SCRCLR
+                ldu  #ADJTB2            ; PAGE 2 OF ADJUST TABLE
+                ldy  #GA1               ; START AT GAME ADJUST 1
+                lda  #P2MES
+                ldx  #ENDADJ
 
-PRNPAG  PSHS  X,Y,U,D
-PRNPG1  BSR  DISADJ             ; PRINT OUT THE CURRENT LINE
-        LEAU  6,U               ; PUSH TO NEXT ENTRY
-        LEAY  2,Y
-        INCA
-        CMPY  2,S               ; SEE IF DONE
-        BNE  PRNPG1
-        PULS  X,PC,Y,U,D        ; DONE
+PRNPAG          pshs  X,Y,U,D
+PRNPG1          bsr  DISADJ             ; PRINT OUT THE CURRENT LINE
+                leau  6,U               ; PUSH TO NEXT ENTRY
+                leay  2,Y
+                inca
+                cmpy  2,S               ; SEE IF DONE
+                bne  PRNPG1
+                puls  X,PC,Y,U,D        ; DONE
 
-ADJUST  LDX  #SPECFN            ; ZERO OUT THE SPECIAL FUNCTION BYTES
-ADJS11  CLR  ,X+
-        CMPX  #ENDADJ
-        BLO  ADJS11
-        JSR  MAKCHK             ; PUT DOWN THE APPROPRIATE CHECKSUM
-        BSR  PAGE1              ; PUT THE FIRST PAGE UP
-        LDU  #ADJTBL            ; START OF TABLE
-        LDY  #CMOS              ; START OF MEMORY
-        LDA  #ADJMES
-        JSR  SSTATE             ; STORE THE STATE
-        JSR  FROBON             ; PUT FROB IN PLACE.
+ADJUST          ldx  #SPECFN            ; ZERO OUT THE SPECIAL FUNCTION BYTES
+ADJS11          clr  ,X+
+                cmpx  #ENDADJ
+                blo  ADJS11
+                jsr  MAKCHK             ; PUT DOWN THE APPROPRIATE CHECKSUM
+                bsr  PAGE1              ; PUT THE FIRST PAGE UP
+                ldu  #ADJTBL            ; START OF TABLE
+                ldy  #CMOS              ; START OF MEMORY
+                lda  #ADJMES
+                jsr  SSTATE             ; STORE THE STATE
+                jsr  FROBON             ; PUT FROB IN PLACE.
         MAKP  (ADVSCN)          ; PROCESS TO SCAN ADVANCE AND TERMINATE IF HIT.
                                    
 ;   BEGIN STEADY STATE MODE.
 
-ADJST0  JSR  UPDOWN             ; CHECK FOR UP/DOWN
-        BSR  INCDEC             ; CHECK FOR THRUST/FIRE
+ADJST0          jsr  UPDOWN             ; CHECK FOR UP/DOWN
+                bsr  INCDEC             ; CHECK FOR THRUST/FIRE
         NAP  (1,ADJST0)
 
-INCDEC  PULS  D
-        LDU  CRPROC
-        STD  proc.data+6,U
-        LDA  #$20
-        STA  proc.data,U
-        LDA  PIA2               ; CHECK FOR THRUST,FIRE
-        RORA                    ; FIRE??
-        BCS  INCME
-        RORA                    ; THRUST
-        BCS  DECME
-IDRET   JMP  [proc.data+6,U]
+INCDEC          puls  D
+                ldu  CRPROC
+                std  proc.data+6,U
+                lda  #$20
+                sta  proc.data,U
+                lda  PIA2               ; CHECK FOR THRUST,FIRE
+                rora                    ; FIRE??
+                bcs  INCME
+                rora                    ; THRUST
+                bcs  DECME
+IDRET           jmp  [proc.data+6,U]
 
-INCME  JSR  INC1                ; ONE INCREMENT
+INCME           jsr  INC1                ; ONE INCREMENT
 INCME0  
         NAP  (1,INCME1)
-INCME1  LDA  PIA2
-        RORA
-        BCC  IDRET              ; LET GO
-        DEC  proc.data,U               ; DELAY
-        BNE  INCME0
-        LDA  #5
-        STA  proc.data,U
-        BRA  INCME
+INCME1          lda  PIA2
+                rora
+                bcc  IDRET              ; LET GO
+                dec  proc.data,U               ; DELAY
+                bne  INCME0
+                lda  #5
+                sta  proc.data,U
+                bra  INCME
 
-DECME   JSR  DEC1
+DECME           jsr  DEC1
 DECME0  
         NAP  (1,DECME1)
-DECME1  LDA  PIA2
-        BITA  #2
-        BEQ  IDRET
-        DEC  proc.data,U
-        BNE  DECME0
-        LDA  #5
-        STA  proc.data,U
-        BRA  DECME
+DECME1          lda  PIA2
+                bita  #2
+                beq  IDRET
+                dec  proc.data,U
+                bne  DECME0
+                lda  #5
+                sta  proc.data,U
+                bra  DECME
 
-INC1    JSR  LSTATE             ; GET THE STATE LOADED
-        TFR  Y,X                ; COPY POINTER
-        JSR  RCMOSA             ; GET THE CURRENT VALUE
-        ADDA  #1
-        DAA                     ; FORM NEW VALUE
-        BCS  INC11              ; NO WRAP AROUND
-        CMPA  1,U               ; COMPARE TO HIGHEST ALLOWED.
-        BHI  INC11              ; TOO HIGH....GET OUT OF HERE
-DEC11   TFR  Y,X                ; RESTORE POINTER
-        JSR  WCMOSA             ; PUT THE NUMBER BACK IN MEMORY
-        JSR  MAKCHK             ; REFORM THE CHECK BYTE
-        JSR  PRVAL              ; PRINT OUT THE NEW VALUE AND INFORMATION.
-        JSR  SPCASE             ; CHECK FOR SPECIAL CASES.
-INC11   RTS                     ; AND RETURN
+INC1            jsr  LSTATE             ; GET THE STATE LOADED
+                tfr  Y,X                ; COPY POINTER
+                jsr  RCMOSA             ; GET THE CURRENT VALUE
+                adda  #1
+                daa                     ; FORM NEW VALUE
+                bcs  INC11              ; NO WRAP AROUND
+                cmpa  1,U               ; COMPARE TO HIGHEST ALLOWED.
+                bhi  INC11              ; TOO HIGH....GET OUT OF HERE
+DEC11           tfr  Y,X                ; RESTORE POINTER
+                jsr  WCMOSA             ; PUT THE NUMBER BACK IN MEMORY
+                jsr  MAKCHK             ; REFORM THE CHECK BYTE
+                jsr  PRVAL              ; PRINT OUT THE NEW VALUE AND INFORMATION.
+                jsr  SPCASE             ; CHECK FOR SPECIAL CASES.
+INC11           rts                     ; AND RETURN
 
-DEC1  JSR  LSTATE
-        TFR  Y,X
-        JSR  RCMOSA
-        TSTA
-        BEQ  INC11              ; ALL THE WAY DOWN
-        ADDA  #$99
-        DAA
-        CMPA  0,U               ; SEE IF TOO LOW
-        BLO  INC11              ; TOO LOW...BYE
-        BRA  DEC11              ; DO THE REST  
+DEC1            jsr  LSTATE
+                tfr  Y,X
+                jsr  RCMOSA
+                tsta
+                beq  INC11              ; ALL THE WAY DOWN
+                adda  #$99
+                daa
+                cmpa  0,U               ; SEE IF TOO LOW
+                blo  INC11              ; TOO LOW...BYE
+                bra  DEC11              ; DO THE REST  
 
-PROTCK  PSHS  A,X
-        LDA  4,U                ; CHECK PROTECTION CODE
-        BEQ  PROTOK
-        LDX  #COINSL            ; COIN PROTECTED
-        DECA                    ; 1??
-        BEQ  PROTC1
-        LDX  #GA1
-PROTC1  JSR  RCMOSA
-        TSTA
-        BEQ  PROTOK
-        ORCC  #$01              ; (SEC)
-        PULS  A,X,PC
-PROTOK  ANDCC  #$FE             ; (CLC)  
-        PULS  A,X,PC
+PROTCK          pshs  A,X
+                lda  4,U                ; CHECK PROTECTION CODE
+                beq  PROTOK
+                ldx  #COINSL            ; COIN PROTECTED
+                deca                    ; 1??
+                beq  PROTC1
+                ldx  #GA1
+PROTC1          jsr  RCMOSA
+                tsta
+                beq  PROTOK
+                orcc  #$01              ; (SEC)
+                puls  A,X,PC
+PROTOK          andcc  #$FE             ; (CLC)  
+                puls  A,X,PC
 
-FROBON  PSHS  X,D
-        LDB  5,U                ; Y COORD OF FROB 
-        LDA  #FROBX
-        TFR  D,X
-        LDA  #FROBM
-        JSR  WRD5FV
-        PULS  X,D,PC
+FROBON          pshs  X,D
+                ldb  5,U                ; Y COORD OF FROB 
+                lda  #FROBX
+                tfr  D,X
+                lda  #FROBM
+                jsr  WRD5FV
+                puls  X,D,PC
 
-FROBOF  PSHS  X,D
-        LDB  5,U
-        LDA  #FROBX
-        TFR  D,X
-        LDD  #$0305             ; WIDTH,HEIGHT
-        JSR  BLKCLR
-        PULS  X,D,PC
+FROBOF          pshs  X,D
+                ldb  5,U
+                lda  #FROBX
+                tfr  D,X
+                ldd  #$0305             ; WIDTH,HEIGHT
+                jsr  BLKCLR
+                puls  X,D,PC
 
-UPDOWN  PULS  D
-        LDU  CRPROC
-        STD  proc.data+6,U             ; SAVE RETURN ADDRESS
-        LDA  #$30               ; TYPOMATIC FIRST DELAY
-        STA  proc.data,U               ; INDICATE VIRGIN SCAN
-        LDA  PIA2               ; CHECK FOR DOWN
-        BMI  DOWNER             ; PRESSED...CONTINUE
-        LDA  PIA3
-        RORA
-        BCS  UPPER
-UDRET   JMP  [proc.data+6,U]           ; NO ACTION...RETURN
+UPDOWN          puls  D
+                ldu  CRPROC
+                std  proc.data+6,U             ; SAVE RETURN ADDRESS
+                lda  #$30               ; TYPOMATIC FIRST DELAY
+                sta  proc.data,U               ; INDICATE VIRGIN SCAN
+                lda  PIA2               ; CHECK FOR DOWN
+                bmi  DOWNER             ; PRESSED...CONTINUE
+                lda  PIA3
+                rora
+                bcs  UPPER
+UDRET           jmp  [proc.data+6,U]           ; NO ACTION...RETURN
 
-DOWNER  JSR  DOWN1              ; GO DOWN ONE (WHATEVER THAT MEANS)
+DOWNER          jsr  DOWN1              ; GO DOWN ONE (WHATEVER THAT MEANS)
 DOWN2  
         NAP  (1,DOWN3)
-DOWN3   LDA  PIA2               ; CHECK IF STILL PRESSED
-        BPL  UDRET              ; DONE WITH THIS PASS...NO LONGER PRESSED
-        DEC  proc.data,U               ; TIME ME
-        BNE  DOWN2              ; SLEEP ANOTHER FRAME BABE 
-        LDA  #8                 ; FAST RATE
-        STA  proc.data,U
-        BRA  DOWNER             ; NOW DO ANOTHER STEP.
+DOWN3           lda  PIA2               ; CHECK IF STILL PRESSED
+                bpl  UDRET              ; DONE WITH THIS PASS...NO LONGER PRESSED
+                dec  proc.data,U               ; TIME ME
+                bne  DOWN2              ; SLEEP ANOTHER FRAME BABE 
+                lda  #8                 ; FAST RATE
+                sta  proc.data,U
+                bra  DOWNER             ; NOW DO ANOTHER STEP.
 
-UPPER   JSR  UP1
+UPPER           jsr  UP1
 UPPER1  
         NAP  (1,UPPER2)
-UPPER2  LDA  PIA3
-        RORA
-        BCC  UDRET              ; LET GO
-        DEC  proc.data,U
-        BNE  UPPER1
-        LDA  #8
-        STA  proc.data,U
-        BRA  UPPER
+UPPER2          lda  PIA3
+                rora
+                bcc  UDRET              ; LET GO
+                dec  proc.data,U
+                bne  UPPER1
+                lda  #8
+                sta  proc.data,U
+                bra  UPPER
 
-DOWN1   JSR  LSTATE             ; GET US OUR STATE
-        JSR  FROBOF             ; CAN THE FROB
-DOWN11  CMPY  #ENDADJ-2         ; ARE WE ON LAST ENTRY??
-        BEQ  DOWNRT             ; THEN RETURN
-        LEAY  2,Y               ; MOVE TO NEXT
-        INCA
-        LEAU  6,U
-        CMPY  #GA1              ; BEGINNINGEOF SECOND PAGE???
-        BNE  DOWN10
-        JSR  PAGE2              ; PUT THE SECOND PAGE UP THEN.
-DOWN10  JSR  PROTCK             ; CHECK PROTECTION
-        BCS  DOWN11
-        JSR  SSTATE
-DOWNRT  JSR  FROBON             ; NOW TURN THE FROB ON.
-        RTS
+DOWN1           jsr  LSTATE             ; GET US OUR STATE
+                jsr  FROBOF             ; CAN THE FROB
+DOWN11          cmpy  #ENDADJ-2         ; ARE WE ON LAST ENTRY??
+                beq  DOWNRT             ; THEN RETURN
+                leay  2,Y               ; MOVE TO NEXT
+                inca
+                leau  6,U
+                cmpy  #GA1              ; BEGINNINGEOF SECOND PAGE???
+                bne  DOWN10
+                jsr  PAGE2              ; PUT THE SECOND PAGE UP THEN.
+DOWN10          jsr  PROTCK             ; CHECK PROTECTION
+                bcs  DOWN11
+                jsr  SSTATE
+DOWNRT          jsr  FROBON             ; NOW TURN THE FROB ON.
+                rts
 
-UP1     JSR  LSTATE
-        JSR  FROBOF             ; CAN THE FROB
-UP11    CMPY  #CMOS             ; FIRST ENTRY
-        BEQ  DOWNRT             ; YEP...BYE
-        LEAY  -2,Y
-        DECA
-        LEAU  -6,U
-        CMPY  #FREEPL           ; JUMP TO PAGE 1???
-        BNE  UP10
-        JSR  PAGE1              ; WELL....PRINT IT.
-UP10    JSR  PROTCK
-        BCS  UP11               ; PROTECTED...PUSH TO NEXT ONE.
-        JSR  SSTATE
-        JMP  FROBON             ; TURN THE FROB ON AND RETURN.
+UP1             jsr  LSTATE
+                jsr  FROBOF             ; CAN THE FROB
+UP11            cmpy  #CMOS             ; FIRST ENTRY
+                beq  DOWNRT             ; YEP...BYE
+                leay  -2,Y
+                deca
+                leau  -6,U
+                cmpy  #FREEPL           ; JUMP TO PAGE 1???
+                bne  UP10
+                jsr  PAGE1              ; WELL....PRINT IT.
+UP10            jsr  PROTCK
+                bcs  UP11               ; PROTECTED...PUSH TO NEXT ONE.
+                jsr  SSTATE
+                jmp  FROBON             ; TURN THE FROB ON AND RETURN.
 
 ADVSCN  
         NAP  (1,ADVSC1)    
-ADVSC1  LDA  PIA0               ; SCAN FOR ADVANCE
-        BITA  #2
-        BEQ  ADVSCN             ; JUST KEEP ON SCANNING
-        JSR  GNCIDE             ; KILL THE TEST PROCESS
-        JSR  SCRCLR
-ADVSC2  LDA  PIA0
-        BITA  #2
-        BNE  ADVSC2             ; WAIT FOR RELEASE
-ADVSC3  LDA  SPECFN+3           ; CLEAR AUDITS??
-        ANDA  #$F
-        BEQ  ADVSC4  
-        CLR  SPECFN+3
-        JSR  MAKCHK
-        JSR  SCRCLR
-        JSR  AUDCK4             ; CLEAR THE AUDIT TOTALS AND PRINT THE MESSAGE.
+ADVSC1          lda  PIA0               ; SCAN FOR ADVANCE
+                bita  #2
+                beq  ADVSCN             ; JUST KEEP ON SCANNING
+                jsr  GNCIDE             ; KILL THE TEST PROCESS
+                jsr  SCRCLR
+ADVSC2          lda  PIA0
+                bita  #2
+                bne  ADVSC2             ; WAIT FOR RELEASE
+ADVSC3          lda  SPECFN+3           ; CLEAR AUDITS??
+                anda  #$F
+                beq  ADVSC4  
+                clr  SPECFN+3
+                jsr  MAKCHK
+                jsr  SCRCLR
+                jsr  AUDCK4             ; CLEAR THE AUDIT TOTALS AND PRINT THE MESSAGE.
         NAP  ($40,ADVSC4)
-ADVSC4  LDA  SPECFN+5           ; CHECK AUDIT MESSAGE
-        ANDA  #$F
-        BEQ  ADVSC6             ; NOT THERE
-        CLR  SPECFN+5
-        JSR  MAKCHK
-        JSR  HIGHRS             ; GO AND DO IT
+ADVSC4          lda  SPECFN+5           ; CHECK AUDIT MESSAGE
+                anda  #$F
+                beq  ADVSC6             ; NOT THERE
+                clr  SPECFN+5
+                jsr  MAKCHK
+                jsr  HIGHRS             ; GO AND DO IT
         NAP  ($40,ADVSC6)
-ADVSC6  LDA  SPECFN+9           ; OPERATOR MESSAGE
-        ANDA  #$F               ; LOOK AT RELEVANCE
-        BEQ  ADVSC5
-        CLR  SPECFN+9
-        JSR  MAKCHK
-        LDA  #$3A               ; FILL WITH SPACES
-        LDX  #OPMESS
-        LDB  #50                ; 50 CHARACTERS
-ADV6__  JSR  WCMOSA
-        DECB
-        BNE  ADV6__
-        JSR  SCRCLR             ; CLEAR THE SCREEN
-        LDA  #OMESM
-        JSR  WRD7V              ; PRINT A PROMPTING MESSAGE
-        LDY  #OPMESS            ; POINT AT CMOS AREA
-        LDX  #$2530             ; SCREEN ECHO
-        LDD  #$1980             ; 25 CHARS, SPECIALS ALLOWED
-        JSR  GETLET             ; GET THE MESSAGE
-        LDB  #$30               ; DISPLAY HEIGHT
-        LDX  #OPL1              ; PLACE TO STORE RESULT
-        LDY  #OPMESS            ; CMOS
-        JSR  SLIDE
-        LDA  #OMESM
-        JSR  WRD7V
-        JSR  REDISP             ; DISPLAY CENTERED TOP LINE
-        LDY  #OPMESS+50
-        LDX  #$2540
-        LDD  #$1980
-        JSR  GETLET
-        LDB  #$40
-        LDX  #OPL2
-        LDY  #OPMESS+50
-        JSR  SLIDE
-        JSR  OPCHK              ; FORM THE CHECK BYTE
-        LDX  #OMESUM            ; POINT
-        JSR  WCMOSA             ; AND STORE IT.
-ADVSC5  LDA  SPECFN+11          ; ENTER GOD'S NAME??
-        ANDA  #$F
-        BEQ  ADVSC8
-        CLR  SPECFN+11
-        JSR  MAKCHK
-        JSR  GODSET             ; GO AND DO IT
-ADVSC8  LDA  SPECFN+7           ; AUTO CYCLE
-        ANDA  #$F
-        BEQ  NOAUT_
-        CLR  SPECFN+7
-        JSR  MAKCHK
-        BSR  FSCHK
-        JMP  AUTOCY
-NOAUT_  BSR  FSCHK
-        LDD  #0
-        STD  SWPROC
-        STD  SWPROC+4
-        JMP  INITV              ; NOW GO INTO GAME OVER.
+ADVSC6          lda  SPECFN+9           ; OPERATOR MESSAGE
+                anda  #$F               ; LOOK AT RELEVANCE
+                beq  ADVSC5
+                clr  SPECFN+9
+                jsr  MAKCHK
+                lda  #$3A               ; FILL WITH SPACES
+                ldx  #OPMESS
+                ldb  #50                ; 50 CHARACTERS
+ADV6__          jsr  WCMOSA
+                decb
+                bne  ADV6__
+                jsr  SCRCLR             ; CLEAR THE SCREEN
+                lda  #OMESM
+                jsr  WRD7V              ; PRINT A PROMPTING MESSAGE
+                ldy  #OPMESS            ; POINT AT CMOS AREA
+                ldx  #$2530             ; SCREEN ECHO
+                ldd  #$1980             ; 25 CHARS, SPECIALS ALLOWED
+                jsr  GETLET             ; GET THE MESSAGE
+                ldb  #$30               ; DISPLAY HEIGHT
+                ldx  #OPL1              ; PLACE TO STORE RESULT
+                ldy  #OPMESS            ; CMOS
+                jsr  SLIDE
+                lda  #OMESM
+                jsr  WRD7V
+                jsr  REDISP             ; DISPLAY CENTERED TOP LINE
+                ldy  #OPMESS+50
+                ldx  #$2540
+                ldd  #$1980
+                jsr  GETLET
+                ldb  #$40
+                ldx  #OPL2
+                ldy  #OPMESS+50
+                jsr  SLIDE
+                jsr  OPCHK              ; FORM THE CHECK BYTE
+                ldx  #OMESUM            ; POINT
+                jsr  WCMOSA             ; AND STORE IT.
+ADVSC5          lda  SPECFN+11          ; ENTER GOD'S NAME??
+                anda  #$F
+                beq  ADVSC8
+                clr  SPECFN+11
+                jsr  MAKCHK
+                jsr  GODSET             ; GO AND DO IT
+ADVSC8          lda  SPECFN+7           ; AUTO CYCLE
+                anda  #$F
+                beq  NOAUT_
+                clr  SPECFN+7
+                jsr  MAKCHK
+                bsr  FSCHK
+                jmp  AUTOCY
+NOAUT_          bsr  FSCHK
+                ldd  #0
+                std  SWPROC
+                std  SWPROC+4
+                jmp  INITV              ; NOW GO INTO GAME OVER.
 
-FSCHK   LDA  SPECFN+1
-        ANDA  #$F               ; FACTORY SETTINGS??
-        BEQ  ADVS33
-        INC  ADJSUM
-        INC  ADJSUM             ; BASH THE CHECK BYTE...THIS WILL RESTORE.
-        CLR  SPECFN+1           ; AND UNDO IT
-ADVS33  RTS
+FSCHK           lda  SPECFN+1
+                anda  #$F               ; FACTORY SETTINGS??
+                beq  ADVS33
+                inc  ADJSUM
+                inc  ADJSUM             ; BASH THE CHECK BYTE...THIS WILL RESTORE.
+                clr  SPECFN+1           ; AND UNDO IT
+ADVS33          rts
 
 ;   PD = ECHO PTR
 ;   PD+2 = CMOS OF 25 CHARS
 ;   PD+4 = CMOS OF STORED OFFSET
 ;   PD+6 = RETURN
 
-SLIDE   LDU  CRPROC
-        LDA  #$25               ; START X
-        STD  proc.data,U               ; SAVE ECHO POINTER
-        PULS  D
-        STD  proc.data+6,U
-        STX  proc.data+4,U
-        STY  proc.data+2,U
-        LDA  #$25
-        JSR  WCMOSA
-        LDA  #OPCNTM
-        JSR  WRD7V
+SLIDE           ldu  CRPROC
+                lda  #$25               ; START X
+                std  proc.data,U               ; SAVE ECHO POINTER
+                puls  D
+                std  proc.data+6,U
+                stx  proc.data+4,U
+                sty  proc.data+2,U
+                lda  #$25
+                jsr  WCMOSA
+                lda  #OPCNTM
+                jsr  WRD7V
 SLIDE0  
         NAP  (4,SLIDE1)
-SLIDE1  LDA  PIA0
-        BITA  #2                ; DEBOUNCE ADV.
-        BNE  SLIDE0
-SLIDE5  LDA  PIA2               ; CHECK FOR THRUST OF FIRE
-        RORA                    ; FIRE??
-        BCC  SLIDE3             ; NOPE
-        LDX  proc.data+4,U             ; GET MEMORY POINTER
-        JSR  RCMOSA             ; FETCH THE BYTE
-        LDX  proc.data+4,U             ; RESTORE POINTER
-        INCA                    ; ADD ONE
-        CMPA  #$3C              ; NO FARTHER RIGHT THAN 38
-        BLS  SLIDE4
-        LDA  #$3C
-        BRA  SLIDE4
-SLIDE3  RORA
-        BCC  SLIDE6             ; NOTHING PRESSED...LOOP
-        LDX  proc.data+4,U
-        JSR  RCMOSA
-        LDX  proc.data+4,U
-        DECA
-        CMPA  #$10
-        BHS  SLIDE4
-        LDA  #$10
-SLIDE4  JSR  WCMOSA
-        STA  proc.data,U               ; ALSO MAKE X OF ECHO POINTER
-        JSR  REDISP
+SLIDE1          lda  PIA0
+                bita  #2                ; DEBOUNCE ADV.
+                bne  SLIDE0
+SLIDE5          lda  PIA2               ; CHECK FOR THRUST OF FIRE
+                rora                    ; FIRE??
+                bcc  SLIDE3             ; NOPE
+                ldx  proc.data+4,U             ; GET MEMORY POINTER
+                jsr  RCMOSA             ; FETCH THE BYTE
+                ldx  proc.data+4,U             ; RESTORE POINTER
+                inca                    ; ADD ONE
+                cmpa  #$3C              ; NO FARTHER RIGHT THAN 38
+                bls  SLIDE4
+                lda  #$3C
+                bra  SLIDE4
+SLIDE3          rora
+                bcc  SLIDE6             ; NOTHING PRESSED...LOOP
+                ldx  proc.data+4,U
+                jsr  RCMOSA
+                ldx  proc.data+4,U
+                deca
+                cmpa  #$10
+                bhs  SLIDE4
+                lda  #$10
+SLIDE4          jsr  WCMOSA
+                sta  proc.data,U               ; ALSO MAKE X OF ECHO POINTER
+                jsr  REDISP
         NAP  ($10,SLIDE5)
-SLIDE6  LDA  PIA0               ; CHECK FOR ADVANCE
-        BITA  #2
-        BNE  SLIDE7             ; TIME TO LEAVE
+SLIDE6          lda  PIA0               ; CHECK FOR ADVANCE
+                bita  #2
+                bne  SLIDE7             ; TIME TO LEAVE
         NAP  (4,SLIDE5)
-SLIDE7  JSR  SCRCLR
+SLIDE7          jsr  SCRCLR
 SLIDE8  
         NAP  (4,SLIDE9)
-SLIDE9  LDA  PIA0
-        BITA  #2
-        BNE  SLIDE8
-        JMP  [proc.data+6,U]
+SLIDE9          lda  PIA0
+                bita  #2
+                bne  SLIDE8
+                jmp  [proc.data+6,U]
 
-REDISP  CLR  TXFLAV
-        LDX  proc.data,U               ; UPPER LEFT TO ECHO
-        LEAX  -$100,X
-        LDA  #90
-        LDB  #9
-        JSR  BLKCLR             ; CLEAR THE BLOCK
-        LDX  proc.data,U               ; CURSOR
-        CLR  TXFLAV
-        LDY  proc.data+2,U             ; DATA POINTER
-        LDB  #25
-RDSP1   EXG  X,Y
-        JSR  RCMOSA
-        EXG  X,Y
-        JSR  PR57V
-        DECB
-        BNE  RDSP1
-        RTS                     ; DONE!
+REDISP          clr  TXFLAV
+                ldx  proc.data,U               ; UPPER LEFT TO ECHO
+                leax  -$100,X
+                lda  #90
+                ldb  #9
+                jsr  BLKCLR             ; CLEAR THE BLOCK
+                ldx  proc.data,U               ; CURSOR
+                clr  TXFLAV
+                ldy  proc.data+2,U             ; DATA POINTER
+                ldb  #25
+RDSP1           exg  X,Y
+                jsr  RCMOSA
+                exg  X,Y
+                jsr  PR57V
+                decb
+                bne  RDSP1
+                rts                     ; DONE!
 
-SSTATE  STY  YSTOR
-        STU  USTOR
-        STA  ASTOR
-        RTS
+SSTATE          sty  YSTOR
+                stu  USTOR
+                sta  ASTOR
+                rts
 
-LSTATE  LDY  YSTOR
-        LDU  USTOR
-        LDA  ASTOR
-        RTS
+LSTATE          ldy  YSTOR
+                ldu  USTOR
+                lda  ASTOR
+                rts
 
-SPCASE  CMPY  #GA1              ; MASTER ADJUST??
-        BEQ  MASTER
-        CMPY  #COINSL           ; COIN SELECT
-        BEQ  INCOIN
-        RTS
-MASTER  TFR  Y,X
-        JSR  RCMOSA             ; READ  
-        PSHS  A
-        ASLA                    ; DOUBLE
-        ASLA                    ; 4X
-        ADDA  ,S+               ; 5X
-        LDX  #DIFTAB
-        LEAX  A,X               ; POINT AT FIRST GUY
-MSTR1  LEAU  6,U                ; MOVE TO NEXT ENTRY
-        LEAY  2,Y
-        LDA  ,X+                ; GET A BYTE
-        PSHS  X
-        TFR  Y,X
-        JSR  WCMOSA             ; WRITE OUT THE NEW VALUE
-        PULS  X
-        JSR  PRVAL              ; PRINT THE APPROPRIATE VALUE AND MESSAGE
-        CMPY  #GA1+10
-        BLO  MSTR1
-        BRA  MAKCHK             ; DO THE CHECKSUM AND RETURN
-INCOIN  TFR  Y,X
-        JSR  RCMOSA             ; GET THE INDEX
-        ASLA
-        PSHS  A
-        ASLA
-        ADDA  ,S+               ; 6X
-        LDX  #CSELCT
-        LEAX  A,X               ; SLIDE DOWN
-INCON1  LEAU  6,U
-        LEAY  2,Y
-        LDA  ,X+
-        PSHS  X
-        TFR  Y,X
-        JSR  WCMOSA
-        PULS  X
-        JSR  PRVAL
-        CMPY  #MINUNT
-        BLO  INCON1
+SPCASE          cmpy  #GA1              ; MASTER ADJUST??
+                beq  MASTER
+                cmpy  #COINSL           ; COIN SELECT
+                beq  INCOIN
+                rts
+MASTER          tfr  Y,X
+                jsr  RCMOSA             ; READ  
+                pshs  A
+                asla                    ; DOUBLE
+                asla                    ; 4X
+                adda  ,S+               ; 5X
+                ldx  #DIFTAB
+                leax  A,X               ; POINT AT FIRST GUY
+MSTR1           leau  6,U                ; MOVE TO NEXT ENTRY
+                leay  2,Y
+                lda  ,X+                ; GET A BYTE
+                pshs  X
+                tfr  Y,X
+                jsr  WCMOSA             ; WRITE OUT THE NEW VALUE
+                puls  X
+                jsr  PRVAL              ; PRINT THE APPROPRIATE VALUE AND MESSAGE
+                cmpy  #GA1+10
+                blo  MSTR1
+                bra  MAKCHK             ; DO THE CHECKSUM AND RETURN
+INCOIN          tfr  Y,X
+                jsr  RCMOSA             ; GET THE INDEX
+                asla
+                pshs  A
+                asla
+                adda  ,S+               ; 6X
+                ldx  #CSELCT
+                leax  A,X               ; SLIDE DOWN
+INCON1          leau  6,U
+                leay  2,Y
+                lda  ,X+
+                pshs  X
+                tfr  Y,X
+                jsr  WCMOSA
+                puls  X
+                jsr  PRVAL
+                cmpy  #MINUNT
+                blo  INCON1
 
-MAKCHK  PSHS  X,A
-        BSR  FCHK               ; FIND THE NEW CHECKSUM.
-        LDX  #ADJSUM
-        JSR  WCMOSA
-        PULS  X,A,PC
+MAKCHK          pshs  X,A
+                bsr  FCHK               ; FIND THE NEW CHECKSUM.
+                ldx  #ADJSUM
+                jsr  WCMOSA
+                puls  X,A,PC
 
-FCHK    PSHS  B,X,Y
-        LDX  #CMOS
-        LDY  #ENDADJ
-        BSR  FCHK_
-        PULS  B,X,Y,PC
+FCHK            pshs  B,X,Y
+                ldx  #CMOS
+                ldy  #ENDADJ
+                bsr  FCHK_
+                puls  B,X,Y,PC
 
-OPCHK   LDX  #OPMESS
-        LDY  #OPMESS+104
+OPCHK           ldx  #OPMESS
+                ldy  #OPMESS+104
                                 ; 
-FCHK_   STY  XTEMP
-        CLRA
-FCHK1   LDB  ,X+
-        ANDB  #$F
-        PSHS  B
-        ADDA  ,S+
-        CMPX  XTEMP  
-        BNE  FCHK1
-        ADDA  #$37              ; FUDGE FACTOR
-        RTS    
+FCHK_           sty  XTEMP
+                clra
+FCHK1           ldb  ,X+
+                andb  #$F
+                pshs  B
+                adda  ,S+
+                cmpx  XTEMP  
+                bne  FCHK1
+                adda  #$37              ; FUDGE FACTOR
+                rts    
 
-CKADJ   BSR  FCHK
-        PSHS  A
-        LDX  #ADJSUM
-        JSR  RCMOSA
-        CMPA  ,S+
-        RTS
+CKADJ           bsr  FCHK
+                pshs  A
+                ldx  #ADJSUM
+                jsr  RCMOSA
+                cmpa  ,S+
+                rts
 
-CKCMOS  BSR  OPTST              ; CHECK OPERATOR MESSAGE
-        BSR  CKADJ              ; CHECK ADJ 
-        BEQ  CKSRT0
-        LDA  #WDATA
-        STA  WDOG
-        JSR  CMINI_
-        LDA  #WDATA
-        STA  WDOG
-        BSR  MAKCHK
-        LDA  #WDATA
-        STA  WDOG
-        JSR  SCRCLR             ; CLEAR THE SCREEN
-        LDA  #WDATA
-        STA  WDOG
-        BSR  AUDCHK             ; CHECK FOR FAULTY AUDITS
-        JSR  HSCHKV             ; CHECK FOR FAULTY HIGH SCORES
-        JSR  PUPHSC             ; NOW VALIDATE
-        BSR  CKADJ
-        BEQ  CKSNOR
-        LDA  #CMIMES            ; TELL THE OPERATOR WHAT IS GOING ON.
-CMLOP0  JSR  WRD7V
-CMLOP   LDA  #WDATA
-        STA  WDOG
-        LDA  PIA0               ; CHECK
-        BITA  #2
-        BEQ  CMLOP              ; NOT PRESSED CONTINUE TO HANG
-CKSMRT  RTS  
-CKSRT0  JMP  PUPHSC             ; FIX UP THE HIGH SCORE AREA AND RETURN
-CKSNOR  LDA  #RESMES
-        BRA  CMLOP0
+CKCMOS          bsr  OPTST              ; CHECK OPERATOR MESSAGE
+                bsr  CKADJ              ; CHECK ADJ 
+                beq  CKSRT0
+                lda  #WDATA
+                sta  WDOG
+                jsr  CMINI_
+                lda  #WDATA
+                sta  WDOG
+                bsr  MAKCHK
+                lda  #WDATA
+                sta  WDOG
+                jsr  SCRCLR             ; CLEAR THE SCREEN
+                lda  #WDATA
+                sta  WDOG
+                bsr  AUDCHK             ; CHECK FOR FAULTY AUDITS
+                jsr  HSCHKV             ; CHECK FOR FAULTY HIGH SCORES
+                jsr  PUPHSC             ; NOW VALIDATE
+                bsr  CKADJ
+                beq  CKSNOR
+                lda  #CMIMES            ; TELL THE OPERATOR WHAT IS GOING ON.
+CMLOP0          jsr  WRD7V
+CMLOP           lda  #WDATA
+                sta  WDOG
+                lda  PIA0               ; CHECK
+                bita  #2
+                beq  CMLOP              ; NOT PRESSED CONTINUE TO HANG
+CKSMRT          rts  
+CKSRT0          jmp  PUPHSC             ; FIX UP THE HIGH SCORE AREA AND RETURN
+CKSNOR          lda  #RESMES
+                bra  CMLOP0
 
-AUDCHK  LDX  #SLOT1
-        LDB  #4                 ; FOUR BAD BYTES IN AUDIT AREA AFTER RESET IS ENOUGH.
-AUDCK2  LDA  ,X+                ; GET A BYTE
-        ANDA  #$F
-        CMPA  #9                ; HEX???
-        BLS  AUDCK1             ; NOPE
-        DECB                    ; ONE MORE
-        BEQ  AUDCK4
-AUDCK1  CMPX  #WARPS+6          ; DONE??
-        BNE  AUDCK2 
-        RTS
-AUDCK4  LDA  #BOOKRS
-        JSR  WRD7V              ;  PRINT IT
-        LDX  #SLOT1
-AUDCK5  CLR  ,X+                ; AND CLEAR EM.
-        CMPX  #WARPS+6
-        BNE  AUDCK5
-OPTRTS  RTS
+AUDCHK          ldx  #SLOT1
+                ldb  #4                 ; FOUR BAD BYTES IN AUDIT AREA AFTER RESET IS ENOUGH.
+AUDCK2          lda  ,X+                ; GET A BYTE
+                anda  #$F
+                cmpa  #9                ; HEX???
+                bls  AUDCK1             ; NOPE
+                decb                    ; ONE MORE
+                beq  AUDCK4
+AUDCK1          cmpx  #WARPS+6          ; DONE??
+                bne  AUDCK2 
+                rts
+AUDCK4          lda  #BOOKRS
+                jsr  WRD7V              ;  PRINT IT
+                ldx  #SLOT1
+AUDCK5          clr  ,X+                ; AND CLEAR EM.
+                cmpx  #WARPS+6
+                bne  AUDCK5
+OPTRTS          rts
 
-OPTST   BSR  OPTST_             ; CHECK THE BYTE
-        BEQ  OPTRTS             ; ITS OK
-        JMP  OPSET              ; NO GOOD DEFAULT IT.
+OPTST           bsr  OPTST_             ; CHECK THE BYTE
+                beq  OPTRTS             ; ITS OK
+                jmp  OPSET              ; NO GOOD DEFAULT IT.
 
 ; 
 ;   COMPARE FOR OPERATOR MESSAGE CHECK BYTE
 ;   BEQ FOR OK
 ; 
 
-OPTST_  JSR  OPCHK          ; FORM CHECK BYTE
-        PSHS  A             ; SAVE
-        LDX  #OMESUM        ; GET THE SUM
-        JSR  RCMOSA
-        CMPA  ,S+
-        RTS
+OPTST_          jsr  OPCHK          ; FORM CHECK BYTE
+                pshs  A             ; SAVE
+                ldx  #OMESUM        ; GET THE SUM
+                jsr  RCMOSA
+                cmpa  ,S+
+                rts
 
 ; **  GETLET  GET A STRING OF LETTERS FROM THE USER
 ; 
@@ -898,261 +898,261 @@ OPTST_  JSR  OPCHK          ; FORM CHECK BYTE
 ;   PD+2 = ECHO ADDR
 ;   PD+4 = ADDRESS TO STORE LETTER
 ;   PD+6 = RETURN
-GETLET  LDU  CRPROC
-        STD  proc.data,U           ; SAVE COUNT
-        STX  proc.data+2,U
-        STY  proc.data+4,U
-        PULS  D             ; GET RETURN ADDRESS
-        STD  proc.data+6,U
+GETLET          ldu  CRPROC
+                std  proc.data,U           ; SAVE COUNT
+                stx  proc.data+2,U
+                sty  proc.data+4,U
+                puls  D             ; GET RETURN ADDRESS
+                std  proc.data+6,U
 GETL__  
         NAP  (4,GETL_1)
-GETL_1  LDA  PIA2
-        RORA
-        BCS  GETL__         ; STOP TYPOMATIC PROBLEMS
+GETL_1          lda  PIA2
+                rora
+                bcs  GETL__         ; STOP TYPOMATIC PROBLEMS
         MAKP  (TIMPRC)
-        LDD  proc.data+6,U
-        STD  proc.data+6,X         ; PASS RETURN ADDRESS
-        LDD  proc.data,U
-        STD  proc.data,X
-        STU  proc.data+2,X         ; PASS US TO KILL
-        STX  GETLRM         ; SAVE HIS ID
-        LDA  #$99           ; SET COLOR TO WHITE
-        STA  TEXCOL  
-        CLR  TXFLAV         ;MAKE ZERO FLAVOR
+                ldd  proc.data+6,U
+                std  proc.data+6,X         ; PASS RETURN ADDRESS
+                ldd  proc.data,U
+                std  proc.data,X
+                stu  proc.data+2,X         ; PASS US TO KILL
+                stx  GETLRM         ; SAVE HIS ID
+                lda  #$99           ; SET COLOR TO WHITE
+                sta  TEXCOL  
+                clr  TXFLAV         ;MAKE ZERO FLAVOR
 
 
-GETLLL  CLR  GETLST         ; MAKE LAST NOT AVAILABLE.
-        CLR  GETLST+1
-        CLR  GETLST+2
-GETLT0  JSR  CLRREG         ; CLEAR THE REGION
-        JSR  PRFROB         ; PRINT THE FROB
-        LDA  #$3A           ; SPACE
-        JSR  LSTY           ; STORE AS CURRENT
+GETLLL          clr  GETLST         ; MAKE LAST NOT AVAILABLE.
+                clr  GETLST+1
+                clr  GETLST+2
+GETLT0          jsr  CLRREG         ; CLEAR THE REGION
+                jsr  PRFROB         ; PRINT THE FROB
+                lda  #$3A           ; SPACE
+                jsr  LSTY           ; STORE AS CURRENT
 GETLT1  
         NAP  (2,GETLT2)
-GETLT2  JSR  LUPDN          ; SCAN FOR LETTER CHANGE
-        LDA  PIA2           ; CHECK FOR FIRE
-        RORA
-        BCC  GETLT1         ; NOT PRESSED..LOOP
-        LDA  proc.data+1,U         ; GET ALPHA 'BIT'
-        ADDA  #$A           ; TIME FOR CHASE = 1/4
-        STA  proc.data+1,U
+GETLT2          jsr  LUPDN          ; SCAN FOR LETTER CHANGE
+                lda  PIA2           ; CHECK FOR FIRE
+                rora
+                bcc  GETLT1         ; NOT PRESSED..LOOP
+                lda  proc.data+1,U         ; GET ALPHA 'BIT'
+                adda  #$A           ; TIME FOR CHASE = 1/4
+                sta  proc.data+1,U
 GETLT3  
         NAP  (2,GETLT4)
-GETLT4  LDA  PIA2           ; STILL DOWN??
-        RORA
-        BCC  GETLT5         ; NOPE
-        DEC  proc.data+1,U         ; ONE LESS COUNT
-        BEQ  GETLT5
-        LDA  proc.data+1,U         ; CHECK FOR 80
-        CMPA  #$80
-        BNE  GETLT3
-GETLT5  LDA  proc.data+1,U         ; RESTORE ALPHA BIT
-        ANDA  #$80
-        STA  proc.data+1,U
-        BSR  LLDY           ; GET THE CURRENT LETTER
-        CMPA  #$5E          ; IS IT A RUB
-        BEQ  GETRUB
-        LDA  TXFLAV
-        STA  GETLST+2
-        BSR  NOFROB         ; TAKE THE FROB AWAY
-        BSR  LLDY           ; GET CURRENT LETTER
-        LDX  proc.data+2,U         ; GET POINTER
-        STX  GETLST         ; SAVE CURRENT ECHO POINTER
-        JSR  PR57V          ; PUT THE LETTER OUT
-        STX  proc.data+2,U         ; THIS MAKES NEW POINTER
-        JSR  PUSHY          ; PUSH THE Y POINTER TO NEXT
-        DEC  proc.data,U           ; ONE LESS LETTER TO DO
-        BNE  GETLT0
-        LDX  GETLRM         ; KILL THE TIMER PROCESS
-        JSR  KILL
-        JMP  [proc.data+6,U]
+GETLT4          lda  PIA2           ; STILL DOWN??
+                rora
+                bcc  GETLT5         ; NOPE
+                dec  proc.data+1,U         ; ONE LESS COUNT
+                beq  GETLT5
+                lda  proc.data+1,U         ; CHECK FOR 80
+                cmpa  #$80
+                bne  GETLT3
+GETLT5          lda  proc.data+1,U         ; RESTORE ALPHA BIT
+                anda  #$80
+                sta  proc.data+1,U
+                bsr  LLDY           ; GET THE CURRENT LETTER
+                cmpa  #$5E          ; IS IT A RUB
+                beq  GETRUB
+                lda  TXFLAV
+                sta  GETLST+2
+                bsr  NOFROB         ; TAKE THE FROB AWAY
+                bsr  LLDY           ; GET CURRENT LETTER
+                ldx  proc.data+2,U         ; GET POINTER
+                stx  GETLST         ; SAVE CURRENT ECHO POINTER
+                jsr  PR57V          ; PUT THE LETTER OUT
+                stx  proc.data+2,U         ; THIS MAKES NEW POINTER
+                jsr  PUSHY          ; PUSH THE Y POINTER TO NEXT
+                dec  proc.data,U           ; ONE LESS LETTER TO DO
+                bne  GETLT0
+                ldx  GETLRM         ; KILL THE TIMER PROCESS
+                jsr  KILL
+                jmp  [proc.data+6,U]
 
-GETRUB  BSR  NOFROB         ; MAKE LIKE WE'RE NOT HERE.
-        BSR  CLRREG
-        LDA  #$3A
-        JSR  LSTY           ; STORE A SPACE AT THE CURRENT SPOT
-        LDX  GETLST
-        STX  proc.data+2,U
-        LDB  GETLST+2
-        STB  TXFLAV
-        INC  proc.data,U           ; ONE MORE CHARACTER TO GET.
-        LDY  proc.data+4,U         ; GET THE Y
-        LEAY  -1,Y          ; MOVE BACK ONE ASSUMING RAM
-        CMPY  #$C000        ; CMOS??
-        BLO  GETRB1         ; NOPE
-        LEAY  -1,Y
-GETRB1  STY  proc.data+4,U
-        JMP  GETLLL         ; NOW GO AND GET THE LAST CHARACTER AGAIN.
+GETRUB          bsr  NOFROB         ; MAKE LIKE WE'RE NOT HERE.
+                bsr  CLRREG
+                lda  #$3A
+                jsr  LSTY           ; STORE A SPACE AT THE CURRENT SPOT
+                ldx  GETLST
+                stx  proc.data+2,U
+                ldb  GETLST+2
+                stb  TXFLAV
+                inc  proc.data,U           ; ONE MORE CHARACTER TO GET.
+                ldy  proc.data+4,U         ; GET THE Y
+                leay  -1,Y          ; MOVE BACK ONE ASSUMING RAM
+                cmpy  #$C000        ; CMOS??
+                blo  GETRB1         ; NOPE
+                leay  -1,Y
+GETRB1          sty  proc.data+4,U
+                jmp  GETLLL         ; NOW GO AND GET THE LAST CHARACTER AGAIN.
 
-CLRREG  PSHS  D
-        LDX  proc.data+2,U         ; GET POINTER TO REGION
-        LDD  #$407          ; WIDTH,HEIGHT
-        JSR  BLKCLR         ; CLEAR THE BLOCK
-        PULS  D,PC
+CLRREG          pshs  D
+                ldx  proc.data+2,U         ; GET POINTER TO REGION
+                ldd  #$407          ; WIDTH,HEIGHT
+                jsr  BLKCLR         ; CLEAR THE BLOCK
+                puls  D,PC
 
-PRFROB  LDA  #$99  
-PRFRB1  LDX  proc.data+2,U         ; GET POINTER
-        STA  8,X 
-        STA  $108,X
-        STA  $208,X
-        STA  $308,X
-        RTS
+PRFROB          lda  #$99  
+PRFRB1          ldx  proc.data+2,U         ; GET POINTER
+                sta  8,X 
+                sta  $108,X
+                sta  $208,X
+                sta  $308,X
+                rts
 
-NOFROB  CLRA
-        BRA  PRFRB1
+NOFROB          clra
+                bra  PRFRB1
 
-LLDY    LDY  proc.data+4,U         ; GET Y POINTER
-        CMPY  #$C000
-        BHS  LDCMOS         ; CMOS
-        LDA  ,Y             ; ELSE LOAD THE NUMBER
-        RTS
-LDCMOS  PSHS  X
-        LDX  proc.data+4,U         ; LOAD INTO X
-        JSR  RCMOSA         ;  LOAD IT
-        PULS  X,PC          ; AND RETURN
+LLDY            ldy  proc.data+4,U         ; GET Y POINTER
+                cmpy  #$C000
+                bhs  LDCMOS         ; CMOS
+                lda  ,Y             ; ELSE LOAD THE NUMBER
+                rts
+LDCMOS          pshs  X
+                ldx  proc.data+4,U         ; LOAD INTO X
+                jsr  RCMOSA         ;  LOAD IT
+                puls  X,PC          ; AND RETURN
 
-LSTY    LDY  proc.data+4,U         ; GET POINTER
-        CMPY  #$C000        ; CMOS??
-        BHS  LSCMOS
-        STA  ,Y
-        RTS
-LSCMOS  PSHS  X
-        LDX  proc.data+4,U
-        JSR  WCMOSA
-        PULS  X,PC
+LSTY            ldy  proc.data+4,U         ; GET POINTER
+                cmpy  #$C000        ; CMOS??
+                bhs  LSCMOS
+                sta  ,Y
+                rts
+LSCMOS          pshs  X
+                ldx  proc.data+4,U
+                jsr  WCMOSA
+                puls  X,PC
 
-PUSHY   LDY  proc.data+4,U
-        LEAY  1,Y
-        CMPY  #$C000
-        BLO  PUSHY1         ; NOT CMOS..DONE
-        LEAY  1,Y
-PUSHY1  STY  proc.data+4,U
-        RTS
+PUSHY           ldy  proc.data+4,U
+                leay  1,Y
+                cmpy  #$C000
+                blo  PUSHY1         ; NOT CMOS..DONE
+                leay  1,Y
+PUSHY1          sty  proc.data+4,U
+                rts
 
-LUPDN   LDA  PIA2           ; SCAN FOR DOWN
-        BMI  LDOWN          ; HIT...SERVICE
-        LDA  PIA3           ; SCAN FOR UP  
-        RORA
-        BCS  LUP            ; HIT
-LDRET   RTS                 ; ELSE RETURN
+LUPDN           lda  PIA2           ; SCAN FOR DOWN
+                bmi  LDOWN          ; HIT...SERVICE
+                lda  PIA3           ; SCAN FOR UP  
+                rora
+                bcs  LUP            ; HIT
+LDRET           rts                 ; ELSE RETURN
 
-LDOWN   LDA  #10            ; 1 DOWN ITERATION
-LDOWN0  BSR  LDN1           ; 1 SHOT
-LDOWN1  JSR  DELAY1         ; SHORT DELAY
-        LDB  PIA2           ; SCAN
-        BPL  LDRET          ; GONE
-        DECA
-        BNE  LDOWN1
-        LDA  #1
-        BRA  LDOWN0
+LDOWN           lda  #10            ; 1 DOWN ITERATION
+LDOWN0          bsr  LDN1           ; 1 SHOT
+LDOWN1          jsr  DELAY1         ; SHORT DELAY
+                ldb  PIA2           ; SCAN
+                bpl  LDRET          ; GONE
+                deca
+                bne  LDOWN1
+                lda  #1
+                bra  LDOWN0
 
-LUP     LDA  #10
-LUP0    BSR  LUPP1
-LUP1    JSR  DELAY1
-        LDB  PIA3
-        RORB
-        BCC  LDRET
-        DECA
-        BNE  LUP1
-        LDA  #1
-        BRA  LUP0
+LUP             lda  #10
+LUP0            bsr  LUPP1
+LUP1            jsr  DELAY1
+                ldb  PIA3
+                rorb
+                bcc  LDRET
+                deca
+                bne  LUP1
+                lda  #1
+                bra  LUP0
 
-LUPP1   PSHS  A             ; SAVE A PLEASE
-        BSR  LLDY           ; GET THE CURRENT VALUE
-        INCA                ; PUSH TO NEXT
-        TST  proc.data+1,U         ; SEE IF ALPHA ONLY
-        BEQ  LUPP2          ; YES
-        TST  GETLST         ; RUB ALLOWED??
-        BEQ  LUP1__         ; NOPE.
-        CMPA  #$5E
-        BLS  LUPP1_         ; IN RANGE.
-LUP1__  CMPA  #$5D          ; HIGHER THAN SLASH    
-        BLS  LUPP1_
-        LDA  #$30           ; THEN MAKE 0
-LUPP1_  CMPA  #$3E          ; UNUSED PLACE??
-        BNE  LUPP3
-        INCA
-        BRA  LUPP3          ; PRINT TIME
-LUPP2  CMPA  #$5A           ; HIGHER THAN Z??
-        BLS  LUPP2_
-        TST  GETLST         ; RUB ALLOWED??
-        BEQ  LUP2__         ; NO...MOVE TO SPACE
-        CMPA  #$5E          ; PAST BACK FRBO
-        BHI  LUP2__         ; YEP
-        LDA  #$5E           ; MAKE US THE BACK FROB
-        BRA  LUPP2_
-LUP2__  LDA  #$3A           ; THEN MAKE SPACE
-LUPP2_  CMPA  #$3B          ; 1 AFTER SPACE (ALPHA)
-        BNE  LUPP3
-        LDA  #$41           ; PUSH TO A.
-LUPP3   JSR  LSTY           ; STORE THE NEW ONE.
-        JSR  CLRREG         ; CUT CLEAR OUT THE REGION
-        LDB  TXFLAV         ; SAVE THE FLAVOR
-        LDX  proc.data+2,U         ; GET CURSOR
-        JSR  PR57V
-        STB  TXFLAV         ; RESTORE FLAVOR
-LUPBYE  PULS  A,PC          ; AND RETURN
+LUPP1           pshs  A             ; SAVE A PLEASE
+                bsr  LLDY           ; GET THE CURRENT VALUE
+                inca                ; PUSH TO NEXT
+                tst  proc.data+1,U         ; SEE IF ALPHA ONLY
+                beq  LUPP2          ; YES
+                tst  GETLST         ; RUB ALLOWED??
+                beq  LUP1__         ; NOPE.
+                cmpa  #$5E
+                bls  LUPP1_         ; IN RANGE.
+LUP1__          cmpa  #$5D          ; HIGHER THAN SLASH    
+                bls  LUPP1_
+                lda  #$30           ; THEN MAKE 0
+LUPP1_          cmpa  #$3E          ; UNUSED PLACE??
+                bne  LUPP3
+                inca
+                bra  LUPP3          ; PRINT TIME
+LUPP2           cmpa  #$5A           ; HIGHER THAN Z??
+                bls  LUPP2_
+                tst  GETLST         ; RUB ALLOWED??
+                beq  LUP2__         ; NO...MOVE TO SPACE
+                cmpa  #$5E          ; PAST BACK FRBO
+                bhi  LUP2__         ; YEP
+                lda  #$5E           ; MAKE US THE BACK FROB
+                bra  LUPP2_
+LUP2__          lda  #$3A           ; THEN MAKE SPACE
+LUPP2_          cmpa  #$3B          ; 1 AFTER SPACE (ALPHA)
+                bne  LUPP3
+                lda  #$41           ; PUSH TO A.
+LUPP3           jsr  LSTY           ; STORE THE NEW ONE.
+                jsr  CLRREG         ; CUT CLEAR OUT THE REGION
+                ldb  TXFLAV         ; SAVE THE FLAVOR
+                ldx  proc.data+2,U         ; GET CURSOR
+                jsr  PR57V
+                stb  TXFLAV         ; RESTORE FLAVOR
+LUPBYE          puls  A,PC          ; AND RETURN
 
-LDN1    PSHS  A
-        JSR  LLDY           ; GET THE CURRENT VALUE
-        DECA
-        TST  proc.data+1,U         ; ALPHA ONLY??
-        BEQ  LDN2
-        CMPA  #$30          ; COMPARE TO ZERO
-        BHS  LDN1_  
-        TST  GETLST
-        BEQ  LDN1__         ; NO RUB...SET TO SLASH
-        LDA  #$5E           ; RUB
-        BRA  LDN1_
-LDN1__  LDA  #$5D           ; SET TO SLASH  
-LDN1_   CMPA  #$3E          ; UNUSED ONE??
-        BNE  LDN3__
-        DECA
-        BRA  LDN3__
-LDN2    CMPA  #$39          ; BEFORE SPACE
-        BNE  LDN2_          ; THEN EXIT
-        TST  GETLST         ; RUB??
-        BEQ  LDN2__         ; NO...LOAD Z
-        LDA  #$5E
-        BRA  LDN2_
-LDN2__  LDA  #$5A           ; THEN LOAD Z
-LDN2_   CMPA  #$40          ; BEFORE A  
-        BNE  LDN3           ; NOPE
-        LDA  #$3A           ; MAKE SPACE
-LDN3    CMPA  #$5D          ; BELOW RUB
-        BNE  LDN3__
-        LDA  #$5A           ; THEN LOAD Z
-LDN3__  BRA  LUPP3  
+LDN1            pshs  A
+                jsr  LLDY           ; GET THE CURRENT VALUE
+                deca
+                tst  proc.data+1,U         ; ALPHA ONLY??
+                beq  LDN2
+                cmpa  #$30          ; COMPARE TO ZERO
+                bhs  LDN1_  
+                tst  GETLST
+                beq  LDN1__         ; NO RUB...SET TO SLASH
+                lda  #$5E           ; RUB
+                bra  LDN1_
+LDN1__          lda  #$5D           ; SET TO SLASH  
+LDN1_           cmpa  #$3E          ; UNUSED ONE??
+                bne  LDN3__
+                deca
+                bra  LDN3__
+LDN2            cmpa  #$39          ; BEFORE SPACE
+                bne  LDN2_          ; THEN EXIT
+                tst  GETLST         ; RUB??
+                beq  LDN2__         ; NO...LOAD Z
+                lda  #$5E
+                bra  LDN2_
+LDN2__          lda  #$5A           ; THEN LOAD Z
+LDN2_           cmpa  #$40          ; BEFORE A  
+                bne  LDN3           ; NOPE
+                lda  #$3A           ; MAKE SPACE
+LDN3            cmpa  #$5D          ; BELOW RUB
+                bne  LDN3__
+                lda  #$5A           ; THEN LOAD Z
+LDN3__          bra  LUPP3  
 
-DELAY1  LDX  #$2000
-DELAY2  LEAX  -1,X
-        BNE  DELAY2
-        RTS
+DELAY1          ldx  #$2000
+DELAY2          leax  -1,X
+                bne  DELAY2
+                rts
 
-TIMPRC  TST  proc.data+1,U         ; DIAGNOSTIC CALL??
-        BNE  TIMADV
+TIMPRC          tst  proc.data+1,U         ; DIAGNOSTIC CALL??
+                bne  TIMADV
 TIMPR0  
         NAP  ($FF,TIMPR1)  ; 4 SECONDS OF SLEEP
 TIMPR1  
         NAP  ($FF,TIMPR6)
 TIMPR6  
         NAP  ($82,TIMPR7)
-TIMPR7  DEC  proc.data,U
-        BNE  TIMPR0  ; 8 SECONDS PER LETTER
-TIMPR2  LDX  proc.data+2,U
-        LEAU  ,X  ; PUT IN U PLEASE
-        JSR  LLDY  ; LOAD THE CURRENT CHARACTER
-        CMPA  #$5E  ; RUB???
-        BNE  TIMA__
-        LDA  #$3A
-        JSR  LSTY  ; AND STORE IT
-TIMA__  LDU  CRPROC
-        JSR  KILL
-        JMP  [proc.data+6,U]
-TIMADV  LDA  PIA0
-        BITA  #2
-        BNE  TIMPR2 ;  CAN IT ON ADVANCE
+TIMPR7          dec  proc.data,U
+                bne  TIMPR0  ; 8 SECONDS PER LETTER
+TIMPR2          ldx  proc.data+2,U
+                leau  ,X  ; PUT IN U PLEASE
+                jsr  LLDY  ; LOAD THE CURRENT CHARACTER
+                cmpa  #$5E  ; RUB???
+                bne  TIMA__
+                lda  #$3A
+                jsr  LSTY  ; AND STORE IT
+TIMA__          ldu  CRPROC
+                jsr  KILL
+                jmp  [proc.data+6,U]
+TIMADV          lda  PIA0
+                bita  #2
+                bne  TIMPR2 ;  CAN IT ON ADVANCE
         NAP  (1,TIMADV)
 
   ; END

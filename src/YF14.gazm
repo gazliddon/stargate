@@ -4,281 +4,282 @@
   ; LIST
   ; TTL  <<<<<  S T A R G A T E  >>>>>
 
-            ORG  YFORG
-FBSTRT      JMP  FBSTR_
-YLST        JMP  YLST_
-RIPV        JMP  RIPCHK
-PHFPB       FDB  PHFBPC
-FBMBPV      FDB  FBMR0
-FBALPV      FDB  FBALL0
-YLPV        FDB  YLPL0
+            ORG YFORG
+FBSTRT          jmp  FBSTR_
+YLST            jmp  YLST_
+RIPV            jmp  RIPCHK
+PHFPB           FDB  PHFBPC
+FBMBPV          FDB  FBMR0
+FBALPV          FDB  FBALL0
+YLPV            FDB  YLPL0
 
 ;;; YLLABIAN START
 ;;; A = #
 ;;; RANDOM SQUADS 2,3 PER
-YLST_  PSHS A,B
-YLST0  LDB  ,S
-    BEQ  YLSTX                      ; DONE
-    CMPB #2
-    BLS  YLSQ
-    JSR  RAND                      ; 2 OR 3?
-    LDB  #2
-    LSRA
-    BCC  YLSQ
-    ADDB  #1
+YLST_           pshs A,B
+YLST0           ldb  ,S
+                beq  YLSTX                      ; DONE
+                cmpb #2
+                bls  !YLSQ
+                jsr  RAND                      ; 2 OR 3?
+                ldb  #2
+                lsra
+                bcc  !YLSQ
+                addb  #1
 ; MAKE A SQUAD
-YLSQ  STB  1,S                          ; SAVE #
-    LDD  HSEED                      ; RAND START POINT
-    ASRA
-    ASRA
-    ADDD PLABX
-    ADDA #$80
-    STD  XTEMP2
-    LDA  YLXV
-    PSHS A
-    LSRA
-    LSRA
-    NEGA
-    ADDA ,S+                      ; CRUISE V =.75 NORMAL
-    JSR  RMAX
-    BITA  #1
-    BEQ  YLSQ1
-    NEGA
-YLSQ1  STA  XTEMP+1                      ; VELOCITY GUYS
-    LDA  LSEED
-    LSRA
-    STA  XTEMP                      ; Y OFFSET
+!YLSQ           stb  1,S                          ; SAVE #
+                ldd  HSEED                      ; RAND START POINT
+                asra
+                asra
+                addd PLABX
+                adda #$80
+                std  XTEMP2
+                lda  YLXV
+                pshs A
+                lsra
+                lsra
+                nega
+                adda ,S+                      ; CRUISE V =.75 NORMAL
+                jsr  RMAX
+                bita  #1
+                beq  YLSQ1
+                nega
+YLSQ1           sta  XTEMP+1                      ; VELOCITY GUYS
+                lda  LSEED
+                lsra
+                sta  XTEMP                      ; Y OFFSET
 YLSQ0  
-    MKPROB(YLPP,YLPL0,YLKIL,$2222)
-    BEQ  YLSTX                      ; NOBODY HOME
-    JSR  RAND
-    LDD  HSEED
-    ANDA  #3
-    ADDD  XTEMP2                  ; X SPREAD
-    STD  OX16,X
-    JSR  GETALT
-    SUBA  XTEMP
-    STA  OY16,X
-    LDA  XTEMP                      ; Y SPACING
-    ADDA  #4
-    STA  XTEMP
-    STA  proc.d2,U                      ; Y SPACING
-    LDB  XTEMP+1
-    SEX
-    STD  OXV,X
-    JSR  GYLPIC                      ; GET YUR PICTY-POOH
-    JSR  APVCT                      ; APPEAR GUYS
-    INC  YLCNT
-    DEC  ,S                          ; DEC TOTAL CNT
-    DEC  1,S                          ; DEC SQUAD COUNT
-    BNE  YLSQ0
-    BRA  YLST0
-YLSTX  PULS  D,PC
+                MKPROB(YLPP,YLPL0,YLKIL,$2222)
+                beq  YLSTX                      ; NOBODY HOME
+                jsr  RAND
+                ldd  HSEED
+                anda  #3
+                addd  XTEMP2                  ; X SPREAD
+                std  OX16,X
+                jsr  GETALT
+                suba  XTEMP
+                sta  OY16,X
+                lda  XTEMP                      ; Y SPACING
+                adda  #4
+                sta  XTEMP
+                sta  proc.d2,U                      ; Y SPACING
+                ldb  XTEMP+1
+                sex
+                std  OXV,X
+                jsr  GYLPIC                      ; GET YUR PICTY-POOH
+                jsr  APVCT                      ; APPEAR GUYS
+                inc  YLCNT
+                dec  ,S                          ; DEC TOTAL CNT
+                dec  1,S                          ; DEC SQUAD COUNT
+                bne  YLSQ0
+                bra  YLST0
+YLSTX           puls  D,PC
 
 ; GET YLLABIAN PICTURE
 ; X=OBJ
-GYLPIC  LDY  #YLPL0
-    LDA  OXV,X
-    BPL  GYLP0
-    LEAY 50,Y          ; ACCESS NEGATIVE IMAGES
-GYLP0  LDD  OYV,X
-    ASLB
-    ROLA
-    ADDA #2
-    BPL  GYLP1
-    CLRA
-GYLP1  CMPA #4
-    BLS  GYLP2
-    LDA  #4
-GYLP2  LDB  #10
-    MUL
-    LEAY B,Y
-    STY  OPICT,X
-    RTS
+GYLPIC          ldy  #YLPL0
+                lda  OXV,X
+                bpl  GYLP0
+                leay 50,Y          ; ACCESS NEGATIVE IMAGES
+GYLP0           ldd  OYV,X
+                aslb
+                rola
+                adda #2
+                bpl  GYLP1
+                clra
+GYLP1           cmpa #4
+                bls  GYLP2
+                lda  #4
+GYLP2           ldb  #10
+                mul
+                leay B,Y
+                sty  OPICT,X
+                rts
 
 ;;; YLLABIAN BOMB ROUTINE
 ;;; X=OBJ
-YLBOMB  PSHS X
-    LDD  PLABX
-    SUBD OX16,X
-    EORA OXV,X
-    BMI  YLBX                  ; NOT HEADED FOR PLAYER
-    LDA  PLAYC
-    SUBA OY16,X
-    EORA OYV,X
-    BMI  YLBX                  ; NOT HEADED FOR PLAYER
-    LDA  YLSTIM                  ; NEW TIMER
-    JSR  RMAX
-    STA  proc.d6,U
-    LDA  BMBCNT
-    CMPA #15
-    BHI  YLBX                  ; TOO MANY ALREADY
-    LEAY ,X
-    SHL  (YLBOUT,YLBP1,BKIL)
-    BEQ  YLBX                  ; NONE LEFT
-    LDB  SEED
-    ANDB #$1F             ; RANDOM FACTOR
-    ADDB #-$10
-    ADDB PLAXC
-    SUBB OBJX,X
-    SEX
-    ASLB
-    ROLA
-    ASLB
-    ROLA
-    STD  OXV,X
-    LDD  OXV,Y
-    ASLB
-    ROLA
-    ASLB
-    ROLA
-    ADDD OXV,X
-    STD  OXV,X
-    LDB  LSEED
-    ANDB #$1F
-    ADDB #-$10
-    ADDB PLAYC
-    SUBB OBJY,X
-    SEX
-    ASLB
-    ROLA
-    ASLB
-    ROLA
-    ADDD PLAYV
-    ASRA
-    RORB
-    STD  OYV,X
-    LDD  #YLSSND                  ; MAKE SHOT SOUND
-    JSR  SNDLD
-YLBX  PULS  X,PC
-YLSSND  FCB  $C0,$03,$08,$02,$0      ; YLLAB SHOT
+YLBOMB          pshs X
+                ldd  PLABX
+                subd OX16,X
+                eora OXV,X
+                bmi  !YLBX                  ; NOT HEADED FOR PLAYER
+                lda  PLAYC
+                suba OY16,X
+                eora OYV,X
+                bmi  !YLBX                  ; NOT HEADED FOR PLAYER
+                lda  YLSTIM                  ; NEW TIMER
+                jsr  RMAX
+                sta  proc.d6,U
+                lda  BMBCNT
+                cmpa #15
+                bhi  !YLBX                  ; TOO MANY ALREADY
+                leay ,X
+                SHL  (YLBOUT,YLBP1,BKIL)
+                beq  !YLBX                  ; NONE LEFT
+                ldb  SEED
+                andb #$1F             ; RANDOM FACTOR
+                addb #-$10
+                addb PLAXC
+                subb OBJX,X
+                sex
+                aslb
+                rola
+                aslb
+                rola
+                std  OXV,X
+                ldd  OXV,Y
+                aslb
+                rola
+                aslb
+                rola
+                addd OXV,X
+                std  OXV,X
+                ldb  LSEED
+                andb #$1F
+                addb #-$10
+                addb PLAYC
+                subb OBJY,X
+                sex
+                aslb
+                rola
+                aslb
+                rola
+                addd PLAYV
+                asra
+                rorb
+                std  OYV,X
+                ldd  #YLSSND                  ; MAKE SHOT SOUND
+                jsr  SNDLD
+!YLBX           puls  X,PC
+YLSSND          FCB  $C0,$03,$08,$02,$0      ; YLLAB SHOT
 
 ; KILL YLLABIANS
-YLKIL  DEC  YLCNT                  ; DEAD GUY
-    KILP  ($120,UFHSND)       ; POINTS,SOUND
-    RTS
+YLKIL           dec  YLCNT                  ; DEAD GUY
+                KILP  ($120,UFHSND)       ; POINTS,SOUND
+                rts
  
 ;;; YLLABIAN PROCESS
 ;;; PD=OBJECT,PD2=ALT OFFSET
 ;;; PD3=DIVE OFFSET, PD4=ACCEL, PD5=DIVE TIME
 ;;; PD6=SHOT TIMER
-YLPP  LDX  proc.data,U
-        LDD  OPICT,X
-        CMPD  #NULOB          ; APPEARING?
-        BNE  YLPP1
-        NAP  (6,YLPP)          ; WAIT TO FINISH
-YLPP1  LDX  proc.data,U
-        LDA  OBJY,X              ; ON SCREEN?
-        BNE  YLPS              ; TARGET ENGAGED
-YLPP2  JSR  GETALT              ; FLY IN FORMATION
-    CLRB
-    SUBA  OY16,X
-    SUBA  proc.d2,U
-    CMPA  #-10
-    BGT  YLPP3
-    LDB  #-1
-YLPP3  CMPA  #10
-    BLT  YLPP4
-    LDB  #1
-YLPP4  STB  OYV,X              ; Y VELOCITY
-    NAP(10,YLPP1)           ; Sleep for 10 and wakeup at YLLP1
+YLPP            ldx  proc.data,U
+                ldd  OPICT,X
+                cmpd  #NULOB          ; APPEARING?
+                bne  !offscreen
+                NAP  (6,YLPP)          ; WAIT TO FINISH
 
-; ENGAGE THE ENEMY
-YLPS  LDA  #$0F              ; RANDOM SLEEP
-    JSR  RMAX
-    LDX  #YLPS1
-    JMP  SLEEP              ; RANDOM SLEEP TIME
+!offscreen      ldx  proc.data,U
+                lda  OBJY,X              ; ON SCREEN?
+                bne  !onscreen               ; TARGET ENGAGED
+                jsr  GETALT              ; FLY IN FORMATION
+                clrb
+                suba  OY16,X
+                suba  proc.d2,U
+                cmpa  #-10
+                bgt  !YLPP3
+                ldb  #-1
+!YLPP3          cmpa  #10
+                blt  !YLPP4
+                ldb  #1
+!YLPP4          stb  OYV,X                  ; Y VELOCITY
+                NAP(10,!offscreen)           ; Sleep for 10
+
+// ENGAGE THE ENEMY
+!onscreen       lda  #$0F              ; RANDOM SLEEP
+                jsr  RMAX
+                ldx  #!YLPS1
+                jmp  SLEEP              ; RANDOM SLEEP TIME
 
 ; START A DIVE
-YLPS1  LDX  proc.data,U              ; GET OBJECT PTR
-    LDA  SEED
-    ANDA  #$1F
-    SUBA  #$F
-    STA  proc.d3,U              ; DIVE Y OFFSET
-    LDA  LSEED
-    ANDA  #$F
-    ADDA  #$2
-    STA  proc.d5,U              ; DIVE TIMER
-    LDA  YLSTIM              ; SHOT TIMER
-    STA  proc.d6,U
-    LDA  YLAC
-    JSR  RMAX
-    STA  proc.d4,U        ; ACCELERATION
+!YLPS1          ldx  proc.data,U              ; GET OBJECT PTR
+                lda  SEED
+                anda  #$1F
+                suba  #$F
+                sta  proc.d3,U              ; DIVE Y OFFSET
+                lda  LSEED
+                anda  #$F
+                adda  #$2
+                sta  proc.d5,U              ; DIVE TIMER
+                lda  YLSTIM              ; SHOT TIMER
+                sta  proc.d6,U
+                lda  YLAC
+                jsr  RMAX
+                sta  proc.d4,U        ; ACCELERATION
 ; X VELOCITY
-    LDD  PLABX
-    CMPD  OX16,X
-    PSHS  CC
-    LDA  YLXV
-    JSR  RMAX
-    TFR  A,B
-    PULS  CC
-    BHS  YLPS2
-    NEGB
-YLPS2  SEX
-    STD  OXV,X
+                ldd  PLABX
+                cmpd  OX16,X
+                pshs  CC
+                lda  YLXV
+                jsr  RMAX
+                tfr  A,B
+                puls  CC
+                bhs  !YLPS2
+                negb
+!YLPS2          sex
+                std  OXV,X
 
 ; Y ACCELL
-YLPS2L      LDX  proc.data,U
-            LDB  proc.d4,U              ; GET ACCELL
-            LDA  PLAYC
-            ADDA  proc.d3,U          ; DIVE OFFSET
-            CMPA  OY16,X
-            BHI  YLPS5
-            NEGB
-YLPS5       SEX
-            ADDD  OYV,X
-            STD  OYV,X
-            COMA
-            COMB
-            ASRA
-            RORB
-            ASRA
-            RORB
-            ASRA  
-            RORB
-            ADDD  OYV,X
-            STD  OYV,X
-            DEC  proc.d6,U              ; TIME TO SHOOT
-            BNE  YLPS6
-            JSR  YLBOMB              ; BOMB THE GUY
-YLPS6       DEC  proc.d5,U        ; NEW DIVE?
-            BEQ  YLPS1
-            JSR  GYLPIC
-            NAP  (4,YLPS2L)
+!YLPS2L         ldx  proc.data,U
+                ldb  proc.d4,U              ; GET ACCELL
+                lda  PLAYC
+                adda  proc.d3,U          ; DIVE OFFSET
+                cmpa  OY16,X
+                bhi  !YLPS5
+                negb
+!YLPS5          sex
+                addd  OYV,X
+                std  OYV,X
+                coma
+                comb
+                asra
+                rorb
+                asra
+                rorb
+                asra  
+                rorb
+                addd  OYV,X
+                std  OYV,X
+                dec  proc.d6,U              ; TIME TO SHOOT
+                bne  !YLPS6
+                jsr  YLBOMB              ; BOMB THE GUY
+!YLPS6          dec  proc.d5,U        ; NEW DIVE?
+                beq  !YLPS1
+                jsr  GYLPIC
+                NAP  (4,!YLPS2L)
 
 ;;;  RIPOFF CHECK
 RIPCHK  
-            MAKP  (RIPC0)
-            RTS
+                MAKP  (RIPC0)
+                rts
 
-RIPC0       LDA  RIPOFF              ; ALREADY ACTIVE??
-            BNE  RIPDIE              ; THEN NO NEED TO LIVE.
-            INC  RIPOFF              ; EXCLUDE PLEASE
-            LDA  #$3
-            STA  proc.data,U
+RIPC0           lda  RIPOFF              ; ALREADY ACTIVE??
+                bne  RIPDIE              ; THEN NO NEED TO LIVE.
+                inc  RIPOFF              ; EXCLUDE PLEASE
+                lda  #$3
+                sta  proc.data,U
 RIPC2  
                 NAP  (8,!RIPC1)
-!RIPC1          LDA  PIA21
-                CMPA  #$51          ; REV-START2-FIRE
-                BEQ  !RIPC4
-                CMPA  #$E2          ; STILL OLD COMBO??
-                BEQ  RIPC2              ; THEN DON'T COUNT
-                DEC  proc.data,U
-                BNE  RIPC2
-                BRA  RIPC3
-!RIPC4          LDA  #$3
-                STA  proc.data,U
+!RIPC1          lda  PIA21
+                cmpa  #$51          ; REV-START2-FIRE
+                beq  !RIPC4
+                cmpa  #$E2          ; STILL OLD COMBO??
+                beq  RIPC2              ; THEN DON'T COUNT
+                dec  proc.data,U
+                bne  RIPC2
+                bra  RIPC3
+!RIPC4          lda  #$3
+                sta  proc.data,U
 !RIPC5  
                 NAP  (8,!RIPC6)
-!RIPC6          LDA  PIA21
-                CMPA  #$A3          ; DN-START1-TH-FIRE
-                LBEQ  RIPV1          ; DONE!
-                CMPA  #$51          ; OLD COMBO??
-                BEQ  !RIPC5
-                DEC  proc.data,U          ; LESS TIME
-                BNE  !RIPC5
-RIPC3           CLR  RIPOFF
-RIPDIE          JMP  SUCIDE
+!RIPC6          lda  PIA21
+                cmpa  #$A3          ; DN-START1-TH-FIRE
+                lbeq  RIPV1          ; DONE!
+                cmpa  #$51          ; OLD COMBO??
+                beq  !RIPC5
+                dec  proc.data,U          ; LESS TIME
+                bne  !RIPC5
+RIPC3           clr  RIPOFF
+RIPDIE          jmp  SUCIDE
 
 .OPTR           equ  proc.data            ; OBJECT POINTER
 .COAST          equ  .OPTR+2        ; NUMBER OF WAKEUPS TILL NEXT UPDATE
@@ -287,364 +288,355 @@ RIPDIE          JMP  SUCIDE
 
 
 ;;;   FIREBOMBER  (TM) (R) (C) (P) (BS) (ETC)
-FBSTR_      PSHS  A                     ; COUNT ON STACK 
+FBSTR_          pshs  A                     ; COUNT ON STACK 
 FBSTR1
             NEWP  (FBPROC,STYPE)        ; JUST CREATE A BUNCH OF PROCS.
-            DEC  ,S                     ; ANY MORE??
-            BNE  FBSTR1
-            PULS  A,PC                  ; AND RETURN
+                dec  ,S                     ; ANY MORE??
+                bne  FBSTR1
+                puls  A,PC                  ; AND RETURN
 
 ;;; proc for firebombers
 FBPROC  
             ; BOY WHAT A STUPID OBJECT SYSTEM!
-            OBI   (FBMR0,FBKILL,FBBLIP) 
-            jsr   RAND                ; GET A RADNUB
-            ldb   #$50
-            mul
-            adda  #$80                ; MAKE IT APPEAR TOWARD ASS.
-            std   OX16,X              ; THIS IS THE 16 BIT X
+                OBI   (FBMR0,FBKILL,FBBLIP) 
+                jsr   RAND                ; GET A RADNUB
+                ldb   #$50
+                mul
+                adda  #$80                ; MAKE IT APPEAR TOWARD ASS.
+                std   OX16,X              ; THIS IS THE 16 BIT X
             
-            adda  #YMIN+$80           ; BRING BACK 1/4 THEN ADD YMIN.
-            std   OY16,X              ; LOOKS VALID TO ME.
-            lda   #1                  ; NON-HYPERABLE FOR SHOWDOWNS!
-            sta   OTYP,X                
+                adda  #YMIN+$80           ; BRING BACK 1/4 THEN ADD YMIN.
+                std   OY16,X              ; LOOKS VALID TO ME.
+                lda   #1                  ; NON-HYPERABLE FOR SHOWDOWNS!
+                sta   OTYP,X                
 
 ; *********************************************BSO BONER
 ; Lol?
     FCB  $AF,$C9,$00,$07           ; ((STX  .OPTR,U)) SAVE IN PROCESS BLOCK*******
 ; *********************************************BSO BONER
 
-            stx      OPTR                
+                stx      OPTR                
 
 ; **   OFF SCREEN NEW VELOCITY
-FBONV       JSR  FBXV                ; GET THE X VELOCITY
-            LDB  SEED
-            ANDB #$0F
-            ADDB #8
-            STB  .COAST,U              ; NUMBER OF WAKEUPS TO COAST
-            JSR  FBYV                ; GET AN ADEQUATE Y VELOCITY
+FBONV           jsr  FBXV                ; GET THE X VELOCITY
+                ldb  SEED
+                andb #$0F
+                addb #8
+                stb  .COAST,U              ; NUMBER OF WAKEUPS TO COAST
+                jsr  FBYV                ; GET AN ADEQUATE Y VELOCITY
 
 ;;;   OFF SCREEN UPDATE firbomber update
-FBOFUP      ldx    .OPTR,U          ; GET OBJECT POINTER
-            lda    STATUS           ; SEE IF OBJECTS DISABLED
-            bita   #$20
-            bne    FBLOOP           ; THEN TURN ON IN CASE OF QUICK APPEAR.
-            jsr    FBDIST           ; CHECK OUT OUR ON-SCREENESS
-            bls    FBLOOP           ; TURN IT ON...WE'RE GETTING CLOSE!
-            dec    .COAST,U         ; ALL AND ALL ITS JUST ANOTHER FRAME IN THE BALL.
-            bmi    FBONV            ; FIND AN OFF SCREEN NEW VELOCITY
-            NAP    (10,FBOFUP)      ; TAKE IT VERY EASY WHEN THIS FAR AWAY!
+FBOFUP          ldx    .OPTR,U          ; GET OBJECT POINTER
+                lda    STATUS           ; SEE IF OBJECTS DISABLED
+                bita   #$20
+                bne    FBLOOP           ; THEN TURN ON IN CASE OF QUICK APPEAR.
+                jsr    FBDIST           ; CHECK OUT OUR ON-SCREENESS
+                bls    FBLOOP           ; TURN IT ON...WE'RE GETTING CLOSE!
+                dec    .COAST,U         ; ALL AND ALL ITS JUST ANOTHER FRAME IN THE BALL.
+                bmi    FBONV            ; FIND AN OFF SCREEN NEW VELOCITY
+                NAP    (10,FBOFUP)      ; TAKE IT VERY EASY WHEN THIS FAR AWAY!
 
 ;   ON SCREEN...AGREEABLE TO THE CURRENT Y POSITION.
 
-FBYDLT  EQU  3             ; DISTANCE WHEN BOMB SHOULD LAUNCH
+FBYDLT          EQU  3             ; DISTANCE WHEN BOMB SHOULD LAUNCH
 
-FBLOOP  CLR  .DELA,U                 ; INDICATE NO DELAY ON ENTRY
-FBGO    LDA  .DELA,U                 ; CHECK DELAY
-        BEQ  FBLOP0
-        DEC  .DELA,U                 ; TAKE ONE AWAY.
-FBLOP0  LDX  .OPTR,U                 ; GET OUR POINTER
-FBGO0   LDA  OY16,X                 ; GET HEIGHT
-        SUBA  PLAYC             ; SUBTRACT Y COORD.
-        STA  XTEMP                 ; SAVE FOR POSSIBLE CORRECTION
-        BMI  FBGO1                 ; HE'S BELOW US.....
-        CMPA  #FBYDLT+6          ; ADD SHIP HEIGHT ALSO
-        BHI  FBGOF0                 ; NOT IN RANGE....CONTINUE
-        LDY  #FBFIRU                 ; OK TO FIRE??
-        BSR  FIREFB                 ; THEN FIRE UP
-FBGOF0  CMPA  #(2*FBYDLT)+6
-    BHS  FBGO3           ; NOT EVEN CLOSE!
-FBGOO  LDB  FBDV                 ; GET THE CURRENT DODGE VELOCITYT MUCH
-    CLRA
-    TST  XTEMP
-    BPL  FBGOOO
-    COMA                     ; NEGATE
-    COMB
-FBGOOO  TST  INVFLG                 ; INVISIBLE??
-    BNE  FBGOO2                 ; THEN ACT STUPID
-    ASLB
-    ROLA
-FBGOO2  STD  OYV,X                 ; STORE
-    BRA  FBGOO1
-FBGO1  NEGA                   ; MAKE POSITIVE.....MY SANITY IS WORTH 2 CYCLES.
-    CMPA  #FBYDLT+9          ; ADD MY HEIGHT 
-    BHI  FBGOF1                 ; AND FIRE DOWNWARD AT HIM.
-    LDY  #FBFIRD                 ; TEST
-    BSR  FIREFB                 ; OK TO FIRE.
-FBGOF1  CMPA  #(2*FBYDLT)+9
-    BLS  FBGOO                 ; CLOSE ENOUGH TO RUN!!
-FBGO3  DEC  .COAST,U               ; WELL...TIME FOR NEXT CYCLE??
-    BMI  FBGO4                 ; YEP
-    BRA  FBGOV                 ; NAP AND STUFF
-FBGO4  JSR  FBXV                 ; GET A NEW X.
-    BSR  FBYV                 ; GET A NEW Y.
-FBGOO1  LDA  SEED                 ; RADNUB
-    ANDA  #$7F
-    ADDA  #30                 ; MINIMUM
-    STA  .COAST,U               ; TIME TILL NEXT
-FBGOV  LDD  OBJX,X                 ; GET PICTURE
-    BNE  FBGOV1                 ; ON SCREEN...OK.
-    NAP  (1,FBOFUP)             ; THEN DO ON SCREEN UPDATE
-FBGOV1  JSR  FBIMAG
-    NAP  (1,FBGO)             ; AND SLEEP ON IT.
+FBLOOP          clr  .DELA,U                 ; INDICATE NO DELAY ON ENTRY
+FBGO            lda  .DELA,U                 ; CHECK DELAY
+                beq  FBLOP0
+                dec  .DELA,U                 ; TAKE ONE AWAY.
+FBLOP0          ldx  .OPTR,U                 ; GET OUR POINTER
+FBGO0           lda  OY16,X                 ; GET HEIGHT
+                suba  PLAYC             ; SUBTRACT Y COORD.
+                sta  XTEMP                 ; SAVE FOR POSSIBLE CORRECTION
+                bmi  FBGO1                 ; HE'S BELOW US.....
+                cmpa  #FBYDLT+6          ; ADD SHIP HEIGHT ALSO
+                bhi  FBGOF0                 ; NOT IN RANGE....CONTINUE
+                ldy  #FBFIRU                 ; OK TO FIRE??
+                bsr  FIREFB                 ; THEN FIRE UP
+FBGOF0          cmpa  #(2*FBYDLT)+6
+                bhs  FBGO3           ; NOT EVEN CLOSE!
+FBGOO           ldb  FBDV                 ; GET THE CURRENT DODGE VELOCITYT MUCH
+                clra
+                tst  XTEMP
+                bpl  FBGOOO
+                coma                     ; NEGATE
+                comb
+FBGOOO          tst  INVFLG                 ; INVISIBLE??
+                bne  FBGOO2                 ; THEN ACT STUPID
+                aslb
+                rola
+FBGOO2          std  OYV,X                 ; STORE
+                bra  FBGOO1
+FBGO1           nega                   ; MAKE POSITIVE.....MY SANITY IS WORTH 2 CYCLES.
+                cmpa  #FBYDLT+9          ; ADD MY HEIGHT 
+                bhi  FBGOF1                 ; AND FIRE DOWNWARD AT HIM.
+                ldy  #FBFIRD                 ; TEST
+                bsr  FIREFB                 ; OK TO FIRE.
+FBGOF1          cmpa  #(2*FBYDLT)+9
+                bls  FBGOO                 ; CLOSE ENOUGH TO RUN!!
+FBGO3           dec  .COAST,U               ; WELL...TIME FOR NEXT CYCLE??
+                bmi  FBGO4                 ; YEP
+                bra  FBGOV                 ; NAP AND STUFF
+FBGO4           jsr  FBXV                 ; GET A NEW X.
+                bsr  FBYV                 ; GET A NEW Y.
+FBGOO1          lda  SEED                 ; RADNUB
+                anda  #$7F
+                adda  #30                 ; MINIMUM
+                sta  .COAST,U               ; TIME TILL NEXT
+FBGOV           ldd  OBJX,X                 ; GET PICTURE
+                bne  FBGOV1                 ; ON SCREEN...OK.
+                NAP  (1,FBOFUP)             ; THEN DO ON SCREEN UPDATE
+FBGOV1          jsr  FBIMAG
+                NAP  (1,FBGO)             ; AND SLEEP ON IT.
 
-FBYV  LDB  LSEED                ; GET A RAD.
-    SEX
-    BPL  FBGO5
-    SUBD  #$A0
-FBGO5  ADDD  #$50            ; MIN OF 20 REAL UNITS
-    STD  OYV,X
-    RTS
+FBYV            ldb  LSEED                ; GET A RAD.
+                sex
+                bpl  FBGO5
+                subd  #$A0
+FBGO5           addd  #$50            ; MIN OF 20 REAL UNITS
+                std  OYV,X
+                rts
 
-; 
-;   FIRE A BOMB UPWARD
-; 
+;;;   FIRE A BOMB UPWARD
+FIREFB          ldu  PLRX
+                lda  PWAV,U
+                ldu  CRPROC
+                deca            ; WAVE 1 DONT SHOOT
+                beq  FIRBYE
+                cmpa  #$2                  ; WAVE 2 OR 3??
+                bhi  FIRFB_                  ; NOPE
+                deca
+                sta  XTEMP                  ; WAVE NUMBER
+                jsr  RAND                  ; SEE BASED ON RANDOM
+                cmpa  #$E0
+                bhs  FIBYE_                  ; TOO HIGH FOR EITHER WAVE
+                cmpa  #$80
+                bls  FIRFB_
+                lda  XTEMP
+                beq  FIBYE_
+FIRFB_          tst  .DELA,U                  ; DELAY SET UP
+                bne  FIRBYE                  ; THEN NO BOMB
+                ldd  OBJX,X                  ; OFF SCREEN
+                beq  FIRBYE
+                jmp  ,Y                      ; OTHERWISE GO TO DESTINATION
+FIRBYE          rts                        ; NOT FIRABLE...RETURN
 
-FIREFB  LDU  PLRX
-    LDA  PWAV,U
-    LDU  CRPROC
-    DECA            ; WAVE 1 DONT SHOOT
-    BEQ  FIRBYE
-    CMPA  #$2                  ; WAVE 2 OR 3??
-    BHI  FIRFB_                  ; NOPE
-    DECA
-    STA  XTEMP                  ; WAVE NUMBER
-    JSR  RAND                  ; SEE BASED ON RANDOM
-    CMPA  #$E0
-    BHS  FIBYE_                  ; TOO HIGH FOR EITHER WAVE
-    CMPA  #$80
-    BLS  FIRFB_
-    LDA  XTEMP
-    BEQ  FIBYE_
-FIRFB_  TST  .DELA,U                  ; DELAY SET UP
-    BNE  FIRBYE                  ; THEN NO BOMB
-    LDD  OBJX,X                  ; OFF SCREEN
-    BEQ  FIRBYE
-    JMP  ,Y                      ; OTHERWISE GO TO DESTINATION
-FIRBYE  RTS                        ; NOT FIRABLE...RETURN
-
-FIBYE_  LDA  FBFREQ          ; SETUP FIRING DELAY
-    COMA
-    STA  .DELA,U
-    RTS
+FIBYE_          lda  FBFREQ          ; SETUP FIRING DELAY
+                coma
+                sta  .DELA,U
+                rts
 
 
-FBFIRU  JSR  FBSETY                ; SET A NEW Y BASED ON POSITIONS
-    LDD  OX16,X
-    SUBD PLABX                  ; COMPARE TO PLAYERS
-    BMI  FBU1                  ; HE'S TO OUR RIGHT
-    JSR  FBXR                  ; GIVE US AN X TO THE RIGHT (SHOOT LEFT)
-    LDY  #-$60                  ; FIRE TO LEFT
-    BRA  BOTFIR                  ; FIRE ONE FROM THE BOTTOM AND MERGE
-FBU1  JSR  FBXL            ; GIVE US AN X TO THE LEFT
-    LDY  #$60
-    BRA  BOTFIR
+FBFIRU          jsr  FBSETY                ; SET A NEW Y BASED ON POSITIONS
+                ldd  OX16,X
+                subd PLABX                  ; COMPARE TO PLAYERS
+                bmi  FBU1                  ; HE'S TO OUR RIGHT
+                jsr  FBXR                  ; GIVE US AN X TO THE RIGHT (SHOOT LEFT)
+                ldy  #-$60                  ; FIRE TO LEFT
+                bra  BOTFIR                  ; FIRE ONE FROM THE BOTTOM AND MERGE
+FBU1            jsr  FBXL            ; GIVE US AN X TO THE LEFT
+                ldy  #$60
+                bra  BOTFIR
 
-; **   FIRE DOWN
-; 
+;;; **   FIRE DOWN
+FBFIRD          jsr  FBSETY          ; SET THE NEW Y
+                ldd  OX16,X
+                subd PLABX
+                bmi  FBD1                  ; HE'S TO OUR RIGHT
+                jsr  FBXL                  ; HE'S TO OUR LEFT..SO GO LEFT
+                ldy  #-$80                  ; FIRE TO THE LEFT
+                bra  TOPFIR                  ; FROM THE TOP
+FBD1            jsr  FBXR
+                ldy  #$80
+TOPFIR          lda  SEED                  ; DIRECTION OF Y ACCELERATION (DOWN)
+                anda  #$7
+                adda  #18                  ; RANDOM ARC DOWNWARD
+                sta  XTEMP2
+                ldd  OY16,X                  ; USE THE SAME Y FOR TOP FIRING
+                bra  BOTFI1  
 
-FBFIRD  JSR  FBSETY          ; SET THE NEW Y
-    LDD  OX16,X
-    SUBD PLABX
-    BMI  FBD1                  ; HE'S TO OUR RIGHT
-    JSR  FBXL                  ; HE'S TO OUR LEFT..SO GO LEFT
-    LDY  #-$80                  ; FIRE TO THE LEFT
-    BRA  TOPFIR                  ; FROM THE TOP
-FBD1  JSR  FBXR
-    LDY  #$80
-TOPFIR  LDA  SEED                  ; DIRECTION OF Y ACCELERATION (DOWN)
-    ANDA  #$7
-    ADDA  #18                  ; RANDOM ARC DOWNWARD
-    STA  XTEMP2
-    LDD  OY16,X                  ; USE THE SAME Y FOR TOP FIRING
-    BRA  BOTFI1  
+BOTFIR          lda  SEED                  ; (WAS 30)
+                ora  #$F8
+                suba  #-18
+                sta  XTEMP2
+                ldd  OY16,X
+                adda  #4          ; ADD THE HEIGHT DIFFERENCE.
+BOTFI1          std  XTEMP                  ; SAVE THE Y
+                ldd  OX16,X                  ; GET THE X
+                addd  #32*2              ; SLIDE OVER 2 PIXELS
 
-BOTFIR  LDA  SEED                  ; (WAS 30)
-    ORA  #$F8
-    SUBA  #-18
-    STA  XTEMP2
-    LDD  OY16,X
-    ADDA  #4          ; ADD THE HEIGHT DIFFERENCE.
-BOTFI1  STD  XTEMP                  ; SAVE THE Y
-    LDD  OX16,X                  ; GET THE X
-    ADDD  #32*2              ; SLIDE OVER 2 PIXELS
+                // GET A FIREBALL
+                MKPROB(FBALL,FBALL0,FKILL,FBLIP)
 
-    ; GET A FIREBALL
+                beq  BFIRX
+                std  OX16,X
+                ldd  XTEMP
+                std  OY16,X
+                sty  OXV,X
+                lda  #1
+                sta  OTYP,X          ; MAKE NON-HYPERABLE   (IS THIS BIT OK???????)
+                stx  OPTR                  ; NOW PUT IT ON LIST
+                lda  XTEMP2                  ; GET ACCELERATION
+                sta  proc.data+2,U                  ; AND PASS IT
+BFIRX           lda  FBFREQ                  ; TIME TILL NEXT BALL ELIGABLE
+                coma
+                ldu  CRPROC                  ; GET BACK TO DADDY
+                sta  .DELA,U                  ; TIME UNTIL NEXT FIREBALL
+                ldx  .OPTR,U                  ; YANK BACK OBJECT POINTER FOR ENDGAME
+                jmp  FBGOV                  ; CYCLE AND NAP
 
-    MKPROB(FBALL,FBALL0,FKILL,FBLIP)
+FBIMAG          ldy  OPICT,X                  ; GET CURRENT IMAGE
+                lda  OXV,X                  ; GET VELOCITY
+                bmi  FBIMG3                  ; GOING LEFT
+                leay 10,Y                   ; MOVE TO NEXT IMAGE
+                cmpy #FBMR3
+                bls  FBIMG2
+                ldy  #FBMR0
+FBIMG2          sty  OPICT,X                  ; STORE NEW IMAGE
+                rts
+FBIMG3          leay -10,Y            ; MOVE TO PREVIOUS
+                cmpy #FBMR0
+                bhs  FBIMG4
+                ldy  #FBMR3
+FBIMG4          sty  OPICT,X
+                rts
 
-    BEQ  BFIRX
-    STD  OX16,X
-    LDD  XTEMP
-    STD  OY16,X
-    STY  OXV,X
-    LDA  #1
-    STA  OTYP,X          ; MAKE NON-HYPERABLE   (IS THIS BIT OK???????)
-    STX  OPTR                  ; NOW PUT IT ON LIST
-    LDA  XTEMP2                  ; GET ACCELERATION
-    STA  proc.data+2,U                  ; AND PASS IT
-BFIRX  LDA  FBFREQ                  ; TIME TILL NEXT BALL ELIGABLE
-    COMA
-    LDU  CRPROC                  ; GET BACK TO DADDY
-    STA  .DELA,U                  ; TIME UNTIL NEXT FIREBALL
-    LDX  .OPTR,U                  ; YANK BACK OBJECT POINTER FOR ENDGAME
-    JMP  FBGOV                  ; CYCLE AND NAP
+FBSETY          lda  OY16,X          ; GET OUR Y
+                cmpa  PLAYC              ; COMPARE TO PLAYERS
+                bhi  FBSET1                  ; HE'S BELOW US
+                ldb  FBDV                  ; GET VELOCITY TO MAKE NEGATIVE
+                comb
+                lda  #$FF
+                subd  #$10
+                bra  FBSET2
+FBSET1          ldb  FBDV
+                addb  #10
+                clra
+FBSET2          tst  INVFLG                  ; INVISIBLE??
+                bne  FBSET3                  ; YEP...ACT STUPIDER.
+                aslb  
+                rola
+FBSET3          std  OYV,X
+                rts
 
-FBIMAG  LDY  OPICT,X                  ; GET CURRENT IMAGE
-    LDA  OXV,X                  ; GET VELOCITY
-    BMI  FBIMG3                  ; GOING LEFT
-    LEAY 10,Y                   ; MOVE TO NEXT IMAGE
-    CMPY #FBMR3
-    BLS  FBIMG2
-    LDY  #FBMR0
-FBIMG2  STY  OPICT,X                  ; STORE NEW IMAGE
-    RTS
-FBIMG3  LEAY -10,Y            ; MOVE TO PREVIOUS
-    CMPY #FBMR0
-    BHS  FBIMG4
-    LDY  #FBMR3
-FBIMG4  STY  OPICT,X
-    RTS
+FBXR            ldd  #32                      ; 1 PIXEL
+                std  OXV,X
+                rts
 
-FBSETY  LDA  OY16,X          ; GET OUR Y
-    CMPA  PLAYC              ; COMPARE TO PLAYERS
-    BHI  FBSET1                  ; HE'S BELOW US
-    LDB  FBDV                  ; GET VELOCITY TO MAKE NEGATIVE
-    COMB
-    LDA  #$FF
-    SUBD  #$10
-    BRA  FBSET2
-FBSET1  LDB  FBDV
-    ADDB  #10
-    CLRA
-FBSET2  TST  INVFLG                  ; INVISIBLE??
-    BNE  FBSET3                  ; YEP...ACT STUPIDER.
-    ASLB  
-    ROLA
-FBSET3  STD  OYV,X
-    RTS
+FBXL            ldd  #-32
+                std  OXV,X
+                rts
 
-FBXR  LDD  #32                      ; 1 PIXEL
-    STD  OXV,X
-    RTS
+;;; FBXV - FIRE BOMBER GET NEW X VELOCITY
+;;; X HAS OBJECT, AND B SHOULD BE RETURNED WITH A 4 BIT RANDOM NUMBER!
+FBXV            ldb  LSEED                      ; GET A RADNUB
+                asrb  
+                asrb    
+                asrb
+                asrb                        ; 1/2 PIXEL MAX.
+                bmi  !skip                      ; NEGATIVE
+                addb  #20
+!skip           subb  #10                      ; MINIMUM 10 IN SOME DIRECTION
+                sex
+                std  OXV,X            ; MAKE THAT X VELOCITY
+                rts
 
-FBXL  LDD  #-32
-    STD  OXV,X
-    RTS
+;;; FIREBALL
+FBALL           ldd  #SSHSND
+                jsr  SNDLD                      ; MAKE A LAUNCH SOUND
+                lda  #$20                      ; TIMER
+                sta  proc.data+3,U
 
-;   FBXV - FIRE BOMBER GET NEW X VELOCITY
-;   X HAS OBJECT, AND B SHOULD BE RETURNED WITH A 4 BIT RANDOM NUMBER!
+FBAL11
+                SLEEP(3)
+                ldx  proc.data,U                      ; GET THE OBJECT
+                jsr  FBDIST                      ; CHECK ITS ON SCREENESS
+                bhi  !FBAL4                      ; GONE!
+                dec  proc.data+3,U                      ; TIMER
+                beq  !FBAL4                      ; KILL THE SUCKER
+                lda  SEED
+                anda #$7                      ; 8 POSSIBLE CHANGES
+                ldb  #10
+                mul                            ; BYTE OFFSET
+                addd OPICT,X                  ; ADD TO CURRENT
+                cmpd #FBALL7                  ; PAST TOP
+                bls  !FBAL3                      ; NOPE
+                subd #80                      ; BRING IT BACK INTO THE TABLE
+!FBAL3          std  OPICT,X                      ; STORE NEW IMAGE
+                ldb  proc.data+2,U                      ; GET ACCEL
+                sex
+                addd  OYV,X
+                std  OYV,X
+                bra  FBAL11
+!FBAL4          jsr  KILLOB                      ; TRASH THE OBJECT
+                ldd  OBJX,X                      ; ON SCREEN
+                beq  !FBAL5                      ; NOPE
+                ldy  OPICT,X                      ; FOR ROUTINE
+                jsr  [OBJDEL,Y]
+!FBAL5           jmp  SUCIDE            ; AND DIE
 
-FBXV  LDB  LSEED                      ; GET A RADNUB
-    ASRB  
-    ASRB    
-    ASRB
-    ASRB                        ; 1/2 PIXEL MAX.
-    BMI  !skip                      ; NEGATIVE
-    ADDB  #20
-!skip  SUBB  #10                      ; MINIMUM 10 IN SOME DIRECTION
-    SEX
-    STD  OXV,X            ; MAKE THAT X VELOCITY
-    RTS
-
-; 
-;   FIREBALL
-; 
-
-FBALL  LDD  #SSHSND
-    JSR  SNDLD                      ; MAKE A LAUNCH SOUND
-    LDA  #$20                      ; TIMER
-    STA  proc.data+3,U
-FBAL11  
-    NAP  (3,FBAL22)
-FBAL22  LDX  proc.data,U                      ; GET THE OBJECT
-    JSR  FBDIST                      ; CHECK ITS ON SCREENESS
-    BHI  FBAL4                      ; GONE!
-    DEC  proc.data+3,U                      ; TIMER
-    BEQ  FBAL4                      ; KILL THE SUCKER
-    LDA  SEED
-    ANDA  #$7                      ; 8 POSSIBLE CHANGES
-    LDB  #10
-    MUL                            ; BYTE OFFSET
-    ADDD  OPICT,X                  ; ADD TO CURRENT
-    CMPD  #FBALL7                  ; PAST TOP
-    BLS  FBAL3                      ; NOPE
-    SUBD  #80                      ; BRING IT BACK INTO THE TABLE
-FBAL3  STD  OPICT,X                      ; STORE NEW IMAGE
-    LDB  proc.data+2,U                      ; GET ACCEL
-    SEX
-    ADDD  OYV,X
-    STD  OYV,X
-    BRA  FBAL11
-FBAL4  JSR  KILLOB                      ; TRASH THE OBJECT
-    LDD  OBJX,X                      ; ON SCREEN
-    BEQ  FBAL5                      ; NOPE
-    LDY  OPICT,X                      ; FOR ROUTINE
-    JSR  [OBJDEL,Y]
-FBAL5  JMP  SUCIDE            ; AND DIE
-
-FKSUB  JSR  SCORE            ; PROCESS THE SCORE
-    TFR  Y,D
-    JSR  SNDLD                      ; AND THE SOUND
-    PSHS  X
-    JSR  KILLOP                      ; CAN THE PROCESS
-    PULS  X
-    JSR  KILLOB                      ; CAN THE OBJECT
-    JSR  OFSHIT                      ; AND ITS IMAGE
-    JMP  GETOB                      ; BUT GET IT OFF OF THE FREE LIST
+FKSUB           jsr  SCORE            ; PROCESS THE SCORE
+                tfr  Y,D
+                jsr  SNDLD                      ; AND THE SOUND
+                pshs  X
+                jsr  KILLOP                      ; CAN THE PROCESS
+                puls  X
+                jsr  KILLOB                      ; CAN THE OBJECT
+                jsr  OFSHIT                      ; AND ITS IMAGE
+                jmp  GETOB                      ; BUT GET IT OFF OF THE FREE LIST
 
 ;   FKILL - KILL A FIREBALL
 
-FKILL  LDD  #$201            ; 100 POINTS  
-    LDY  #AHSND                      ; SOUND
-    BSR  FKSUB                      ; CAN THE PROCESS ETC.
-    LDD  #PHFBPC
-    BRA  FBKIL1
+FKILL           ldd  #$201            ; 100 POINTS  
+                ldy  #AHSND                      ; SOUND
+                bsr  FKSUB                      ; CAN THE PROCESS ETC.
+                ldd  #PHFBPC
+                bra  FBKIL1
 
 ;   KILL A FIREBOMBER
 ; 
-FBKILL  DEC  FBCNT                      ; 1 LESS FIRE BOMBER
-    LDD  #$125                      ; 50 POINTS  
-    LDY  #AHSND                      ; SOUND
-    BSR  FKSUB                      ; CAN THE PROCESS ETC.
-    LDD  #PHFBMB
-FBKIL1  STD  OPICT,X                      ; MAKE PHONEY PICTURE
-    TFR  X,Y                          ; MOVE THE PROCESS
-    MAKP (BOOM)                      ; DO IT.
-    STY  proc.data,X                      ; AND PASS IT THE OBJECT
-    RTS                ; AND RETURN
+FBKILL          dec  FBCNT                      ; 1 LESS FIRE BOMBER
+                ldd  #$125                      ; 50 POINTS  
+                ldy  #AHSND                      ; SOUND
+                bsr  FKSUB                      ; CAN THE PROCESS ETC.
+                ldd  #PHFBMB
+FBKIL1          std  OPICT,X                      ; MAKE PHONEY PICTURE
+                tfr  X,Y                          ; MOVE THE PROCESS
+                MAKP (BOOM)                      ; DO IT.
+                sty  proc.data,X                      ; AND PASS IT THE OBJECT
+                rts                ; AND RETURN
 
-BOOM  LDA  #3              ; DO IT 4 TIMES
-    STA  proc.data+2,U
-!BOOM1  LDX  proc.data,U                      ; GET OBJECT
-    JSR  XSVCT                      ; DO AN EXPLODE
-    DEC  proc.data+2,U
-    BEQ  !BOOM2
-    NAP  (5,!BOOM1)
-!BOOM2  LDD  OFREE  
-    STD  ,X                          ; LINK FREE LIST TO US
-    STX  OFREE                      ; AND MAKE US THE FREE LIST
-    DIE()                          ; DONE!
+BOOM            lda  #3              ; DO IT 4 TIMES
+                sta  proc.data+2,U
+!BOOM1          ldx  proc.data,U                      ; GET OBJECT
+                jsr  XSVCT                      ; DO AN EXPLODE
+                dec  proc.data+2,U
+                beq  !BOOM2
+                NAP  (5,!BOOM1)
+!BOOM2          ldd  OFREE  
+                std  ,X                          ; LINK FREE LIST TO US
+                stx  OFREE                      ; AND MAKE US THE FREE LIST
+                DIE()                          ; DONE!
 
 
 
 ;   FBDIST -  SEE IF FIREBOMBER FAR OFF SCREEN...X POINTS AT OBJECT
 ;   BLS FOR NEAR THE SCREEN......BHI FOR OFF SCREEN
 ; 
-FBDIST  LDD  OX16,X                    ; GET THE CURRENT OBJECT POINTER
-    SUBD BGL                      ; COMPARE TO LEFT OF SCREEN
-    ADDD #75*32                      ; ADD 50 PIXELS
-    CMPD #450*32            ; SEE IF 50 EITHER SIDE.
-    RTS    
+FBDIST          ldd  OX16,X                    ; GET THE CURRENT OBJECT POINTER
+                subd BGL                      ; COMPARE TO LEFT OF SCREEN
+                addd #75*32                      ; ADD 50 PIXELS
+                cmpd #450*32            ; SEE IF 50 EITHER SIDE.
+                rts    
 
 ; 
 ; YLLABIANS
 ; 
-YLPL0  FCB  5,7
-    FDB  YLDL00,YLDL01,ON57,OFF57
+YLPL0       FCB  5,7
+            FDB  YLDL00,YLDL01,ON57,OFF57
 
-YLPL1  FCB  5,7
-    FDB  YLDL10,YLDL11,ON57,OFF57
+YLPL1       FCB  5,7
+            FDB  YLDL10,YLDL11,ON57,OFF57
 
 YLPL2  FCB  5,7
     FDB  YLDL20,YLDL21,ON57,OFF57
