@@ -8,289 +8,289 @@
 .VEL        EQU proc.data+2
 .SHOT       EQU proc.data+3
 
-            ORG DNORG
+                ORG DNORG
 
-DYNSTV          jmp DYNSRT
-DYNPV       FDB DYN0
-HUMPV       FDB MIS0
+DYNSTV          jmp  DYNSRT
+DYNPV           FDB DYN0
+HUMPV           FDB MIS0
 
 
 ;;; Make a dynamo proc
-DYNSRT          pshs    A                           ; COUNT ON STACK
+DYNSRT          pshs    A                   ; COUNT ON STACK
 !loop
-            MAKP    (DYNPRC)
-                dec ,S                              ;ANY LEFT??
-                bne !loop
-                puls    A,PC                        ; return
+                MAKP    (DYNPRC)
+                dec  ,S                     ;ANY LEFT??
+                bne  !loop
+                puls    A,PC                ; return
 
 DYNPRC
-            OBI (DYN0,DYNKIL,DYNBLP)
-                jsr RAND                            ; CYCLE ONCE
-                lsra                                ; DOWN THE HORIZON
+                OBI (DYN0,DYNKIL,DYNBLP)
+                jsr  RAND                   ; CYCLE ONCE
+                lsra                        ; DOWN THE HORIZON
                 adda #$40
-                std OX16,X                          ; SETS X.
-                adda #YMIN+$D0                      ; TOWARD CENTER.
-                std OY16,X
-                ldd #0
-                std OXV,X
-                std OYV,X
+                std  OX16,X                 ; SETS X.
+                adda #YMIN+$D0              ; TOWARD CENTER.
+                std  OY16,X
+                ldd  #0
+                std  OXV,X
+                std  OYV,X
 
 // *************************************BSO BONER
             FCB $AF,$C9,$00,$07                 ; ((STX .OPTR,U)) SAVE OBJECT
-                stx OPTR                            ; *************************************BSO BONER
-                lda #1                              ; *************************************BSO BONER
+                stx  OPTR                   ; *************************************BSO BONER
+                lda  #1                     ; *************************************BSO BONER
             FCB $A7,$C9,$00,$09                 ; ((STA .VEL,U)) SETUP FOR INITIAL VELOCITY CORRECTION
-                lda DYNSHT                          ; *************************************BSO BONER
-                coma                                ; *************************************BSO BONER
+                lda  DYNSHT                 ; *************************************BSO BONER
+                coma                        ; *************************************BSO BONER
             FCB $A7,$C9,$00,$0A                 ; ((STA .SHOT,U)) DELAY FIRST SHOT ACCORDINGLY
 // *************************************BSO BONER
 
-DNLOOP          jsr     DNPICT                      ; CYCLE THE PICTURE AND TIMERS
-                tst     .VEL,U                      ; NEW VELOCITY TIME??
-                bne     DNLOP1                      ; NOPE
+DNLOOP          jsr  DNPICT                 ; CYCLE THE PICTURE AND TIMERS
+                tst  .VEL,U                 ; NEW VELOCITY TIME??
+                bne  DNLOP1                 ; NOPE
 
-DNWAKE          lda     HSEED                       ; GET A SEEDY GUY
-                anda    #$1F                        ; UP TO 1 SECOND
-                adda    #$10                        ; .5 - 1.5
-                sta     .VEL,U                      ; NEW TIME
-                ldd     OYV,X                       ; GET THE CURRENT Y VELOCITY
-                bpl     YV1                         ; POS. CHECK
-                cmpd    #$FF80                      ; 1/2 PIX??
-                bhi     YV2                         ; YEP...NORMAL CHANGE
-                ldb     SEED
-                bra     DNLP5
-YV1             cmpd    #$80
-                blo     YV2
-                ldb     SEED
-                bra     DNLOP2
-YV2             ldb     SEED
-                lda     OY16,X                      ; GET THE CURRENT HEIGHT
-                cmpa    #($100-YMIN)/2              ; HIGH OR LOW??
-                bhs     DNLOP2                      ; HIGH..GO LOWER
-DNLP5           andb    #$3F
-                bra     DNLOP3
-DNLOP2          orb     #$C0
+DNWAKE          lda  HSEED                  ; GET A SEEDY GUY
+                anda #$1F                   ; UP TO 1 SECOND
+                adda #$10                   ; .5 - 1.5
+                sta  .VEL,U                 ; NEW TIME
+                ldd  OYV,X                  ; GET THE CURRENT Y VELOCITY
+                bpl  YV1                    ; POS. CHECK
+                cmpd #$FF80                 ; 1/2 PIX??
+                bhi  YV2                    ; YEP...NORMAL CHANGE
+                ldb  SEED
+                bra  DNLP5
+YV1             cmpd #$80
+                blo  YV2
+                ldb  SEED
+                bra  DNLOP2
+YV2             ldb  SEED
+                lda  OY16,X                 ; GET THE CURRENT HEIGHT
+                cmpa #($100-YMIN)/2         ; HIGH OR LOW??
+                bhs  DNLOP2                 ; HIGH..GO LOWER
+DNLP5           andb #$3F
+                bra  DNLOP3
+DNLOP2          orb  #$C0
 DNLOP3          sex
-                addd    OYV,X                       ; CHANGE VELOCITY APPRORIATELY.
-                std     OYV,X
-                ldd     OXV,X                       ; CHECK X VELOCITY FOR TOO LARGE
-                bpl     DNLP0
-                cmpd    #-40
-                bhs     DNLOP4                      ; OK
-                bra     DNLP1
-DNLP0           cmpd    #40
-                bls     DNLOP4
+                addd OYV,X                  ; CHANGE VELOCITY APPRORIATELY.
+                std  OYV,X
+                ldd  OXV,X                  ; CHECK X VELOCITY FOR TOO LARGE
+                bpl  DNLP0
+                cmpd #-40
+                bhs  DNLOP4                 ; OK
+                bra  DNLP1
+DNLP0           cmpd #40
+                bls  DNLOP4
 DNLP1           asra
                 rorb
-                std     OXV,X
-DNLOP4          ldb     LSEED
+                std  OXV,X
+DNLOP4          ldb  LSEED
                 asrb
                 asrb
                 asrb
                 asrb
                 sex
-                addd    OXV,X
-                std     OXV,X
-DNLOP1          tst     .SHOT,U                     ; SHOT TIME?
-                bne     DNLOP9
-                ldd     OX16,X                      ; GET THE X COORD
-                subd    BGL                         ; SEE IF ON SCREEN
-                cmpd    #300*32
-                bhs     DNLOP9                      ; NOT ON SCREEN
-                ldd     PLABX                       ; GET PLAYERS WORLD COORD
-                subd    OX16,X                      ; SUBTRACT OURS
-                bpl     DNLOP5
+                addd OXV,X
+                std  OXV,X
+DNLOP1          tst  .SHOT,U                ; SHOT TIME?
+                bne  DNLOP9
+                ldd  OX16,X                 ; GET THE X COORD
+                subd BGL                    ; SEE IF ON SCREEN
+                cmpd #300*32
+                bhs  DNLOP9                 ; NOT ON SCREEN
+                ldd  PLABX                  ; GET PLAYERS WORLD COORD
+                subd OX16,X                 ; SUBTRACT OURS
+                bpl  DNLOP5
                 coma
-                comb                                ; MAKE POSITIVE FOR COMPARE
-DNLOP5          cmpd    #50*32                      ; WITHIN 50 PIXELS??
-                bls     DNLOP9                      ; THEN DON'T FIRE.
-                lda     #$18
-                jsr     RMAX
-                sta     XTEMP
-                lda     DYNSHT                      ; GET FREQUENCY PARAMETER
+                comb                        ; MAKE POSITIVE FOR COMPARE
+DNLOP5          cmpd #50*32                 ; WITHIN 50 PIXELS??
+                bls  DNLOP9                 ; THEN DON'T FIRE.
+                lda  #$18
+                jsr  RMAX
+                sta  XTEMP
+                lda  DYNSHT                 ; GET FREQUENCY PARAMETER
                 coma
-                adda    XTEMP
-                bcc DNLPP6
-                lda #$FF
-DNLPP6          sta .SHOT,U                         ; AND SAVE IT DOWN
-                lda MISCNT                          ; HOW MANY OUT THERE??
-                cmpa    #6                          ; 6??
-                bhs DNLOP9                          ; YEP...DONT MAKE ONE
-                leay    ,X                          ; PUT OBJECT IN Y
-            MKPROB  (MISILE,MIS0,MISKIL,MISBLP)
-                beq DNLOP9                          ; FAIL!
-                sty proc.data+2,U                   ; PASS OUR OBJECT.
-                inc MISCNT                          ; INDICATE ONE MORE
-                ldd #MISSND
-                jsr SNDLD                           ; SEND OUT A MISSLE SOUND
-                ldd OX16,Y
-                cmpd    PLABX
-                bpl DNLP1_                          ; PLAYER'S TO OUR LEFT
-                ldd OXV,Y                           ; GET OUR VELOCITY
-                bmi DNLOP9                          ; HES TO OUR RIGHT, VELOCITY TO LEFT...NEGATIVE OK
-                bra DNLP2_
-DNLP1_          ldd OXV,Y
-                bpl DNLOP9
+                adda XTEMP
+                bcc  DNLPP6
+                lda  #$FF
+DNLPP6          sta  .SHOT,U                ; AND SAVE IT DOWN
+                lda  MISCNT                 ; HOW MANY OUT THERE??
+                cmpa #6                     ; 6??
+                bhs  DNLOP9                 ; YEP...DONT MAKE ONE
+                leay ,X                     ; PUT OBJECT IN Y
+                MKPROB  (MISILE,MIS0,MISKIL,MISBLP)
+                beq  DNLOP9                 ; FAIL!
+                sty  proc.data+2,U          ; PASS OUR OBJECT.
+                inc  MISCNT                 ; INDICATE ONE MORE
+                ldd  #MISSND
+                jsr  SNDLD                  ; SEND OUT A MISSLE SOUND
+                ldd  OX16,Y
+                cmpd PLABX
+                bpl  DNLP1_                 ; PLAYER'S TO OUR LEFT
+                ldd  OXV,Y                  ; GET OUR VELOCITY
+                bmi  DNLOP9                 ; HES TO OUR RIGHT, VELOCITY TO LEFT...NEGATIVE OK
+                bra  DNLP2_
+DNLP1_          ldd  OXV,Y
+                bpl  DNLOP9
 DNLP2_          coma
                 comb
-                std OXV,Y
+                std  OXV,Y
 DNLOP9
-            NAP (2,DNLOOP)
+                NAP (2,DNLOOP)
 
 MISSND      FCB $C0,$01,$40,$19,$1,$01,$16,$0
 
-DNPICT          ldx     .DYN_OPTR,U                     ; Get a ptr to the object
-                ldd     OX16,X                          ; Is this onscreen?
-                subd    BGL
-                addd    #50*32
-                cmpd    #400*32
-                bhs     far_offscreen
+DNPICT          ldx  .DYN_OPTR,U            ; Get a ptr to the object
+                ldd  OX16,X                 ; Is this onscreen?
+                subd BGL
+                addd #50*32
+                cmpd #400*32
+                bhs  far_offscreen
 
-            ; @BUG
-            ; this looks like a bug, I'd expect ldd OBJX,x
-            ; as OBJX is a member of the object struct
-            ; where as this will just load D with whatever is
-            ; at memory location OBJX (4)
-                ldd     OBJX                            ; X SEE IF ACTUALLY ON SCREEN.
-                bne     !onscreen                       ; YEP
-                lda     #19                             ; STOP A QUICK SHOT!
-                sta     .SHOT,U
+; @BUG
+; this looks like a bug, I'd expect ldd OBJX,x
+; as OBJX is a member of the object struct
+; where as this will just load D with whatever is
+; at memory location OBJX (4)
+                ldd  OBJX                   ; X SEE IF ACTUALLY ON SCREEN.
+                bne  !onscreen              ; YEP
+                lda  #19                    ; STOP A QUICK SHOT!
+                sta  .SHOT,U
 
-!onscreen       ldy     OPICT,X                         ; GET OUR PICTURE POINTER
-                ldd     OXV,X                           ; CHECK DIRECTION
-                bmi     DNPIC5                          ; NEGATIVE
-                leay    -OBJL,Y
-                cmpy    #DYN0
-                bhs     DNPIC1                          ; IN RANGE...JUST STORE
-                ldy     #DYN3
-                bra     DNPIC1
-DNPIC5          leay    OBJL,Y                          ; MOVE TO NEXT
-                cmpy    #DYN3                           ; PAST LAST??
-                bls     DNPIC1                          ; NOPE
-                ldy     #DYN0
-DNPIC1          sty     OPICT,X                         ; STORE
-DNPIC2          lda     .SHOT,U                         ; SHOT TIMER ZERO??
-                beq     !skip
-                dec     .SHOT,U                         ; DECREMENT SHOT TIMER
-!skip           dec     .VEL,U                          ; VELOCITY TIMER
+!onscreen       ldy  OPICT,X                ; GET OUR PICTURE POINTER
+                ldd  OXV,X                  ; CHECK DIRECTION
+                bmi  DNPIC5                 ; NEGATIVE
+                leay -OBJL,Y
+                cmpy #DYN0
+                bhs  DNPIC1                 ; IN RANGE...JUST STORE
+                ldy  #DYN3
+                bra  DNPIC1
+DNPIC5          leay OBJL,Y                 ; MOVE TO NEXT
+                cmpy #DYN3                  ; PAST LAST??
+                bls  DNPIC1                 ; NOPE
+                ldy  #DYN0
+DNPIC1          sty  OPICT,X                ; STORE
+DNPIC2          lda  .SHOT,U                ; SHOT TIMER ZERO??
+                beq  !skip
+                dec  .SHOT,U                ; DECREMENT SHOT TIMER
+!skip           dec  .VEL,U                 ; VELOCITY TIMER
                 rts
 
 
 far_offscreen
-                lda     #19
-                sta     .SHOT,U
-            NAP($10,!wake)                    ; FAR OFF SCREEN...
-!wake           ldx     proc.data,U                ; GET OBJECT.
-                jmp     DNWAKE
+                lda  #19
+                sta  .SHOT,U
+                NAP($10,!wake)              ; FAR OFF SCREEN...
+!wake           ldx  proc.data,U            ; GET OBJECT.
+                jmp  DNWAKE
 
 
-DYNKIL          dec DYNCNT
-                ldd #PHDYN
-                std OPICT,X
-        KILP    ($120,TIHSND)
+DYNKIL          dec  DYNCNT
+                ldd  #PHDYN
+                std  OPICT,X
+                KILP    ($120,TIHSND)
                 rts
 
-MISILE          ldy proc.data+2,U                          ; GET OBJECT FIRING US.
-                ldx proc.data,U                            ; AND GET OUR OBJECT
-                ldd OX16,Y                          ; GET OUR X COORD.
-                subd    PLABX                       ; SEE WHICH SIDE PLAYER IS ON
-                bpl MISS11                          ; HE'S TO OUR LEFT
-                ldd OX16,Y                          ; GET OBJECTS X
-                addd    #7*32                       ; 2 PIXELS OVER.
-                bra MISS22
-MISS11          ldd OX16,Y
-                subd    #3*32
-MISS22          std OX16,X
-                ldd OY16,Y
-                adda    #2                          ; SAME FOR Y.
-                std OY16,X
-                ldd #0
-                std OXV,X
-                std OYV,X
+MISILE          ldy  proc.data+2,U          ; GET OBJECT FIRING US.
+                ldx  proc.data,U            ; AND GET OUR OBJECT
+                ldd  OX16,Y                 ; GET OUR X COORD.
+                subd PLABX                  ; SEE WHICH SIDE PLAYER IS ON
+                bpl  MISS11                 ; HE'S TO OUR LEFT
+                ldd  OX16,Y                 ; GET OBJECTS X
+                addd #7*32                  ; 2 PIXELS OVER.
+                bra  MISS22
+MISS11          ldd  OX16,Y
+                subd #3*32
+MISS22          std  OX16,X
+                ldd  OY16,Y
+                adda #2                     ; SAME FOR Y.
+                std  OY16,X
+                ldd  #0
+                std  OXV,X
+                std  OYV,X
                 inca
-                sta proc.data+2,U                          ; INSTANT VELOCITY CHANGE
-                stx OPTR
-                stx .DYN_OPTR,U
+                sta  proc.data+2,U          ; INSTANT VELOCITY CHANGE
+                stx  OPTR
+                stx  .DYN_OPTR,U
 
-MSLOOP          jsr MSPICT                          ; DO THE PICTURE NUMBER
-                dec proc.data+2,U                          ; VELOCITY DIVIDER
-                bne MSLOP1                          ; NOT THIS TIME
-                lda #4
-                sta proc.data+2,U
-                bsr XCHK                            ; CHECK THE X RANGE.
-                bls NEWY                            ; IN HITTING DISTANCE....
-                bsr YCHK                            ; X NOT GOOD BE CAREFUL ABOUT Y
-                bhi NEWY                            ; Y NOT CLOSE ENOUGH...ZERO IN.
-                ldd #0                              ; Y  CLOSE ENOUGH.
-                std OYV,X
-                bra MSLOP2
-NEWY            ldd PLAYC                           ; GET THE PLAYERS Y.
-                cmpd    OY16,X                      ; COMPARE TO OURS
-                bhs NEWY1
-                ldb MISVEL
+MSLOOP          jsr  MSPICT                 ; DO THE PICTURE NUMBER
+                dec  proc.data+2,U          ; VELOCITY DIVIDER
+                bne  MSLOP1                 ; NOT THIS TIME
+                lda  #4
+                sta  proc.data+2,U
+                bsr  XCHK                   ; CHECK THE X RANGE.
+                bls  NEWY                   ; IN HITTING DISTANCE....
+                bsr  YCHK                   ; X NOT GOOD BE CAREFUL ABOUT Y
+                bhi  NEWY                   ; Y NOT CLOSE ENOUGH...ZERO IN.
+                ldd  #0                     ; Y  CLOSE ENOUGH.
+                std  OYV,X
+                bra  MSLOP2
+NEWY            ldd  PLAYC                  ; GET THE PLAYERS Y.
+                cmpd OY16,X                 ; COMPARE TO OURS
+                bhs  NEWY1
+                ldb  MISVEL
                 comb
-                bra NEWY2
-NEWY1           ldb MISVEL
+                bra  NEWY2
+NEWY1           ldb  MISVEL
 NEWY2           sex
                 aslb
-                rola                                ; DOUBLE FOR Y.
-                std OYV,X
-MSLOP2          bsr XCHK
-                bls MSLOP6                          ; CLOSE ENOUGH IN X
-                ldd PLABX
-                cmpd    OX16,X
-                bpl NEWX1                           ; HE'S IN FRONT OF US   (NO LINE)
-                ldb MISVEL                          ; 1 PIXEL PER SECOND
+                rola                        ; DOUBLE FOR Y.
+                std  OYV,X
+MSLOP2          bsr  XCHK
+                bls  MSLOP6                 ; CLOSE ENOUGH IN X
+                ldd  PLABX
+                cmpd OX16,X
+                bpl  NEWX1                  ; HE'S IN FRONT OF US   (NO LINE)
+                ldb  MISVEL                 ; 1 PIXEL PER SECOND
                 comb
-                bra NEWX2
-NEWX1           ldb MISVEL
+                bra  NEWX2
+NEWX1           ldb  MISVEL
 NEWX2           sex
-                std OXV,X                           ; STORED.
+                std  OXV,X                  ; STORED.
 MSLOP1
             NAP (3,MSLOOP)                      ; LOOP TIME.
-MSLOP6          ldd #0
-                std OXV,X
-                bra MSLOP1
+MSLOP6          ldd  #0
+                std  OXV,X
+                bra  MSLOP1
 
-XCHK            ldd PLABX
-                addd    #32*5                       ; ADD 5 PIXELS TO MAKE SYMMETRIC
-                subd    OX16,X                      ; FIND DIFFEENCE
-                bpl XCHK1
+XCHK            ldd  PLABX
+                addd #32*5                  ; ADD 5 PIXELS TO MAKE SYMMETRIC
+                subd OX16,X                 ; FIND DIFFEENCE
+                bpl  XCHK1
                 coma
                 comb
-                addd    #1
-XCHK1           cmpd    #9*32
+                addd #1
+XCHK1           cmpd #9*32
                 rts
 
-YCHK            ldd PLAYC
-                subd    OY16,X
-                bpl YCHK1
+YCHK            ldd  PLAYC
+                subd OY16,X
+                bpl  YCHK1
                 coma
                 comb
-                addd    #1
-YCHK1           cmpd    #$A00
+                addd #1
+YCHK1           cmpd #$A00
                 rts
 
-MSPICT          ldx .DYN_OPTR,U
-                ldd OX16,X
-                subd    BGL
-                cmpd    #300*32                     ; ON SCREEN??
-                bhi MSPIC2
-                ldy OPICT,X
-                leay    OBJL,Y
-                cmpy    #MIS1
-                bls MSPIC1
-                ldy #MIS0
-MSPIC1          sty OPICT,X
+MSPICT          ldx  .DYN_OPTR,U
+                ldd  OX16,X
+                subd BGL
+                cmpd #300*32                ; ON SCREEN??
+                bhi  MSPIC2
+                ldy  OPICT,X
+                leay OBJL,Y
+                cmpy #MIS1
+                bls  MSPIC1
+                ldy  #MIS0
+MSPIC1          sty  OPICT,X
                 rts
 
 MSPIC2
         NAP (12,MSLOOP)
 
-MISKIL          dec MISCNT
-                ldd #PHMIS
-                std OPICT,X
-        KILP    ($110,TIHSND)
+MISKIL          dec  MISCNT
+                ldd  #PHMIS
+                std  OPICT,X
+                KILP    ($110,TIHSND)
                 rts
 
 DYN0    FCB 5,9

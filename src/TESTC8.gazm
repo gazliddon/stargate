@@ -6,68 +6,68 @@
 
             ORG TSCORG                          ; PLACE TO RUN FROM
 
-PUPHSC          jmp CKHS                          ; CHECK HIGH SCORES (POWER UP)
-ENDPRC          jmp ENDGAM                        ; END OF GAME HIGH SCORE PROCESSING
-GODSET          jmp GODENT                        ; ENTER GOD
-HIGHRS          jmp RESHSC                        ; RESET HIGH SCORES
-HSCHKV          jmp HSCHK                         ; CHECK HIGH SCORES AFTER FAC SET RESTORE
-HSBUTV          jmp HSBUT                         ; HIGH SCORE RESET BUTTON
+PUPHSC          jmp    CKHS                 ; CHECK HIGH SCORES (POWER UP)
+ENDPRC          jmp    ENDGAM               ; END OF GAME HIGH SCORE PROCESSING
+GODSET          jmp    GODENT               ; ENTER GOD
+HIGHRS          jmp    RESHSC               ; RESET HIGH SCORES
+HSCHKV          jmp    HSCHK                ; CHECK HIGH SCORES AFTER FAC SET RESTORE
+HSBUTV          jmp    HSBUT                ; HIGH SCORE RESET BUTTON
 
-HSBUT           lda #$18                          ; 3 SECONDS REQUIRED
-                sta proc.data,U
-                lda #$3F
-                sta SOUND
+HSBUT           lda    #$18                 ; 3 SECONDS REQUIRED
+                sta    proc.data,U
+                lda    #$3F
+                sta    SOUND
 HSBUT1  
-        NAP (8,HSBUT2)                    ; CHECK BUTTON
-HSBUT2          lda PIA0
-                bita  #8                          ; STILL PRESSED??
-                beq HSBUT3                        ; NOPE....BYE
-                dec proc.data,U
-                bne HSBUT1                        ; NOT ENOUGH TIME YET
-                ldy #GODINT                       ; JUST PUT IN DEFAULT NAME
-                ldx #DEFHSR
-                ldb #23                           ; NOT THE SCORE, JUST THE NAMES
-                jsr CMSMVV
-                jsr MKGODC                        ; MAKE THE NEW CHECK BYTE
-                clr SOUND                         ; INDICATE MISSION ACCOMPLISHED
-HSBUT3          jmp SUCIDE
+                NAP (8,HSBUT2)              ; CHECK BUTTON
+HSBUT2          lda    PIA0
+                bita   #8                   ; STILL PRESSED??
+                beq    HSBUT3               ; NOPE....BYE
+                dec    proc.data,U
+                bne    HSBUT1               ; NOT ENOUGH TIME YET
+                ldy    #GODINT              ; JUST PUT IN DEFAULT NAME
+                ldx    #DEFHSR
+                ldb    #23                  ; NOT THE SCORE, JUST THE NAMES
+                jsr    CMSMVV
+                jsr    MKGODC               ; MAKE THE NEW CHECK BYTE
+                clr    SOUND                ; INDICATE MISSION ACCOMPLISHED
+HSBUT3          jmp    SUCIDE
 
-HSCHK           ldy #CMSCOR                       ; START AT BEGINNING OF TABLE
-                ldb #8                            ; 8 BAD ENTRIES IS ADEQUATE FOR FULL BASH
-HSCHK1          jsr FSCCK                         ; FORM THE CHECK BYTE
-                eora 6,Y                          ; COMPARE TO CHECK BYTE THERE
-                anda #$0F
-                beq HSCHK2
+HSCHK           ldy    #CMSCOR              ; START AT BEGINNING OF TABLE
+                ldb    #8                   ; 8 BAD ENTRIES IS ADEQUATE FOR FULL BASH
+HSCHK1          jsr    FSCCK                ; FORM THE CHECK BYTE
+                eora   6,Y                  ; COMPARE TO CHECK BYTE THERE
+                anda   #$0F
+                beq    HSCHK2
                 decb
-                beq RESHSC                        ; 8 BAD ONES..RESET
-HSCHK2          lda #WDATA
-                sta WDOG
-                leay SCRSIZ,Y
-                cmpy #TODAYS                      ; BEYOND REGION??
-                blo HSCHK1
+                beq    RESHSC               ; 8 BAD ONES..RESET
+HSCHK2          lda    #WDATA
+                sta    WDOG
+                leay   SCRSIZ,Y
+                cmpy   #TODAYS              ; BEYOND REGION??
+                blo    HSCHK1
                 rts
 
 ;;; RESHSC   RESET HIGH SCORES
-RESHSC          lda #WDATA
-                sta WDOG
-                ldx #DEFHSR                       ; DEFAULT SCORES
-                ldy #GODINT                       ; GODS INITIALS FOLLOWED BY GODS SCORE FOLLOWED BY REST
-                ldb #CDEFS1                       ; SIZE OF DEFAULT TABLE
-                jsr CMSMVV                        ; TRANSFER THE BLOCK
-                ldx #DEFSC2
-                ldy #GODINT+(2*CDEFS1)
-                ldb #CDEFS2
-                jsr CMSMVV
-                jsr MKGODC  
-                ldy #CMSCOR                       ; WALK THROUGH
-RESHS1          jsr MKSCCK
-                lda #WDATA
-                sta WDOG
-                leay SCRSIZ,Y
-                cmpy #TODAYS
-                blo RESHS1
-                lda #HSRESM                       ; SAY THAT THEY WERE RESET
-                jmp WRD7V                         ; AND RETURN
+RESHSC          lda    #WDATA
+                sta    WDOG
+                ldx    #DEFHSR              ; DEFAULT SCORES
+                ldy    #GODINT              ; GODS INITIALS FOLLOWED BY GODS SCORE FOLLOWED BY REST
+                ldb    #CDEFS1              ; SIZE OF DEFAULT TABLE
+                jsr    CMSMVV               ; TRANSFER THE BLOCK
+                ldx    #DEFSC2
+                ldy    #GODINT+(2*CDEFS1)
+                ldb    #CDEFS2
+                jsr    CMSMVV
+                jsr    MKGODC  
+                ldy    #CMSCOR              ; WALK THROUGH
+RESHS1          jsr    MKSCCK
+                lda    #WDATA
+                sta    WDOG
+                leay   SCRSIZ,Y
+                cmpy   #TODAYS
+                blo    RESHS1
+                lda    #HSRESM              ; SAY THAT THEY WERE RESET
+                jmp    WRD7V                ; AND RETURN
 
 DEFHSR  FCC "PHR"
 DEFGOD  FCC "PHRED" 
@@ -177,424 +177,424 @@ GODSND
 ULTUNE  FCB $FF,1,1,$1B,1,1,2,0             ; UPPER LEFT OR GOD
 HSTUNE  FCB $FF,1,1,$1B,1,1,1,0             ; PLEBIAN HIGH SCORE
 
-CLRSCR          pshs X,Y,B                          ; SAVE BASHED
-                ldx #NULSCR                         ; POINT AT NULL SCORE
-                ldb #NULSIZ                         ; HALF AN ENTRYS WORTH OF BYTES
-                jsr CMSMVV
-                puls X,Y,B,PC
+CLRSCR          pshs   X,Y,B                ; SAVE BASHED
+                ldx    #NULSCR              ; POINT AT NULL SCORE
+                ldb    #NULSIZ              ; HALF AN ENTRYS WORTH OF BYTES
+                jsr    CMSMVV
+                puls   X,Y,B,PC
 
-MKGODC          pshs A  
-                bsr FGODC                           ; FOR GODS CHECK BYTE IN LOW HALF OF A
-                sta GODSCR+40                       ; STORE AFTER THE CHARACTERS
-                puls A,PC
+MKGODC          pshs   A  
+                bsr    FGODC                ; FOR GODS CHECK BYTE IN LOW HALF OF A
+                sta    GODSCR+40            ; STORE AFTER THE CHARACTERS
+                puls   A,PC
 
 
 ;;  FORM GOD'S CHECK BYTE
 
-FGODC           pshs X 
-                ldx #GODINT                         ; LETS START AT THE VERY BEGINNING....
+FGODC           pshs   X 
+                ldx    #GODINT              ; LETS START AT THE VERY BEGINNING....
                 clra  
-FGODC0          adda ,X                             ; ADD THE CURRENT NIBBLE
-FGODC1          leax  1,X
-                cmpx #GODSCR+40                     ; CHECK BYTE???
-                beq FGODC1
-                cmpx #GODSCR+48                     ; DONE???
-                bne FGODC0
-                puls  X,PC                          ; RETURN IN LOW HALF OF A
+FGODC0          adda   ,X                   ; ADD THE CURRENT NIBBLE
+FGODC1          leax   1,X
+                cmpx   #GODSCR+40           ; CHECK BYTE???
+                beq    FGODC1
+                cmpx   #GODSCR+48           ; DONE???
+                bne    FGODC0
+                puls   X,PC                 ; RETURN IN LOW HALF OF A
 
-MKSCCK          pshs  A 
-                bsr FSCCK                           ; FORM THE CHECK BYTE
-                sta 6,Y                             ; STORE IT
-                puls  A,PC
+MKSCCK          pshs   A 
+                bsr    FSCCK                ; FORM THE CHECK BYTE
+                sta    6,Y                  ; STORE IT
+                puls   A,PC
 
-FSCCK           pshs  Y,B
-                ldb #SCRSIZ
+FSCCK           pshs   Y,B
+                ldb    #SCRSIZ
                 clra
-MSCCK0          cmpb  #SCRSIZ-6                     ; ABOUT TO DO CHECK BYTE??
-                beq MSCCK1
-                adda  ,Y                            ; ADD THE CURRENT BYTE
-MSCCK1          leay  1,Y
+MSCCK0          cmpb   #SCRSIZ-6            ; ABOUT TO DO CHECK BYTE??
+                beq    MSCCK1
+                adda   ,Y                   ; ADD THE CURRENT BYTE
+MSCCK1          leay   1,Y
                 decb
-                bne MSCCK0
-                puls  Y,B,PC
+                bne    MSCCK0
+                puls   Y,B,PC
 
-CKHS            lda #50                             ; DONT GO THROUGH MORE THAN 50
-                pshs  A
-                ldy #CMSCOR                         ; WALK THROUGH SCORES
-CKHS7           bsr FSCCK                           ; FORM THE SCORE CHECK BYTE
-                eora  6,Y
-                anda  #$F
-                beq CKHS5
-CKHS4           jsr RMENTR                          ; REMOVE THE ENTRY
-                clr CREDST
-                clr CREDST+1
-                dec ,S                              ; MAKE SURE WE DON'T REMOVE TOO MANY
-                beq CKHS67
-                bra CKHS7                           ; DON'T PUSH POINTER YET.
-CKHS5           lda #3
-                ldb #4
-                bsr CKENT
-                bcs CKHS4
-CKHS6           leay  SCRSIZ,Y                      ; MOVE TO NEXT
-                cmpy  #TODAYS
-                blo CKHS7
-CKHS67          puls  A                             ; TAKE ENTRY OFF OF STACK
-                ldx #TODTAB                         ; TODAY'S TABLE (NORMAL BYTES)
-                ldy #TODAYS
-                ldb #ENDTOD-TODTAB
-                jsr CMSMVV
-                bsr FGODC                           ; NOW CHECK OUT GOD.  
-                eora  GODSCR+40                     ; CHECK IT OUT
-                anda  #$F
-                beq CKHS1                           ; OK..CONTINUE
-                bsr REMGOD
-CKHS1           ldy #GODINT                         ; BEGINNING OF TEXT ONLY PART-CHECK ALPHA NUM
-                lda #23                             ; 20 CHARS OF TEXT
-                ldb #4                              ; 4 BYTES OF NUMBERS PLEASE
-                bsr CKENT                           ; MAKE SURE ALPHAS AND NUMERICS
-                bcc CKHS3
-                bsr REMGOD                          ; REMOVE GOD
+CKHS            lda    #50                  ; DONT GO THROUGH MORE THAN 50
+                pshs   A
+                ldy    #CMSCOR              ; WALK THROUGH SCORES
+CKHS7           bsr    FSCCK                ; FORM THE SCORE CHECK BYTE
+                eora   6,Y
+                anda   #$F
+                beq    CKHS5
+CKHS4           jsr    RMENTR               ; REMOVE THE ENTRY
+                clr    CREDST
+                clr    CREDST+1
+                dec    ,S                   ; MAKE SURE WE DON'T REMOVE TOO MANY
+                beq    CKHS67
+                bra    CKHS7                ; DON'T PUSH POINTER YET.
+CKHS5           lda    #3
+                ldb    #4
+                bsr    CKENT
+                bcs    CKHS4
+CKHS6           leay   SCRSIZ,Y             ; MOVE TO NEXT
+                cmpy   #TODAYS
+                blo    CKHS7
+CKHS67          puls   A                    ; TAKE ENTRY OFF OF STACK
+                ldx    #TODTAB              ; TODAY'S TABLE (NORMAL BYTES)
+                ldy    #TODAYS
+                ldb    #ENDTOD-TODTAB
+                jsr    CMSMVV
+                bsr    FGODC                ; NOW CHECK OUT GOD.  
+                eora   GODSCR+40            ; CHECK IT OUT
+                anda   #$F
+                beq    CKHS1                ; OK..CONTINUE
+                bsr    REMGOD
+CKHS1           ldy    #GODINT              ; BEGINNING OF TEXT ONLY PART-CHECK ALPHA NUM
+                lda    #23                  ; 20 CHARS OF TEXT
+                ldb    #4                   ; 4 BYTES OF NUMBERS PLEASE
+                bsr    CKENT                ; MAKE SURE ALPHAS AND NUMERICS
+                bcc    CKHS3
+                bsr    REMGOD               ; REMOVE GOD
 CKHS3           rts
 
-REMGOD          ldx #GODSCR                         ; GOD BAD FIRST BLANK OUT
-                lda #$3A
-CKHS2_          jsr WCMOSA
-                cmpx  #GODSCR+40                    ; DONE??
-                blo CKHS2_                          ; DO ANOTHER CHARACTER
-                ldx #CMSCOR                         ; #2    
-                ldy #GODSCR
-                lda #6                              ; 6 NIBBLES
-                jsr BLKMOV                          ; MOVED
-                ldy #GODINT                         ; X STILL POINTS AT FIRST GUYS INITIALS
-                jsr BLKMOV                          ; MOV EM TOO
-                ldx #CMSCOR+6                       ; #2 SCORE
-                ldy #GODSCR+40                      ; #2 SCORE GOES HERE
-                lda #8
-                jsr BLKMOV
-                jsr MKGODC                          ; MAKE THE CHECK BYTE
-                ldy #CMSCOR                         ; NOW REMEOVE #2
-                jmp RMENTR                          ; REMOVE #2 AND RETURN
+REMGOD          ldx    #GODSCR              ; GOD BAD FIRST BLANK OUT
+                lda    #$3A
+CKHS2_          jsr    WCMOSA
+                cmpx   #GODSCR+40           ; DONE??
+                blo    CKHS2_               ; DO ANOTHER CHARACTER
+                ldx    #CMSCOR              ; #2    
+                ldy    #GODSCR
+                lda    #6                   ; 6 NIBBLES
+                jsr    BLKMOV               ; MOVED
+                ldy    #GODINT              ; X STILL POINTS AT FIRST GUYS INITIALS
+                jsr    BLKMOV               ; MOV EM TOO
+                ldx    #CMSCOR+6            ; #2 SCORE
+                ldy    #GODSCR+40           ; #2 SCORE GOES HERE
+                lda    #8
+                jsr    BLKMOV
+                jsr    MKGODC               ; MAKE THE CHECK BYTE
+                ldy    #CMSCOR              ; NOW REMEOVE #2
+                jmp    RMENTR               ; REMOVE #2 AND RETURN
 
-CKENT           pshs  D,X
-                ldb #WDATA
-                stb WDOG
-                tfr Y,X                             ; CMOSABLE REGISTER
-CKENT1          jsr RCMOSB                          ; READ A BYTE
-                cmpb  #$41                          ; LOWER THAN A??
-                bhs CKENT4                          ; NOPE...HIGH ENOUGH CHECK TOO HIGH
-                cmpb  #$3A                          ; TOO LOW..CHECK SPACE
-                bne CKENT5                          ; NOPE...NOT VALID
-CKENT4          cmpb  #$5A
-                bhi CKENT5                          ; HIGHER THAN Z
-                deca                                ; ONE LESS ON THIS FRONT
-                bne CKENT1
-                lda 1,S                             ; GET THE SECOND PART COUNTER BACK
-                jsr RCMOSB                          ; GET THE CHECK BYTE
-                andb  #$F
-                cmpb  #9
-                bhi CKENT5                          ; NO HEX ALLOWED
+CKENT           pshs   D,X
+                ldb    #WDATA
+                stb    WDOG
+                tfr    Y,X                  ; CMOSABLE REGISTER
+CKENT1          jsr    RCMOSB               ; READ A BYTE
+                cmpb   #$41                 ; LOWER THAN A??
+                bhs    CKENT4               ; NOPE...HIGH ENOUGH CHECK TOO HIGH
+                cmpb   #$3A                 ; TOO LOW..CHECK SPACE
+                bne    CKENT5               ; NOPE...NOT VALID
+CKENT4          cmpb   #$5A
+                bhi    CKENT5               ; HIGHER THAN Z
+                deca                        ; ONE LESS ON THIS FRONT
+                bne    CKENT1
+                lda    1,S                  ; GET THE SECOND PART COUNTER BACK
+                jsr    RCMOSB               ; GET THE CHECK BYTE
+                andb   #$F
+                cmpb   #9
+                bhi    CKENT5               ; NO HEX ALLOWED
                 deca
-CKENT2          jsr RCMOSB
-                pshs  B
-                andb  #$F                           ; LOOK AT LOW HALF
-                cmpb  #9
-                puls  B
-                bhi CKENT5                          ; NOT NUMERIC...ERROR!
-                andb  #$F0
-                cmpb  #$99
-                bhi CKENT5
+CKENT2          jsr    RCMOSB
+                pshs   B
+                andb   #$F                  ; LOOK AT LOW HALF
+                cmpb   #9
+                puls   B
+                bhi    CKENT5               ; NOT NUMERIC...ERROR!
+                andb   #$F0
+                cmpb   #$99
+                bhi    CKENT5
                 deca
-                bne CKENT2
-CKENT3          andcc #$FE                          ; (CLC)
-CKENT8          lda #WDATA
-                sta WDOG
-                puls  X,D,PC
-CKENT5          orcc  #$01                          ; SEC 
-                bra CKENT8  
+                bne    CKENT2
+CKENT3          andcc  #$FE                 ; (CLC)
+CKENT8          lda    #WDATA
+                sta    WDOG
+                puls   X,D,PC
+CKENT5          orcc   #$01                 ; SEC 
+                bra    CKENT8  
 
 ;
 ;   RMENTR - REMOVE SCORE ENTRY POINTED TO BY Y.
 ;
 
-RMENTR          pshs X,Y,D
-                leax SCRSIZ,Y                             ; X  POINTS PAST Y
-RMENT0          cmpx #TODAYS                              ; ARE WE BEYOND IN X.
-                bhs RMENT1                                ; YEP...DONE.
-                lda #SCRSIZ
-                bsr BLKMOV                                ; MOVE THE BLOCK X TO Y
-                leay SCRSIZ,Y
-                leax SCRSIZ,X
-                lda #WDATA
-                sta WDOG
-                bra RMENT0
-RMENT1          jsr CLRSCR                                ; CLEAR THE BLOCK NOW POINTED AT BY Y (BOTTOM)
-                jsr MKSCCK                                ; AND FORM THE CHECK BYTE
-                puls X,Y,D,PC
+RMENTR          pshs   X,Y,D
+                leax   SCRSIZ,Y             ; X  POINTS PAST Y
+RMENT0          cmpx   #TODAYS              ; ARE WE BEYOND IN X.
+                bhs    RMENT1               ; YEP...DONE.
+                lda    #SCRSIZ
+                bsr    BLKMOV               ; MOVE THE BLOCK X TO Y
+                leay   SCRSIZ,Y
+                leax   SCRSIZ,X
+                lda    #WDATA
+                sta    WDOG
+                bra    RMENT0
+RMENT1          jsr    CLRSCR               ; CLEAR THE BLOCK NOW POINTED AT BY Y (BOTTOM)
+                jsr    MKSCCK               ; AND FORM THE CHECK BYTE
+                puls   X,Y,D,PC
 
 ; BLKMOV  A BYTES FROM [X] TO [Y]
 
-BLKMOV          pshs  X,Y,D
-BLKMV1          ldb ,X+
-                stb ,Y+
+BLKMOV          pshs   X,Y,D
+BLKMV1          ldb    ,X+
+                stb    ,Y+
                 deca
-                bne BLKMV1
-                puls  X,Y,D,PC
+                bne    BLKMV1
+                puls   X,Y,D,PC
 
-ENDGAM          clr ATRFLG
-                jsr SCRCLR
-                jsr P1SW                                ; POINT AT PLAYER 1
-                ldx #.P1SCR                             ; PLAYER 1'S SCORE
-                ldb #1                                  ; PLAYER '1'
-                bsr EGSUB                               ; DO IT UP FOR HIM
-                ldb PLRCNT                              ; HOW MANY???
+ENDGAM          clr    ATRFLG
+                jsr    SCRCLR
+                jsr    P1SW                 ; POINT AT PLAYER 1
+                ldx    #.P1SCR              ; PLAYER 1'S SCORE
+                ldb    #1                   ; PLAYER '1'
+                bsr    EGSUB                ; DO IT UP FOR HIM
+                ldb    PLRCNT               ; HOW MANY???
                 decb
-                beq ENDGMR                              ; RETURN.
-                jsr SCRCLR
-                lda PIA3                                ; COCKTAIL??
-                bpl ENDGM1                              ; NOPE
-                jsr P2SW                                ; THEN FACE THE NATION
+                beq    ENDGMR               ; RETURN.
+                jsr    SCRCLR
+                lda    PIA3                 ; COCKTAIL??
+                bpl    ENDGM1               ; NOPE
+                jsr    P2SW                 ; THEN FACE THE NATION
 
-ENDGM1          ldx #.P2SCR
-                ldb #2
-                bsr EGSUB
-                jsr SCRCLR
-                jsr P1SW                                ; AND SWITCH TO PLAYER 1
-ENDGMR          jmp GOV                                 ; JUMP TO GAME OVER (AMODE) PROCESSING
+ENDGM1          ldx    #.P2SCR
+                ldb    #2
+                bsr    EGSUB
+                jsr    SCRCLR
+                jsr    P1SW                 ; AND SWITCH TO PLAYER 1
+ENDGMR          jmp    GOV                  ; JUMP TO GAME OVER (AMODE) PROCESSING
 
 EGSUB 
-                puls  Y                                 ; GET RETURN ADDRESS
-                sty EGRAM
-                stx PLRX                                ; SAVE PARAMS
-                stb CURPLR
-                jsr GODCHK                              ; SEE IF GOD
-                bcc EGSUB1
-                jsr GODESB                              ; HAVE HIM ENTER IT.
-                ldy #CMSCOR                             ; BUBBLE TO VACATE THIS POSITION
-                ldx #TODAYS-SCRSIZ                      ; FROM BOTTOM 
-                jsr BUBDN                               ; BUBBLE EM DOWN
-                ldx #GODSCR+40                          ; POINT AT SOON TO BE EX-GOD
-                ldy #CMSCOR+6                           ; THIS IS WHERE IT GOES
-                lda #8                                  ; 8 NIBBLES
-                jsr BLKMOV                              ; MOVE IT DOWN
-                ldx #GODINT                             ; AND HIS INITIALS
-                ldy #CMSCOR
-                lda #6
-                jsr BLKMOV                              ; AND MOVE IT
-                ldy #CMSCOR                             ; POINT AT #2 
-                jsr MKSCCK                              ; AND FORM HIS CHECK BYTE
-                ldx PLRX                                ; POINT AT SCORE
-                ldy #GODSCR+40
-                ldb #4
-                jsr CMSMVV
-                jsr MKGODC
-                ldx #NULSCR                             ; BLANK INITIALS
-                ldy #GODINT 
-                ldb #3
-                jsr CMSMVV
-                jsr SCRCLR
-                lda #NOWMES                             ; TELL HIM TO ENTER HIS INITIALS NOW.
-                sta EGRAM2                              ; INDICATE GOD JUST ENTERED
-                bra GETHM2                              ; JUMP INTO THE ROUTINE TO DO THAT.
+                puls   Y                    ; GET RETURN ADDRESS
+                sty    EGRAM
+                stx    PLRX                 ; SAVE PARAMS
+                stb    CURPLR
+                jsr    GODCHK               ; SEE IF GOD
+                bcc    EGSUB1
+                jsr    GODESB               ; HAVE HIM ENTER IT.
+                ldy    #CMSCOR              ; BUBBLE TO VACATE THIS POSITION
+                ldx    #TODAYS-SCRSIZ       ; FROM BOTTOM 
+                jsr    BUBDN                ; BUBBLE EM DOWN
+                ldx    #GODSCR+40           ; POINT AT SOON TO BE EX-GOD
+                ldy    #CMSCOR+6            ; THIS IS WHERE IT GOES
+                lda    #8                   ; 8 NIBBLES
+                jsr    BLKMOV               ; MOVE IT DOWN
+                ldx    #GODINT              ; AND HIS INITIALS
+                ldy    #CMSCOR
+                lda    #6
+                jsr    BLKMOV               ; AND MOVE IT
+                ldy    #CMSCOR              ; POINT AT #2 
+                jsr    MKSCCK               ; AND FORM HIS CHECK BYTE
+                ldx    PLRX                 ; POINT AT SCORE
+                ldy    #GODSCR+40
+                ldb    #4
+                jsr    CMSMVV
+                jsr    MKGODC
+                ldx    #NULSCR              ; BLANK INITIALS
+                ldy    #GODINT 
+                ldb    #3
+                jsr    CMSMVV
+                jsr    SCRCLR
+                lda    #NOWMES              ; TELL HIM TO ENTER HIS INITIALS NOW.
+                sta    EGRAM2               ; INDICATE GOD JUST ENTERED
+                bra    GETHM2               ; JUMP INTO THE ROUTINE TO DO THAT.
 
 ; CODE TO GET GOD HERE.
 
-EGSUB1          jsr TODCHK                              ; CHECK TODAYS HIGH
-                bcs GETHIM
-                jsr ALLCHK                              ; CHECK ALL TIME
-                bcs GETHIM
-                jmp [EGRAM]                             ; RETURN...HOW BORING.
+EGSUB1          jsr    TODCHK               ; CHECK TODAYS HIGH
+                bcs    GETHIM
+                jsr    ALLCHK               ; CHECK ALL TIME
+                bcs    GETHIM
+                jmp    [EGRAM]              ; RETURN...HOW BORING.
 
-GETHIM          clr EGRAM2
-                ldd #HSTUNE                             ; HIGH SCORE TUNE
-                cmpy  #TODAYS                           ; IS IT POINTING AT THE HIGHEST
-                bne GETHM1                              ; NOPE
-                ldd #ULTUNE
-GETHM1          jsr SNDLD
-                lda #CONG
-GETHM2          ldb CURPLR                              ; GET PLAYER NUMBER
-                inc ATRFLG                              ; INDICATE SCORE ENTERED
-                jsr SCRCLR
-                jsr WRD7V                               ; PUT THE MESSAGE OUT
-                ldd #$3A3A                              ; SPACES
-                std ALTBL
-                sta ALTBL+2
-                ldd #$300                               ; 3 CHARS PLEASE, NO FUNNY ONES
-                ldx #$4680                              ; PLACE TO DO IT
-                ldy #ALTBL                              ; PLACE FOR HS.
-                jsr GETLT  
-                jsr TODCHK                              ; SEE WHERE TO PUT IT ETC.
-                bcc GETHM3                              ; NOT THIS TIME JACK
-                ldx #TODEND-SCRSIZ                      ; END OF TODAYS
-                jsr SCTRNS
-GETHM3          jsr ALLCHK                              ; CHECK FOR ALL TIME
-                bcc GETHM5                              ; NOPE
-                tst EGRAM2                              ; WAS THIS GOD??
-                beq GETHM4                              ; NOPE
-                ldx #ALTBL
-                ldy #GODINT                             ; JUST STORE THE INITIALS ON THIS SIDE
-                ldb #3
-                jsr CMSMVV                              ; DONE.
-                jsr MKGODC                              ; FORM GOD'S NEW CHECK BYTE
-                lda #5                                  ; INTERESTED IF THERE ARE 5 OTHERS!
-                bsr SETB__                              ; WELL????
-                bcc GETHM5                              ; NOPE.
-                tfr X,Y                                 ; MOVE LOWEST POINTED TO INTO Y
-                jsr RMENTR                              ; REMOVE IT.
-                bra GTTHM8                              ; AND TELL HIM IT WAS REMOVED
-GETHM4          jsr SETBOT                              ; FIND PLACE TO BUBBLE DOWN TO (5 MAX RULE)
-                pshs  CC                                ; SAVE ANSWER
-                pshs  X 
-                cmpy  ,S++    
-                bhi GETHM8                              ; NOT BETTER THAN HIS TOP 5
-                bsr SCTRNS                              ; DONE.
-GETHM8          puls  CC                                ; GET CARRY BACK
-                bcc GETHM5
-GTTHM8          jsr SCRCLR
-                lda #ONLY5M
-                jsr WRD7V
-        NAP ($60,GETHM5)
-GETHM5          jmp [EGRAM]
+GETHIM          clr    EGRAM2
+                ldd    #HSTUNE              ; HIGH SCORE TUNE
+                cmpy   #TODAYS              ; IS IT POINTING AT THE HIGHEST
+                bne    GETHM1               ; NOPE
+                ldd    #ULTUNE
+GETHM1          jsr    SNDLD
+                lda    #CONG
+GETHM2          ldb    CURPLR               ; GET PLAYER NUMBER
+                inc    ATRFLG               ; INDICATE SCORE ENTERED
+                jsr    SCRCLR
+                jsr    WRD7V                ; PUT THE MESSAGE OUT
+                ldd    #$3A3A               ; SPACES
+                std    ALTBL
+                sta    ALTBL+2
+                ldd    #$300                ; 3 CHARS PLEASE, NO FUNNY ONES
+                ldx    #$4680               ; PLACE TO DO IT
+                ldy    #ALTBL               ; PLACE FOR HS.
+                jsr    GETLT  
+                jsr    TODCHK               ; SEE WHERE TO PUT IT ETC.
+                bcc    GETHM3               ; NOT THIS TIME JACK
+                ldx    #TODEND-SCRSIZ       ; END OF TODAYS
+                jsr    SCTRNS
+GETHM3          jsr    ALLCHK               ; CHECK FOR ALL TIME
+                bcc    GETHM5               ; NOPE
+                tst    EGRAM2               ; WAS THIS GOD??
+                beq    !GETHM4              ; NOPE
+                ldx    #ALTBL
+                ldy    #GODINT              ; JUST STORE THE INITIALS ON THIS SIDE
+                ldb    #3
+                jsr    CMSMVV               ; DONE.
+                jsr    MKGODC               ; FORM GOD'S NEW CHECK BYTE
+                lda    #5                   ; INTERESTED IF THERE ARE 5 OTHERS!
+                bsr    SETB__               ; WELL????
+                bcc    GETHM5               ; NOPE.
+                tfr    X,Y                  ; MOVE LOWEST POINTED TO INTO Y
+                jsr    RMENTR               ; REMOVE IT.
+                bra    GTTHM8               ; AND TELL HIM IT WAS REMOVED
+!GETHM4         jsr    SETBOT               ; FIND PLACE TO BUBBLE DOWN TO (5 MAX RULE)
+                pshs   CC                   ; SAVE ANSWER
+                pshs   X 
+                cmpy   ,S++    
+                bhi    GETHM8               ; NOT BETTER THAN HIS TOP 5
+                bsr    SCTRNS               ; DONE.
+GETHM8          puls   CC                   ; GET CARRY BACK
+                bcc    GETHM5
+GTTHM8          jsr    SCRCLR
+                lda    #ONLY5M
+                jsr    WRD7V
+                SLEEP($60)
+GETHM5          jmp    [EGRAM]
 
-SETB__          pshs  Y,D
-                bra SETBT0
+SETB__          pshs   Y,D
+                bra    SETBT0
 
-SETBOT          pshs  Y,D
-                ldx #GODINT                             ; SEE IF MATCH OF GOD INITIALS
-                bsr SETSUB
-                lda #4                                  ; ASSUME MATCH
-                bcs SETBT0                              ; YEP...ONLY 4 MORE NEEDED
+SETBOT          pshs   Y,D
+                ldx    #GODINT              ; SEE IF MATCH OF GOD INITIALS
+                bsr    SETSUB
+                lda    #4                   ; ASSUME MATCH
+                bcs    SETBT0               ; YEP...ONLY 4 MORE NEEDED
                 inca
-SETBT0          sta XTEMP
-                ldx #CMSCOR                             ; POINT AT FIRST ENTRY
-SETBT1          bsr SETSUB                              ; SEE IF THIS ONE MATCHES
-                bcc SETBT3                              ; NOPE...
-                dec XTEMP                               ; FOUND
-                beq SETBT5                              ; AND TIME TO EXIT
-SETBT3          leax SCRSIZ,X                           ; PUSH TO NEXT
-                cmpx #TODAYS
-                blo SETBT1                              ; NOT DONE...DO ANOTHER
-                ldx #TODAYS-SCRSIZ                      ; BUBBLE FROM BOTTOM
-                andcc #$FE                              ; (CLC)
-                puls Y,D,PC
-SETBT5          orcc #$01                               ; SEC
-                puls Y,D,PC                             ; AND RETURN IT
+SETBT0          sta    XTEMP
+                ldx    #CMSCOR              ; POINT AT FIRST ENTRY
+SETBT1          bsr    SETSUB               ; SEE IF THIS ONE MATCHES
+                bcc    SETBT3               ; NOPE...
+                dec    XTEMP                ; FOUND
+                beq    SETBT5               ; AND TIME TO EXIT
+SETBT3          leax   SCRSIZ,X             ; PUSH TO NEXT
+                cmpx   #TODAYS
+                blo    SETBT1               ; NOT DONE...DO ANOTHER
+                ldx    #TODAYS-SCRSIZ       ; BUBBLE FROM BOTTOM
+                andcc  #$FE                 ; (CLC)
+                puls   Y,D,PC
+SETBT5          orcc   #$01                 ; SEC
+                puls   Y,D,PC               ; AND RETURN IT
 
-SETSUB          pshs  X
-                ldy #ALTBL                              ; ALT TABLE
-                ldb #3
-SETSB2          jsr RCMOSA  
-                cmpa  ,Y+                               ; COMPARE TO ALT LETTER
-                bne SETSB1                              ; NO GOOD...MOVE TO NEXT
-                decb                                    ; ONE LESS TO DO
-                bne SETSB2
-                orcc  #$01                              ; SEC
-                puls  X,PC
-SETSB1          andcc #$FE                              ; (CLC) NO MATCH
-                puls  X,PC
+SETSUB          pshs   X
+                ldy    #ALTBL               ; ALT TABLE
+                ldb    #3
+SETSB2          jsr    RCMOSA  
+                cmpa   ,Y+                  ; COMPARE TO ALT LETTER
+                bne    SETSB1               ; NO GOOD...MOVE TO NEXT
+                decb                        ; ONE LESS TO DO
+                bne    SETSB2
+                orcc   #$01                 ; SEC
+                puls   X,PC
+SETSB1          andcc  #$FE                 ; (CLC) NO MATCH
+                puls   X,PC
 
-SCTRNS          pshs  Y
-                jsr BUBDN                               ; BUBBLE EM TO MAKE ROOM
-                ldx #ALTBL
-                ldb #3
-                jsr CMSMVV                              ; TRANSFER THE BLOCK
-                ldx PLRX
-                ldb #4
-                jsr CMSMVV                              ; TRANSFER THE SCORE
-                puls  Y
-                jmp MKSCCK                              ; FORM THE CHECK BYTE
+SCTRNS          pshs   Y
+                jsr    BUBDN                ; BUBBLE EM TO MAKE ROOM
+                ldx    #ALTBL
+                ldb    #3
+                jsr    CMSMVV               ; TRANSFER THE BLOCK
+                ldx    PLRX
+                ldb    #4
+                jsr    CMSMVV               ; TRANSFER THE SCORE
+                puls   Y
+                jmp    MKSCCK               ; FORM THE CHECK BYTE
 
-BUBDN           pshs  X,Y
-                tfr X,Y                                 ; BOTTOM IS DESTINATION
-BUBDN1          cmpy  2,S                               ; IS OUR DESTINATION WHAT WE WANT TO FILL??
-                beq BUBDUN                              ; THEN WE'RE DONE
-                leax  -SCRSIZ,Y                         ; X IS SOURCE
-                lda #SCRSIZ                             ; THAT MANY BYTES
-                jsr BLKMOV                              ; MOVE THE BLOCK
-                leay  -SCRSIZ,Y
-                bra BUBDN1
-BUBDUN          puls  X,Y,PC                            ; BYE
+BUBDN           pshs   X,Y
+                tfr    X,Y                  ; BOTTOM IS DESTINATION
+BUBDN1          cmpy   2,S                  ; IS OUR DESTINATION WHAT WE WANT TO FILL??
+                beq    BUBDUN               ; THEN WE'RE DONE
+                leax   -SCRSIZ,Y            ; X IS SOURCE
+                lda    #SCRSIZ              ; THAT MANY BYTES
+                jsr    BLKMOV               ; MOVE THE BLOCK
+                leay   -SCRSIZ,Y
+                bra    BUBDN1
+BUBDUN          puls   X,Y,PC               ; BYE
 
-GODENT          puls D                                  ; RETURN
-                std EGRAM
-                ldb #1
-                bsr GODESB                              ; HAVE THE GUY ENTER IT
-                jsr MKGODC                              ; MAKE THE CHECK BYTE AND RETURN
-                jmp [EGRAM]
+GODENT          puls   D                    ; RETURN
+                std    EGRAM
+                ldb    #1
+                bsr    GODESB               ; HAVE THE GUY ENTER IT
+                jsr    MKGODC               ; MAKE THE CHECK BYTE AND RETURN
+                jmp    [EGRAM]
 
-GODESB          puls  Y                                 ; GET RETURN ADDRESS
-                sty EGRAM2                              ; SAVE IT
+GODESB          puls   Y                    ; GET RETURN ADDRESS
+                sty    EGRAM2               ; SAVE IT
                 clra
-                tfr D,Y                                 ; PASS PLAYER IN Y    
-                ldd #GODSND
-                jsr SNDLD                               ; MAKE THE SOUND (TUNE)
-                ldx #GA1+18                             ; GET GOD LETTERS
-                jsr RCMOSB
-                lda #GODMES 
-                jsr SCRCLR                              ; CLEAR THE SCREEN.
-                jsr WRD7V                               ; PRINT OUT CONGRATS
-                tfr B,A                                 ; MAX  LETTERS IN A NOW
-                jsr BCDHEX
-                ldx #$2D80                              ; PLACE TO DO IT
-                ldy #ALTBL+20                           ; PLACE TO STORE THE CHARS
-                ldb #$3A                                ; PUT SPACES IN
+                tfr    D,Y                  ; PASS PLAYER IN Y    
+                ldd    #GODSND
+                jsr    SNDLD                ; MAKE THE SOUND (TUNE)
+                ldx    #GA1+18              ; GET GOD LETTERS
+                jsr    RCMOSB
+                lda    #GODMES 
+                jsr    SCRCLR               ; CLEAR THE SCREEN.
+                jsr    WRD7V                ; PRINT OUT CONGRATS
+                tfr    B,A                  ; MAX  LETTERS IN A NOW
+                jsr    BCDHEX
+                ldx    #$2D80               ; PLACE TO DO IT
+                ldy    #ALTBL+20            ; PLACE TO STORE THE CHARS
+                ldb    #$3A                 ; PUT SPACES IN
 
-GODES1          stb ,-Y
-                cmpy #ALTBL 
-                bhi GODES1
-                clrb                                    ; ALPHA ONLY
-                jsr GETLT                               ; ENTER THE STUFF
-                ldx #ALTBL
-                ldy #GODSCR
-                ldb #20
-                jsr CMSMVV
-                jmp [EGRAM2]                            ; RETURN
+GODES1          stb    ,-Y
+                cmpy   #ALTBL 
+                bhi    GODES1
+                clrb                        ; ALPHA ONLY
+                jsr    GETLT                ; ENTER THE STUFF
+                ldx    #ALTBL
+                ldy    #GODSCR
+                ldb    #20
+                jsr    CMSMVV
+                jmp    [EGRAM2]             ; RETURN
 
-GODCHK          pshs X,Y
-                ldy #GODSCR+40                          ; POINT AT THE SCORE PART
-                ldx PLRX                                ; POINT AT HIS SCORE
-                bsr CMPSCR                              ; COMPARE SCORES
-                puls X,Y,PC                             ; RETURN THE CARRY BIT
+GODCHK          pshs   X,Y
+                ldy    #GODSCR+40           ; POINT AT THE SCORE PART
+                ldx    PLRX                 ; POINT AT HIS SCORE
+                bsr    CMPSCR               ; COMPARE SCORES
+                puls   X,Y,PC               ; RETURN THE CARRY BIT
 
-TODCHK          pshs X                                  ; RETURN ENTRY POINTER IF OK
-                ldy  #TODAYS+6 
-                ldx  PLRX
-TODCK1          bsr  CMPSCR                             ; COMPARE
-                bcs  TODBYE
-                leay SCRSIZ,Y                           ; PUSH TO NEXT
-                cmpy #TODEND                            ; BEYOND
-                blo  TODCK1
-                andcc #$FE                              ; (CLC)
-                puls X,PC
-TODBYE          leay -6,Y                               ; PUSH BACK TO BEGINNING OF ENTRY TO REPLACE
-                puls X,PC                               ; AND RETURN WITH CARRY SET
+TODCHK          pshs   X                    ; RETURN ENTRY POINTER IF OK
+                ldy    #TODAYS+6 
+                ldx    PLRX
+TODCK1          bsr    CMPSCR               ; COMPARE
+                bcs    TODBYE
+                leay   SCRSIZ,Y             ; PUSH TO NEXT
+                cmpy   #TODEND              ; BEYOND
+                blo    TODCK1
+                andcc  #$FE                 ; (CLC)
+                puls   X,PC
+TODBYE          leay   -6,Y                 ; PUSH BACK TO BEGINNING OF ENTRY TO REPLACE
+                puls   X,PC                 ; AND RETURN WITH CARRY SET
 
-ALLCHK          pshs X
-                ldy #GODSCR+40                          ; POINT AT SCORE PART OF GOD ENTRY
-                ldx PLRX
-ALCK1           bsr CMPSCR
-                bcs TODBYE
-                leay SCRSIZ,Y
-                cmpy #TODAYS-SCRSIZ                     ; BEYOND VISIBLES??????
-                blo ALCK1                               ; NOPE..CONTINUE
-                andcc #$FE                              ; CLC
-                puls X,PC                               ; NOT GOOD ENOUGH
+ALLCHK          pshs   X
+                ldy    #GODSCR+40           ; POINT AT SCORE PART OF GOD ENTRY
+                ldx    PLRX
+ALCK1           bsr    CMPSCR
+                bcs    TODBYE
+                leay   SCRSIZ,Y
+                cmpy   #TODAYS-SCRSIZ       ; BEYOND VISIBLES??????
+                blo    ALCK1                ; NOPE..CONTINUE
+                andcc  #$FE                 ; CLC
+                puls   X,PC                 ; NOT GOOD ENOUGH
 
-CMPSCR          pshs Y,X,D
-                exg X,Y                                 ; MAKE X POINT AT CMOS
-                ldb #4                                  ; 4 BYTES THROUGH
-CMPSC1          jsr RCMOSA                              ; READ A BYTE
-                cmpb #4                                 ; FIRST TIME THROUGH??
-                bne CMPSC2
-                anda #$0F                               ; THEN TAKE AWAY CHECK BYTE
-CMPSC2          cmpa  ,Y+                               ; COMPARE TO PLAYERS SCORE
-                bhi CMPSC4                              ; CMOS SCORE HIGHER
-                blo CMPSC5                              ; PLAYER'S SCORE HIGHER
-                decb                                    ; SAME...ARE WE DONE??
-                bne CMPSC1                              ; NOPE...COMPARE ANOTHER BYTE
-CMPSC4          andcc #$FE                              ; CLC
-                puls X,Y,D,PC
-CMPSC5          orcc #$01                               ; SEC PLAYER IS HIGHER
-                puls X,Y,D,PC
+CMPSCR          pshs   Y,X,D
+                exg    X,Y                  ; MAKE X POINT AT CMOS
+                ldb    #4                   ; 4 BYTES THROUGH
+CMPSC1          jsr    RCMOSA               ; READ A BYTE
+                cmpb   #4                   ; FIRST TIME THROUGH??
+                bne    CMPSC2
+                anda   #$0F                 ; THEN TAKE AWAY CHECK BYTE
+CMPSC2          cmpa   ,Y+                  ; COMPARE TO PLAYERS SCORE
+                bhi    CMPSC4               ; CMOS SCORE HIGHER
+                blo    CMPSC5               ; PLAYER'S SCORE HIGHER
+                decb                        ; SAME...ARE WE DONE??
+                bne    CMPSC1               ; NOPE...COMPARE ANOTHER BYTE
+CMPSC4          andcc  #$FE                 ; CLC
+                puls   X,Y,D,PC
+CMPSC5          orcc   #$01                 ; SEC PLAYER IS HIGHER
+                puls   X,Y,D,PC
 
         FCC " STARGATE - COPYRIGHT  (C) 1981 WILLIAMS ELECTRONICS INC. "
         FCC " ALL RIGHTS RESERVED "

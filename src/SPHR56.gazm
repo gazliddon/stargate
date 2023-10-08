@@ -480,7 +480,7 @@ OBJCOL      EQU    $12          ;;; Obj - Scanner blip colour
 OTYP        EQU    $14
 
 ODATA       EQU    $15          ;;; Obj - MISC. DATA - used as timer for Smartbomb
-OSIZE       EQU    $17
+OSIZE       EQU    $17          ;;; size of each object
 
 OLIST       RMB    95*OSIZE     ;;; Master Object list. Table that contains all of the game's visual objects
 OLEND                           ;;; Object list end
@@ -495,7 +495,7 @@ OLEND                           ;;; Object list end
 ;;;    * $11: S IGN POST NON-HYP,NON SB
 
 STYPE    EQU    0    ;;; Process type: SYSTEM PROCESS
-ATYPE    EQU    1
+ATYPE    EQU    1    ;;; Process type: Attract mode?
 CTYPE    EQU    2    ;;; Process type: Coin
 DTYPE    EQU    3    ;;; Process type: PLAYER DEATH PROCESS
 LTYPE    EQU    4    ;;; Process type: LASER

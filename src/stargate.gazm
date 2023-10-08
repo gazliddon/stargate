@@ -4,7 +4,6 @@
 	include "memory.gazm"
     include "hw.gazm"
 	include "SPHR56.gazm"
-    include "EQ4.gazm"
 
 	scope core
         ;; Orgs at zero

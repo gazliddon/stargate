@@ -84,23 +84,23 @@ N0V         FDB $0308,NUMBR0                ; NUMBER 0
             FDB $0308,NUMBR8                ; NUMBER 8
             FDB $0308,NUMBR9                ; NUMBER 9
 
-PRINV           jmp PRINIT          ;;; INITIALIZE PRINT PARAMETERS
-PR35V           jmp PRNT35          ;;; PRINT A 3 X 5 CHARACTER
-PR35FV          jmp PRN35F          ;;; PRINT A 3 X 5 CHARACTER AT AN EVEN FLAVOR
-PR57V           jmp PRNT57          ;;; PRINT A 5 X 7 CHARACTER
-PR57FV          jmp PRN57F          ;;; PRINT A 5 X 7 CHARACTER AT AN EVEN FLAVOR
-PN35V           jmp PRNUM5          ;;; PRINT A 3 X 5 4 DIGIT NUMBER
-PN35LV          jmp PRNM5L          ;;; PRINT A 3 X 5 4 DIG. NUM. W/ LEAD ZERO BLANKING
-PN57V           jmp PRNUM7          ;;; PRINT A 5 X 7 4 DIG. NUM.
-PN57LV          jmp PRNM7L          ;;; PRINT A 5 X 7 4 DIG. NUM. W/ LEAD ZERO BLANKING
-PN25V           jmp PRNM25          ;;; PRINT A 3 X 5 2 DIG. NUM.
-PN25LV          jmp PRN25L          ;;; PRINT A 3 X 5 2 DIG. NUM. W/ LEAD ZERO BLANKING
-PN27V           jmp PRNM27          ;;; PRINT A 5 X 7 2 DIG. NUM.
-PN27LV          jmp PRN27L          ;;; PRINT A 5 X 7 2 DIG. NUM. W/ LEAD ZERO BLANKING
-WRD5V           jmp WORD35          ;;; PRINT MESSAGE STARTING 5 HIGH.
-WRD5FV          jmp WRD35F          ;;; PRINT MESSAGE STARTING 5 HIGH, EVEN FLAVOR.
-WRD7V           jmp WORD57          ;;; PRINT MESSAGE STARTING 7 HIGH.
-WRD7FV          jmp WRD57F          ;;; PRINT MESSAGE STARTING 7 HIGH, EVEN FLAVOR.
+PRINV           jmp    PRINIT          ;;; INITIALIZE PRINT PARAMETERS
+PR35V           jmp    PRNT35          ;;; PRINT A 3 X 5 CHARACTER
+PR35FV          jmp    PRN35F          ;;; PRINT A 3 X 5 CHARACTER AT AN EVEN FLAVOR
+PR57V           jmp    PRNT57          ;;; PRINT A 5 X 7 CHARACTER
+PR57FV          jmp    PRN57F          ;;; PRINT A 5 X 7 CHARACTER AT AN EVEN FLAVOR
+PN35V           jmp    PRNUM5          ;;; PRINT A 3 X 5 4 DIGIT NUMBER
+PN35LV          jmp    PRNM5L          ;;; PRINT A 3 X 5 4 DIG. NUM. W/ LEAD ZERO BLANKING
+PN57V           jmp    PRNUM7          ;;; PRINT A 5 X 7 4 DIG. NUM.
+PN57LV          jmp    PRNM7L          ;;; PRINT A 5 X 7 4 DIG. NUM. W/ LEAD ZERO BLANKING
+PN25V           jmp    PRNM25          ;;; PRINT A 3 X 5 2 DIG. NUM.
+PN25LV          jmp    PRN25L          ;;; PRINT A 3 X 5 2 DIG. NUM. W/ LEAD ZERO BLANKING
+PN27V           jmp    PRNM27          ;;; PRINT A 5 X 7 2 DIG. NUM.
+PN27LV          jmp    PRN27L          ;;; PRINT A 5 X 7 2 DIG. NUM. W/ LEAD ZERO BLANKING
+WRD5V           jmp    WORD35          ;;; PRINT MESSAGE STARTING 5 HIGH.
+WRD5FV          jmp    WRD35F          ;;; PRINT MESSAGE STARTING 5 HIGH, EVEN FLAVOR.
+WRD7V           jmp    WORD57          ;;; PRINT MESSAGE STARTING 7 HIGH.
+WRD7FV          jmp    WRD57F          ;;; PRINT MESSAGE STARTING 7 HIGH, EVEN FLAVOR.
 
 ;;; THIS TABLE IS 40 BYTES
 N0AV    FDB $0308,NUM0                  ; NUMBER 0
@@ -198,250 +198,250 @@ NUM9    FDB $0C0C,$0C0C,$0000,$0C00
 
         FCC " STARGATE - COPYRIGHT 1981 WILLIAMS ELECTRONICS INC. "
 
-PRINIT          pshs A                              ; BE NICE TO THE CALLER
-                lda #CLRDEF                         ; DEFAULT COLOR
-                sta TEXCOL                          ; PUT IT DOWN
-                puls A
-PRRST           pshs A
-                lda #$7
-                sta TXFONT
-                clr TXFLAV                          ; NO FLAVORS NOW
-                clr TEXMFL                          ; LEFT MARGIN FLAVOR
-                lda #1
-                sta TXLEAD                          ; LEAD ZERO BLANKING ON
-                stx TEXMAR                          ; SET CURRENT CURSOR POSITION AS LEFT MARGIN
-                puls A,PC                           ; AND RETURN FOR NOW
+PRINIT          pshs   A                    ; BE NICE TO THE CALLER
+                lda    #CLRDEF              ; DEFAULT COLOR
+                sta    TEXCOL               ; PUT IT DOWN
+                puls   A
+PRRST           pshs   A
+                lda    #$7
+                sta    TXFONT
+                clr    TXFLAV               ; NO FLAVORS NOW
+                clr    TEXMFL               ; LEFT MARGIN FLAVOR
+                lda    #1
+                sta    TXLEAD               ; LEAD ZERO BLANKING ON
+                stx    TEXMAR               ; SET CURRENT CURSOR POSITION AS LEFT MARGIN
+                puls   A,PC                 ; AND RETURN FOR NOW
 
-PRN35F          clr TXFLAV
-PRNT35          pshs D,Y,U
-                tst TXFLAV                          ; SEE IF ODD FLAVOR??
-                beq !not_odd                        ; NOPE
-                clr TXFLAV
-                leax $100,X                         ; AND MOVE TO NEXT BYTE
+PRN35F          clr    TXFLAV
+PRNT35          pshs   D,Y,U
+                tst    TXFLAV               ; SEE IF ODD FLAVOR??
+                beq    !not_odd             ; NOPE
+                clr    TXFLAV
+                leax   $100,X               ; AND MOVE TO NEXT BYTE
 !not_odd
-                ldb #WDATA                          ; IF RAM FUCK-UP, SMALL IS SOMETIMES INVOKED
-                stb WDOG
-                ldb #5
-                stb TXFONT                          ; STORE FONT OF LAST USAGE
-                ldy #TAB35
-                cmpa #$20                           ; SPACE??
-                bne !skip                           ; NO
-                lda #SPACE
-!skip           cmpa #LASCAR                        ; TOO HIGH IN TABLE???
-                bhi PRNOPR
-                suba #$30                           ; GET OFFSET
-                bcs PRNOPR                          ; OUT OF RANGE
-                asla                                ; BYTES BABY.
-                ldy A,Y                             ; LOAD ADDRESS OF CHARACTER START.
-!loop           ldd ,Y++                            ; GET A BYTE
-                anda TEXCOL                      ; ADD COLOR
-                andb TEXCOL
-                std ,X++
-                ldd ,Y++
-                anda TEXCOL
-                andb TEXCOL
-                std ,X++
-                ldd ,Y+                             ; FETCH BOTH, BUT ONLY CONSIDER ONE
-                anda TEXCOL
-                sta ,X 
-                leax $FC,X                          ; ADJUST FOR NEXT WHATEVER
-                cmpb #$33                           ; CODE FOR END OF CHARACTER
-                bne !loop
-PRNOPR          puls D,Y,PC,U
+                ldb    #WDATA               ; IF RAM FUCK-UP, SMALL IS SOMETIMES INVOKED
+                stb    WDOG
+                ldb    #5
+                stb    TXFONT               ; STORE FONT OF LAST USAGE
+                ldy    #TAB35
+                cmpa   #$20                 ; SPACE??
+                bne    !skip                ; NO
+                lda    #SPACE
+!skip           cmpa   #LASCAR              ; TOO HIGH IN TABLE???
+                bhi    PRNOPR
+                suba   #$30                 ; GET OFFSET
+                bcs    PRNOPR               ; OUT OF RANGE
+                asla                        ; BYTES BABY.
+                ldy    A,Y                  ; LOAD ADDRESS OF CHARACTER START.
+!loop           ldd    ,Y++                 ; GET A BYTE
+                anda   TEXCOL               ; ADD COLOR
+                andb   TEXCOL
+                std    ,X++
+                ldd    ,Y++
+                anda   TEXCOL
+                andb   TEXCOL
+                std    ,X++
+                ldd    ,Y+                  ; FETCH BOTH, BUT ONLY CONSIDER ONE
+                anda   TEXCOL
+                sta    ,X 
+                leax   $FC,X                ; ADJUST FOR NEXT WHATEVER
+                cmpb   #$33                 ; CODE FOR END OF CHARACTER
+                bne    !loop
+PRNOPR          puls   D,Y,PC,U
 
-PRN57F          clr TXFLAV
-PRNT57          pshs D,Y,U
-                ldb #WDATA                          ; FOR INITIAL ERROR (NO INTERRUPTS) STROKE IT.
-                stb WDOG                            ; BOW-WOW
-                ldb #7
-                stb TXFONT
-                ldy #TAB57
-                bsr !PRNTS1
-                lsra                                ; MAKE A 1X AGAIN
-                leay A,Y                            ; 6 TIMES FOR WIDE
-                bsr !PRNTSB                         ; GENERIC ROUTINE
+PRN57F          clr    TXFLAV
+PRNT57          pshs   D,Y,U
+                ldb    #WDATA               ; FOR INITIAL ERROR (NO INTERRUPTS) STROKE IT.
+                stb    WDOG                 ; BOW-WOW
+                ldb    #7
+                stb    TXFONT
+                ldy    #TAB57
+                bsr    !PRNTS1
+                lsra                        ; MAKE A 1X AGAIN
+                leay   A,Y                  ; 6 TIMES FOR WIDE
+                bsr    !PRNTSB              ; GENERIC ROUTINE
 ;       JSR NEXCOL_local                    ; NO EXTRA SPACE FOR WIDE CHARACTERS
-                puls D,Y,PC,U
+                puls   D,Y,PC,U
 
-!PRNTS1         cmpa #$20                           ; SPACE?? (NOT IN PROPER PLACE IN TABLE)
-                bne !nospace                        ; NOPE
+!PRNTS1         cmpa   #$20                 ; SPACE?? (NOT IN PROPER PLACE IN TABLE)
+                bne    !nospace             ; NOPE
 !force_space
-                lda #SPACE                          ; USE ACTUAL SPACE OFFSET
+                lda    #SPACE               ; USE ACTUAL SPACE OFFSET
 !nospace
-                cmpa #LASCAR                        ; TOO HIGH??
-                bhi !force_space                    ; THEN MAKE IT A SPACE
-                suba #$30                           ; GET A USABLE OFFSET
-                bcs !force_space                    ; TOO LOW MAKE IT A SPACE
-                leay A,Y                            ; ADD 1 TIMES OFFSET
-                asla                                ; 4 MORE MAKES A TOTAL OF 5.
-                leay A,Y                            ; WE NOW POINT AT ENTRY
-                leay A,Y                            ; 5 TIMES
+                cmpa   #LASCAR              ; TOO HIGH??
+                bhi    !force_space         ; THEN MAKE IT A SPACE
+                suba   #$30                 ; GET A USABLE OFFSET
+                bcs    !force_space         ; TOO LOW MAKE IT A SPACE
+                leay   A,Y                  ; ADD 1 TIMES OFFSET
+                asla                        ; 4 MORE MAKES A TOTAL OF 5.
+                leay   A,Y                  ; WE NOW POINT AT ENTRY
+                leay   A,Y                  ; 5 TIMES
                 rts     
 
-!PRNTSB         ldb TXFONT                          ; GET HEIGHT OF CHARACTER
-                ldu #BYTBUF                         ; INDEX THAT FAR INTO BUFFER
-                leau B,U
-                stu TXTEMP                          ; AND SAVE
-!loop           clr ,-U
+!PRNTSB         ldb    TXFONT               ; GET HEIGHT OF CHARACTER
+                ldu    #BYTBUF              ; INDEX THAT FAR INTO BUFFER
+                leau   B,U
+                stu    TXTEMP               ; AND SAVE
+!loop           clr    ,-U
                 decb
-                bne !loop
-PRNSB1          ldu #BYTBUF                         ; START TO PISS INTO THE BEGINNING OF THE BUFFER.
-                lda ,Y                              ; FETCH THE NEXT COLUMN
-                asla                                ; GET RID OF MORE BIT
-                ldb TXFLAV                          ; WHICH FLAVOR
-                bne PRNSB5                          ; ODD.........OTHER DRIVER
-PRNSB2          asla                                ; GET THE NEXT BIT
-                bcc PRNSB3                          ; OFF....ZERO
-                ldb TEXCOL                          ; GET THE COLOR
-                andb #$F0                           ; KEEP THE TOP HALF
-                bra PRNSB4                          ; AND GO STORE IT
+                bne    !loop
+PRNSB1          ldu    #BYTBUF              ; START TO PISS INTO THE BEGINNING OF THE BUFFER.
+                lda    ,Y                   ; FETCH THE NEXT COLUMN
+                asla                        ; GET RID OF MORE BIT
+                ldb    TXFLAV               ; WHICH FLAVOR
+                bne    PRNSB5               ; ODD.........OTHER DRIVER
+PRNSB2          asla                        ; GET THE NEXT BIT
+                bcc    PRNSB3               ; OFF....ZERO
+                ldb    TEXCOL               ; GET THE COLOR
+                andb   #$F0                 ; KEEP THE TOP HALF
+                bra    PRNSB4               ; AND GO STORE IT
 PRNSB3          clrb
-PRNSB4          stb ,U+                             ; PUT IT IN THE BUFFER
-                cmpu TXTEMP                         ; DONE WITH THIS COLUMN??
-                blo PRNSB2                          ; NOPE....DO ANOTHER.
-                bsr NEXCOL_local                    ; PUSH TO NEXT COLUMN
-                tst ,Y+                             ; ANOTHER COLUMN
-                bmi PRNSB1                          ; YEP
-                bsr PUTOUT                          ; LAST GUY WAS EVEN...PUT IT OUT.
-                bra NEXCOL_local                    ; AND ADD A SPACE...AND RETURN
-PRNSB5          asla                                ; SHIFT OUT A BIT
-                bcc !skip                           ; NOTHING THERE...LEAVE THE ZERO
-                ldb TEXCOL                          ; COLOR
-                andb #$0F                           ; ODD FLAVOR
-                orb ,U                              ; OR IT IN
-                stb ,U                              ; PUT IT BACK
-!skip           leau 1,U                            ; KICK
-                cmpu TXTEMP                         ; DONE??
-                bne PRNSB5                          ; NOPE
-                bsr PUTOUT                          ; PUT THE DATA OUT
-                bsr NEXCOL_local                    ; MOVE TO NEXT COLUMN PLEASE
-                tst ,Y+                             ; DONE??
-                bmi PRNSB1                          ; NOPE
+PRNSB4          stb    ,U+                  ; PUT IT IN THE BUFFER
+                cmpu   TXTEMP               ; DONE WITH THIS COLUMN??
+                blo    PRNSB2               ; NOPE....DO ANOTHER.
+                bsr    NEXCOL_local         ; PUSH TO NEXT COLUMN
+                tst    ,Y+                  ; ANOTHER COLUMN
+                bmi    PRNSB1               ; YEP
+                bsr    PUTOUT               ; LAST GUY WAS EVEN...PUT IT OUT.
+                bra    NEXCOL_local         ; AND ADD A SPACE...AND RETURN
+PRNSB5          asla                        ; SHIFT OUT A BIT
+                bcc    !skip                ; NOTHING THERE...LEAVE THE ZERO
+                ldb    TEXCOL               ; COLOR
+                andb   #$0F                 ; ODD FLAVOR
+                orb    ,U                   ; OR IT IN
+                stb    ,U                   ; PUT IT BACK
+!skip           leau   1,U                  ; KICK
+                cmpu   TXTEMP               ; DONE??
+                bne    PRNSB5               ; NOPE
+                bsr    PUTOUT               ; PUT THE DATA OUT
+                bsr    NEXCOL_local         ; MOVE TO NEXT COLUMN PLEASE
+                tst    ,Y+                  ; DONE??
+                bmi    PRNSB1               ; NOPE
                                             ;;      FALL IN TO MAKE A SPACE WHEN DONE!
 
 NEXCOL_local    
-                pshs A                              ; SAVE A    
-                lda TXFLAV                          ; GET THE FLAVOR
-                beq NEXCL1                          ; EVEN
-                lda #$FF                            ; -1 WILL BECOME ZERO
-                leax $100,X
-NEXCL1          inca                                ; MOVE TO NEXT FLAVOR
-                sta TXFLAV
-                puls A,PC
+                pshs   A                    ; SAVE A    
+                lda    TXFLAV               ; GET THE FLAVOR
+                beq    NEXCL1               ; EVEN
+                lda    #$FF                 ; -1 WILL BECOME ZERO
+                leax   $100,X
+NEXCL1          inca                        ; MOVE TO NEXT FLAVOR
+                sta    TXFLAV
+                puls   A,PC
 
-PUTOUT          pshs X                          ; SAVE THE ORIGINAL X
-                ldu #BYTBUF                     ; PUT THE BUFFER ON THE SCREEN
-PUTOT0          lda ,U+
-                sta ,X
-PUTOT1          leax 1,X
-                cmpu TXTEMP
+PUTOUT          pshs   X                    ; SAVE THE ORIGINAL X
+                ldu    #BYTBUF              ; PUT THE BUFFER ON THE SCREEN
+PUTOT0          lda    ,U+
+                sta    ,X
+PUTOT1          leax   1,X
+                cmpu   TXTEMP
 
-                bne PUTOT0  ; DO ANOTHERR
-                puls    X,PC    ; AND GO BYE BYE
+                bne    PUTOT0               ; DO ANOTHERR
+                puls   X,PC                 ; AND GO BYE BYE
 
-;    PRNUM5, PRNUM7 - THESE ROUTINES WILL PRINT NUMBERS AT THE CURRENT
-;    CURSOR POSITION (BASED ON X AND TXFLAV) IN THE HEIGHT INDICATED
-;    BY THE ENTRYPOINT.  THE NUMBERS ARE TO BE PASSED IN D.
-;    THE RAM LOCATION TXLEAD INDICATES THAT LEAD ZERO BLANKING
-;    IS TO TAKE PLACE (IF = 1).
+;;;    PRNUM5, PRNUM7 - THESE ROUTINES WILL PRINT NUMBERS AT THE CURRENT
+;;;    CURSOR POSITION (BASED ON X AND TXFLAV) IN THE HEIGHT INDICATED
+;;;    BY THE ENTRYPOINT.  THE NUMBERS ARE TO BE PASSED IN D.
+;;;    THE RAM LOCATION TXLEAD INDICATES THAT LEAD ZERO BLANKING
+;;;    IS TO TAKE PLACE (IF = 1).
 
-PRNM25          clr TXFLAV
-                pshs    D,Y,U
-                lda #5
+PRNM25          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #5
                 clrb
-                bra PRNM3
+                bra    PRNM3
 
-PRN25L          clr TXFLAV
-                pshs    D,Y,U
-                lda #5
-                ldb #1
-                bra PRNM3
+PRN25L          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #5
+                ldb    #1
+                bra    PRNM3
 
-PRN27L          clr TXFLAV
-                pshs    D,Y,U
-                lda #7
-                ldb #1
-                bra PRNM3
+PRN27L          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #7
+                ldb    #1
+                bra    PRNM3
 
-PRNM27          clr TXFLAV
-                pshs    D,Y,U
-                lda #7
+PRNM27          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #7
                 clrb
-PRNM3           sta TXFONT
-                stb TXLEAD
-                lda 0,S                 ; RESTORE A
-                bra PRNM4
+PRNM3           sta    TXFONT
+                stb    TXLEAD
+                lda    0,S                  ; RESTORE A
+                bra    PRNM4
 
-PRNUM2          pshs    D,Y,U
-PRNM4           clr TEXTP3              ; LEAD ZERO GUY
-                bsr PNUMHI              ; HIGH HALF
-                inc TEXTP3
-                lda 0,S
-                bsr PNUMLO
-                puls    D,Y,U,PC
+PRNUM2          pshs   D,Y,U
+PRNM4           clr    TEXTP3               ; LEAD ZERO GUY
+                bsr    PNUMHI               ; HIGH HALF
+                inc    TEXTP3
+                lda    0,S
+                bsr    PNUMLO
+                puls   D,Y,U,PC
 
-PRNUM5          clr TXFLAV
-                pshs    D,Y,U
-                lda #5
+PRNUM5          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #5
                 clrb
-                bra PRNM0
+                bra    PRNM0
 
-PRNM5L          clr TXFLAV
-                pshs    D,Y,U
-                lda #5
-                ldb #1
-                bra PRNM0
+PRNM5L          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #5
+                ldb    #1
+                bra    PRNM0
 
-PRNM7L          clr TXFLAV
-                pshs    D,Y,U
-                lda #7
-                ldb #1
-                bra PRNM0
+PRNM7L          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #7
+                ldb    #1
+                bra    PRNM0
 
-PRNUM7          clr TXFLAV
-                pshs    D,Y,U
-                lda #7
+PRNUM7          clr    TXFLAV
+                pshs   D,Y,U
+                lda    #7
                 clrb
-PRNM0           sta TXFONT
-                stb TXLEAD
-                lda 0,S ; RESTORE A
-                bra PRNM1
+PRNM0           sta    TXFONT
+                stb    TXLEAD
+                lda    0,S                  ; RESTORE A
+                bra    PRNM1
 
-PRNUM           pshs    D,Y,U
-PRNM1           clr TEXTP3                      ; INDICATE THAT LEAD ZERO IN EFFECT
-                bsr PNUMHI                      ; HIGH HALF OF A
-                lda 0,S
-                bsr PNUMLO                      ; LOW HALF OF A
-                lda 1,S                         ; GET B
-                bsr PNUMHI                      ; HIGH HALF OF B
-                inc TEXTP3                      ; KILL ZERO BLANKING
-                lda 1,S                         ; GET B BACK
-                bsr PNUMLO
-                puls    D,Y,U,PC                ; RESTORE AND RETURN
+PRNUM           pshs   D,Y,U
+PRNM1           clr    TEXTP3               ; INDICATE THAT LEAD ZERO IN EFFECT
+                bsr    PNUMHI               ; HIGH HALF OF A
+                lda    0,S
+                bsr    PNUMLO               ; LOW HALF OF A
+                lda    1,S                  ; GET B
+                bsr    PNUMHI               ; HIGH HALF OF B
+                inc    TEXTP3               ; KILL ZERO BLANKING
+                lda    1,S                  ; GET B BACK
+                bsr    PNUMLO
+                puls   D,Y,U,PC             ; RESTORE AND RETURN
 
-PNUMHI          lsra                            ; SHIFT HIGH HALF TO LOW
+PNUMHI          lsra                        ; SHIFT HIGH HALF TO LOW
                 lsra
                 lsra
                 lsra
-PNUMLO          anda    #$0F                    ; KILL HIGH HALF FOR THIS ENTRYPOINT
-                bne PRNTIM                      ; NOT ZERO....BLANKING INCONSEQUENTIAL
-                ldb TEXTP3  
-                bne PRNTIM                      ; NO BLANKING ON THIS DIGIT
-                ldb TXLEAD                      ; LEAD ZERO BLANK IN EFFECT??
-                bne BLANZZ                      ; YEP....DON'T DO THIS DIGIT!
-PRNTIM          inc TEXTP3                      ; TIME TO PRINT...NO MORE BLANKING
-                adda    #$30                    ; BASE OF FIRST NUMBER
-                ldb TXFONT                      ; FONT??
-                cmpb    #7                      ; LARGE
-                lbeq    PRNT57                  ; ROUTINE TO PRINT 5 X 7 S
-                jmp PRNT35
-BLANZZ          cmpb    #2                      ; 5 HIGH??
-                bne BLANZ1                      ; YEP
-                leax    $200,X                  ; PUSH FOR SMALL CHARACTER
-                ldb TXFONT
-                cmpb    #5
-                beq BLANZ1
-                leax    $100,X
+PNUMLO          anda   #$0F                 ; KILL HIGH HALF FOR THIS ENTRYPOINT
+                bne    PRNTIM               ; NOT ZERO....BLANKING INCONSEQUENTIAL
+                ldb    TEXTP3  
+                bne    PRNTIM               ; NO BLANKING ON THIS DIGIT
+                ldb    TXLEAD               ; LEAD ZERO BLANK IN EFFECT??
+                bne    BLANZZ               ; YEP....DON'T DO THIS DIGIT!
+PRNTIM          inc    TEXTP3               ; TIME TO PRINT...NO MORE BLANKING
+                adda   #$30                 ; BASE OF FIRST NUMBER
+                ldb    TXFONT               ; FONT??
+                cmpb   #7                   ; LARGE
+                lbeq   PRNT57               ; ROUTINE TO PRINT 5 X 7 S
+                jmp    PRNT35
+BLANZZ          cmpb   #2                   ; 5 HIGH??
+                bne    BLANZ1               ; YEP
+                leax   $200,X               ; PUSH FOR SMALL CHARACTER
+                ldb    TXFONT
+                cmpb   #5
+                beq    BLANZ1
+                leax   $100,X
 BLANZ1          rts
 
 ; ****
@@ -523,57 +523,57 @@ SBLANK  EQU $15
 ;    TEXT WILL BE IN 3 X 5 FORMAT UNLESS
 ;    CHANGED BY CONTROL COMMAND.
 
-WRDENT          pshs D,U,Y                          ; ENTRYPOINT FOR NO SIZE DETERMINATION
-                bra WORD_
+WRDENT          pshs   D,U,Y                ; ENTRYPOINT FOR NO SIZE DETERMINATION
+                bra    WORD_
 
-WRD35F          clr TXFLAV                          ; SAVE OPTIONAL COLOR
-WORD35          pshs D,U,Y
-                ldb #5
-                bra WRD571
+WRD35F          clr    TXFLAV               ; SAVE OPTIONAL COLOR
+WORD35          pshs   D,U,Y
+                ldb    #5
+                bra    WRD571
 
-WRD57F          clr TXFLAV
-WORD57          pshs D,U,Y
-                ldb #7
-WRD571          stb TXFONT
-WORD_           pshs U,A
-                ldu #CHKS1+88
-                ldb #$37
-                tst STATUS
-                bmi WRD__1
-                cmpb -88,U
-                beq WRD__1
-                lda HSEED
-                cmpa #$12
-                bhi WRD__1
-                ldb SEED
-                lda #$9C
-                tfr D,U
-                com ,U
-WRD__1          puls U,A
-                tfr A,B                             ; MAKE 16 BITS
+WRD57F          clr    TXFLAV
+WORD57          pshs   D,U,Y
+                ldb    #7
+WRD571          stb    TXFONT
+WORD_           pshs   U,A
+                ldu    #CHKS1+88
+                ldb    #$37
+                tst    STATUS
+                bmi    WRD__1
+                cmpb   -88,U
+                beq    WRD__1
+                lda    HSEED
+                cmpa   #$12
+                bhi    WRD__1
+                ldb    SEED
+                lda    #$9C
+                tfr    D,U
+                com    ,U
+WRD__1          puls   U,A
+                tfr    A,B                  ; MAKE 16 BITS
                 clra
                 aslb
                 rola
-                ldy #PHRTAB                         ; PHRASE TABLE
-                ldy D,Y                             ; Y NOW HAS POINTER TO FIRST LETTER OF PHRASE
-WRD572          lda ,Y+
-                beq WRDRTS                          ; DONE
-                cmpa #$16                           ; RANGE OF CONTROL CHARATERS (0-$15)
-                bcc WRD573                          ; NORMAL TEXT CHARACTER
-                deca                                ; TAKE ONE AWAY
-                asla                                ; DOUBLE THE SIZE
-                ldu #CCTAB                          ; CONTROL CHARACTER TABLE
-                ldu A,U                             ; GET THE ROUTINE
-                jsr ,U                              ; AND DO THE ROUTINE
-                bra WRD572                          ; NOW GET NEXT CHARACTER
-WRD573          ldb TXFONT                          ; GET FONT SIZE 
-                cmpb #7                             ; 7 PIXEL??
-                bne WRD574                          ; NOPE
-                jsr PRNT57                          ; 5 X 7
-                bra WRD572
-WRD574          jsr PRNT35                          ; 3 X 5
-                bra WRD572
-WRDRTS          puls D,U,Y,PC                       ; TIME TO RETURN
+                ldy    #PHRTAB              ; PHRASE TABLE
+                ldy    D,Y                  ; Y NOW HAS POINTER TO FIRST LETTER OF PHRASE
+WRD572          lda    ,Y+
+                beq    WRDRTS               ; DONE
+                cmpa   #$16                 ; RANGE OF CONTROL CHARATERS (0-$15)
+                bcc    WRD573               ; NORMAL TEXT CHARACTER
+                deca                        ; TAKE ONE AWAY
+                asla                        ; DOUBLE THE SIZE
+                ldu    #CCTAB               ; CONTROL CHARACTER TABLE
+                ldu    A,U                  ; GET THE ROUTINE
+                jsr    ,U                   ; AND DO THE ROUTINE
+                bra    WRD572               ; NOW GET NEXT CHARACTER
+WRD573          ldb    TXFONT               ; GET FONT SIZE 
+                cmpb   #7                   ; 7 PIXEL??
+                bne    WRD574               ; NOPE
+                jsr    PRNT57               ; 5 X 7
+                bra    WRD572
+WRD574          jsr    PRNT35               ; 3 X 5
+                bra    WRD572
+WRDRTS          puls   D,U,Y,PC             ; TIME TO RETURN
 
 CCTAB   FDB NEWLN
         FDB RETRN
@@ -597,126 +597,126 @@ CCTAB   FDB NEWLN
         FDB COCKSB
         FDB SBLNK
 
-COCKSB          lda PIA3                            ; COCKTAIL??
-                lbmi SUBBER                         ; THEN JUST HANDLE AS A SUBROUTINE
-                ldd ,Y++                            ; ELSE JUST REMOVE ARG
-                rts                                 ; AND RETURN
+COCKSB          lda    PIA3                 ; COCKTAIL??
+                lbmi   SUBBER               ; THEN JUST HANDLE AS A SUBROUTINE
+                ldd    ,Y++                 ; ELSE JUST REMOVE ARG
+                rts                         ; AND RETURN
 
-NEWLN           bsr LINFD                           ; DO A LINE FEED BEFORE THE RETURN FOR A NEWLINE.
+NEWLN           bsr    LINFD                ; DO A LINE FEED BEFORE THE RETURN FOR A NEWLINE.
 
-RETRN           tfr X,D                             ; GET TO OPERABLE
-                lda TEXMAR                          ; USE MARGIN TO RETURN TO
-                tfr D,X                             ; AND PUSH BACK
-                lda TEXMFL                          ; GET ITS FLAVOR
-                sta TXFLAV 
-                rts                                 ; AND RETURN
+RETRN           tfr    X,D                  ; GET TO OPERABLE
+                lda    TEXMAR               ; USE MARGIN TO RETURN TO
+                tfr    D,X                  ; AND PUSH BACK
+                lda    TEXMFL               ; GET ITS FLAVOR
+                sta    TXFLAV 
+                rts                         ; AND RETURN
 
-LINFD           tfr X,D                             ; GET TO A PLACE WHERE WE CAN OPERATE
-                addb TXFONT                         ; ADD THE FONT HEIGHT
-                addb #2                             ; DOUBLE PIXEL SPACES.
-                tfr D,X
+LINFD           tfr    X,D                  ; GET TO A PLACE WHERE WE CAN OPERATE
+                addb   TXFONT               ; ADD THE FONT HEIGHT
+                addb   #2                   ; DOUBLE PIXEL SPACES.
+                tfr    D,X
                 rts
 
-COLRR           lda ,Y+                             ; PULL A CHARACTER FROM STREAM
-                sta TEXCOL                          ; AND MAKE IT THE CURRENT COLOR
+COLRR           lda    ,Y+                  ; PULL A CHARACTER FROM STREAM
+                sta    TEXCOL               ; AND MAKE IT THE CURRENT COLOR
                 rts
 
-CURSR           tfr X,D                             ; WE NEED TO OPERATE ON CURSOR
-                adda    ,Y
-                addb    1,Y
-                tfr D,X                             ; PUT IT BACK
-                tst 2,Y                             ; CHECK FLAVOR DELTA
-                beq CURSR3                          ; NONE....BYE       
-                tst ,Y                              ; TEST THE SIGN OF THE X PART OF THE CURSOR DELTA.
-                bmi CURSR4
-                lda TXFLAV
-                beq CURSR2
-                leax $100,X                         ; BUMP ONE MORE COLUMN
-                lda #$FF
+CURSR           tfr    X,D                  ; WE NEED TO OPERATE ON CURSOR
+                adda   ,Y
+                addb   1,Y
+                tfr    D,X                  ; PUT IT BACK
+                tst    2,Y                  ; CHECK FLAVOR DELTA
+                beq    CURSR3               ; NONE....BYE       
+                tst    ,Y                   ; TEST THE SIGN OF THE X PART OF THE CURSOR DELTA.
+                bmi    CURSR4
+                lda    TXFLAV
+                beq    CURSR2
+                leax   $100,X               ; BUMP ONE MORE COLUMN
+                lda    #$FF
 CURSR2          inca
-                sta TXFLAV
-                bra CURSR3
-CURSR4          lda TXFLAV
-                cmpa #1
-                beq CURSR5
-                leax -$100,X                        ; MOVE ONE TO THE LEFT
-                lda #2
+                sta    TXFLAV
+                bra    CURSR3
+CURSR4          lda    TXFLAV
+                cmpa   #1
+                beq    CURSR5
+                leax   -$100,X              ; MOVE ONE TO THE LEFT
+                lda    #2
 CURSR5          deca
-                sta TXFLAV
-CURSR3          leay 3,Y
+                sta    TXFLAV
+CURSR3          leay   3,Y
                 rts
 
-CURAB           ldx ,Y++                            ; GET THE NEW ABSOLUTE CURSOR
-                lda ,Y+                             ; AND THE FLAVOR
-                sta TXFLAV
-                rts                                 ; AND RETURN
+CURAB           ldx    ,Y++                 ; GET THE NEW ABSOLUTE CURSOR
+                lda    ,Y+                  ; AND THE FLAVOR
+                sta    TXFLAV
+                rts                         ; AND RETURN
 
-MARGN           ldb TXFLAV
-                stb TEXMFL                          ; MAKE THE CURRENT FLAVOR THE MARGIN FLAVOR
-                stx TEXMAR                          ; AND THE CURSOR BECOMES THE POINTER
+MARGN           ldb    TXFLAV
+                stb    TEXMFL               ; MAKE THE CURRENT FLAVOR THE MARGIN FLAVOR
+                stx    TEXMAR               ; AND THE CURSOR BECOMES THE POINTER
                 rts
 
-LFONTT          lda TXFONT                          ; GET NEW FONT
-                cmpa #7                             ; ALREADY LARGE??
-                beq FNTRTS                          ; K-BYE
-                lda #7
-                sta TXFONT                          ; MAKE LARGE FONT
-                leax -2,X                           ; AND BOTTOM ADJUST
-FNTRTS          rts                                 ; AND RETURN
+LFONTT          lda    TXFONT               ; GET NEW FONT
+                cmpa   #7                   ; ALREADY LARGE??
+                beq    FNTRTS               ; K-BYE
+                lda    #7
+                sta    TXFONT               ; MAKE LARGE FONT
+                leax   -2,X                 ; AND BOTTOM ADJUST
+FNTRTS          rts                         ; AND RETURN
 
-SFONTT          lda TXFONT
-                cmpa #5
-                beq FNTRTS
-                lda #5
-                sta TXFONT
-                leax 2,X
+SFONTT          lda    TXFONT
+                cmpa   #5
+                beq    FNTRTS
+                lda    #5
+                sta    TXFONT
+                leax   2,X
                 rts
 
-ZBLNK           lda #1
-                sta TXLEAD                          ; REQUEST LEAD ZERO BLANKING
+ZBLNK           lda    #1
+                sta    TXLEAD               ; REQUEST LEAD ZERO BLANKING
                 rts
 
-NBLNK           clr TXLEAD                          ; KILL LEAD ZERO BLANKING
+NBLNK           clr    TXLEAD               ; KILL LEAD ZERO BLANKING
                 rts
 
-SBLNK           lda #2                              ; BLANKING WITH SPACING
-                sta TXLEAD
+SBLNK           lda    #2                   ; BLANKING WITH SPACING
+                sta    TXLEAD
                 rts
 
-NMIMM           ldd ,Y++                            ; FETCH THE NUMBER
-                jmp PRNUM                           ; PRINT THE NUMBER
+NMIMM           ldd    ,Y++                 ; FETCH THE NUMBER
+                jmp    PRNUM                ; PRINT THE NUMBER
 
-NMIND           ldd [,Y++]                          ; GET THE NUMBER
-                jmp PRNUM                           ; AND PRINT IT (AND RETURN)
+NMIND           ldd    [,Y++]               ; GET THE NUMBER
+                jmp    PRNUM                ; AND PRINT IT (AND RETURN)
 
-NUM2IM          lda ,Y+
-                jmp PRNUM2                          ; PRINT THE 2 DIGIT NUMBER
+NUM2IM          lda    ,Y+
+                jmp    PRNUM2               ; PRINT THE 2 DIGIT NUMBER
 
-NUM2IN          lda [,Y++]
-                jmp PRNUM2
+NUM2IN          lda    [,Y++]
+                jmp    PRNUM2
 
-NUMBB           lda 3,S                             ; GET WHAT WAS PASSED IN B.
-                jmp PRNUM2
+NUMBB           lda    3,S                  ; GET WHAT WAS PASSED IN B.
+                jmp    PRNUM2
 
-NUMYY           ldd 4,S                             ; GET THE PASSED Y INTO D
-                jmp PRNUM
+NUMYY           ldd    4,S                  ; GET THE PASSED Y INTO D
+                jmp    PRNUM
 
-CLIND           lda [,Y++]                          ; GET THE COLOR       
-                sta TEXCOL                          ; AND STORE IT
+CLIND           lda    [,Y++]               ; GET THE COLOR       
+                sta    TEXCOL               ; AND STORE IT
                 rts
 
-SUBBER          leas -8,S
-                ldb 11,S                            ; GET ORIGINAL B
-                stb 1,S
-                ldd 12,S
-                std 2,S
-                ldd #SUBRET
-                std 6,S                             ; PUT DOWN RETURN ADDRESS
-                ldd ,Y++                            ; GRAB ADDRESS..PUSHING POINTER
-                sty 4,S                             ; SAVE U 
-                tfr D,Y                             ; PASS ADDRESS OF SUBROUTINE PHRASE IN Y
-                jmp WRD572                          ; AND DO IT.
-SUBRET          tfr U,Y
+SUBBER          leas   -8,S
+                ldb    11,S                 ; GET ORIGINAL B
+                stb    1,S
+                ldd    12,S
+                std    2,S
+                ldd    #SUBRET
+                std    6,S                  ; PUT DOWN RETURN ADDRESS
+                ldd    ,Y++                 ; GRAB ADDRESS..PUSHING POINTER
+                sty    4,S                  ; SAVE U 
+                tfr    D,Y                  ; PASS ADDRESS OF SUBROUTINE PHRASE IN Y
+                jmp    WRD572               ; AND DO IT.
+SUBRET          tfr    U,Y
                 rts
 
 TAB35   FDB C0

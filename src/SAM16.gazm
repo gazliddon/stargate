@@ -3,17 +3,17 @@
   ; INCLUDE EQ4.SRC
   ; LIST
   ; TTL <<<<<  S T A R G A T E  >>>>>
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+////////////////////////////////////////////////////////////////////////////////
 ;
 ; SAM EXPLOSIONS AND APPEARANCES
 ;
 ; ASSEMBLE WITH SPHR*,ROMEQ*
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+////////////////////////////////////////////////////////////////////////////////
 
 ;
 ; EXPLOSION,APPEAR EQUATES
 ;
-
 RSIZE              EQU 2            ; SIZE
 OBDESC             EQU 4            ; OBJECT DESCRIPTER ADDRESS
 ERASES             EQU 6            ; ERASE TABLE START
@@ -30,29 +30,26 @@ RAMSIZ             EQU $40          ; LENGTH OF RAM ALLOCATION
 ;
 
     ORG EXPRAM
-
-LAST        RMB 2
-SIZE        RMB 1
-DSIZE       RMB 1
-XSTART      RMB 2
-YSTART      RMB 2
-WIDTHC      RMB 1
-LENGTC      RMB 1
-YSKIP       RMB 1
-SAMSCL      RMB 1                   ; SCROLL FACTOR
-XSIZE       RMB 2                   ; VARIABLE EXPLOSION SIZE FACTOR
+LAST            RMB 2
+SIZE            RMB 1
+DSIZE           RMB 1
+XSTART          RMB 2
+YSTART          RMB 2
+WIDTHC          RMB 1
+LENGTC          RMB 1
+YSKIP           RMB 1
+SAMSCL          RMB 1                   ; SCROLL FACTOR
+XSIZE           RMB 2                   ; VARIABLE EXPLOSION SIZE FACTOR
 
 ;
 ; EXPLOSION/APPEAR VECTORS
 ;
       ORG SAMORG
- APVCT          jmp APST  ; APPEAR START
- XSVCT          jmp EXSTT ; EXPLOSION START
- XUVCT          jmp EXPU  ; EXPANDED UPDATE
+APVCT           jmp    APST                 ; APPEAR START
+XSVCT           jmp    EXSTT                ; EXPLOSION START
+XUVCT           jmp    EXPU                 ; EXPANDED UPDATE
 
-;;;;
 ; OFFSETS INTO BASE OF BLOCK THAT RESIDES ON LINKED LIST
-;;;;
 
 OPOINT  EQU 0
 OW      EQU OPOINT+2                ; OFFSETS IN MEMORY BLOCK
@@ -67,567 +64,551 @@ DAT0    EQU OWR1+2
 ; OFFSETS IN SECOND BLOCK, EITHER IN SAME, OR SEPARTE ALLOCATION
 ;
 
-OBPTR     EQU 0                     ; OBJECT
-PICPTR    EQU OBPTR+2               ; OBJECTS PICTURE POINTER SAVED HERE
-BYTCNT    EQU PICPTR+2              ; NUMBER OF BYTES IN OBJECT
-FRPTR     EQU BYTCNT+1              ; POINTER TO CURRENT FRAME
-KILPTR    EQU FRPTR+2               ; OCVECT SAVE AREA
-ONOFF     EQU KILPTR+2              ; WHETHER BLOCK IS BEAMING ON OR OFF (ON=0,OFF=FF)
-EXBLK     EQU ONOFF+1               ; WHETHER THERE ARE TWO MEMORY BLOCKS (0=1, 1=2)
-GLTPTR    EQU EXBLK+1
-DAT1      EQU GLTPTR+2              ; DATA AREA 1 IS THIS DISTANCE INTO SECOND BLOCK
-TPSIZE    EQU DAT0+96               ; SIZE NEEDED FOR EACH OBJECT
-BKSIZE    EQU $40                   ; SIZE OF ALLOCATION BLOCKS
+OBPTR       equ     0                     ; OBJECT
+PICPTR      equ     OBPTR+2               ; OBJECTS PICTURE POINTER SAVED HERE
+BYTCNT      equ     PICPTR+2              ; NUMBER OF BYTES IN OBJECT
+FRPTR       equ     BYTCNT+1              ; POINTER TO CURRENT FRAME
+KILPTR      equ     FRPTR+2               ; OCVECT SAVE AREA
+ONOFF       equ     KILPTR+2              ; WHETHER BLOCK IS BEAMING ON OR OFF (ON=0,OFF=FF)
+EXBLK       equ     ONOFF+1               ; WHETHER THERE ARE TWO MEMORY BLOCKS (0=1, 1=2)
+GLTPTR      equ     EXBLK+1
+DAT1        equ     GLTPTR+2              ; DATA AREA 1 IS THIS DISTANCE INTO SECOND BLOCK
+TPSIZE      equ     DAT0+96               ; SIZE NEEDED FOR EACH OBJECT
+BKSIZE      equ     $40                   ; SIZE OF ALLOCATION BLOCKS
 
-;
-; APPEAR START
-; X=OBJECT POINTER
-;
 
-APST            pshs  U,Y,D
-                ldy #CHKS2-$54
-                ldb #$56
-                tst STATUS
-                bmi APS__1
-                cmpb  $54,Y
-                beq APS__1
-                lda HSEED
-                cmpa  #$0D
-                bhi APS__1
-                ldb LSEED
-                lda #$9C
-                tfr D,Y
-                dec ,Y
+;;; APPEAR START
+;;; X=OBJECT POINTER
+APST            pshs   U,Y,D
+                ldy    #CHKS2-$54
+                ldb    #$56
+                tst    STATUS
+                bmi    APS__1
+                cmpb   $54,Y
+                beq    APS__1
+                lda    HSEED
+                cmpa   #$0D
+                bhi    APS__1
+                ldb    LSEED
+                lda    #$9C
+                tfr    D,Y
+                dec    ,Y
 
-APS__1          lda SAMEXC                    ; SAM EXCLUSION ON??
-                bne NOAPP                     ; THEN NO APPEARANCE
-                bsr SIZCHK                    ; CHECK IF TOO BIG
-                bhi NOAPP                     ; NO DICE...YOUR REARNESS
-                lda STATUS
-                bita  #4                      ; SAM BIT ON??
-                bne NOAPP                     ; YES QUIT
-                ldd OX16,X
-                subd  BGL
-                cmpd  #$2600                  ; ON SCREEN?
-                bhi NOAPP                     ; NO
+APS__1          lda    SAMEXC               ; SAM EXCLUSION ON??
+                bne    NOAPP                ; THEN NO APPEARANCE
+                bsr    SIZCHK               ; CHECK IF TOO BIG
+                bhi    NOAPP                ; NO DICE...YOUR REARNESS
+                lda    STATUS
+                bita   #4                   ; SAM BIT ON??
+                bne    NOAPP                ; YES QUIT
+                ldd    OX16,X
+                subd   BGL
+                cmpd   #$2600               ; ON SCREEN?
+                bhi    NOAPP                ; NO
 
 ; GET RAM ALLOCATION
+APST4           jsr    APGET                ; GET A BLOCK
+                bcc    APST7                ; ALL KOOL
+                jsr    KILEXP               ; KILL AN EXPLOSION
+                bcc    APST4                ; O.K. GET THE GUY
+NOAPP           stx    OPTR                 ; QUIT
+                puls   D,Y,U,PC
+APST7           lda    STATUS               ; CHECK IF IN GAME
+                bmi    APST7A               ; NO?, SKIP SOUND
+                ldd    #APSND               ; PLAY APPEAR SOUND
+                jsr    SNDLD
+APST7A          lda    OTYP,X               ; SET HYPER NOT FLAG
+                ora    #2
+                sta    OTYP,X
+                ldd    #$2F00               ; INTIALIZE SIZE
+                std    RSIZE,Y
+                clr    XCENT,Y              ; SCREEN #
+                ldd    OPICT,X
+                std    OBDESC,Y
+                ldd    #NULOB
+                std    OPICT,X
+                stx    OPTR
+                clr    ERASES,Y
+                stx    OBJPTR,Y             ; SAVE OBJECT POINTER
+APST8           puls   D,Y,U,PC
 
-APST4           jsr APGET                     ; GET A BLOCK
-                bcc APST7                     ; ALL KOOL
-                jsr KILEXP                    ; KILL AN EXPLOSION
-                bcc APST4                     ; O.K. GET THE GUY
-NOAPP           stx OPTR                      ; QUIT
-                puls  D,Y,U,PC
-APST7           lda STATUS                    ; CHECK IF IN GAME
-                bmi APST7A                    ; NO?, SKIP SOUND
-                ldd #APSND                    ; PLAY APPEAR SOUND
-                jsr SNDLD
-APST7A          lda OTYP,X                    ; SET HYPER NOT FLAG
-                ora #2
-                sta OTYP,X
-                ldd #$2F00                    ; INTIALIZE SIZE
-                std RSIZE,Y
-                clr XCENT,Y                   ; SCREEN #
-                ldd OPICT,X
-                std OBDESC,Y
-                ldd #NULOB
-                std OPICT,X
-                stx OPTR
-                clr ERASES,Y
-                stx OBJPTR,Y                  ; SAVE OBJECT POINTER
-APST8           puls  D,Y,U,PC
 
-
-; CHECK SIZE AND HALT IF TOO BIG
-; RET HI IF TOO BIG
-
-SIZCHK          ldd [OPICT,X]
-                cmpb  #$F                     ; CHECK LENGTH
-                bhi SIZFL
+;;; CHECK SIZE AND HALT IF TOO BIG
+;;; RET HI IF TOO BIG
+SIZCHK          ldd    [OPICT,X]
+                cmpb   #$F                  ; CHECK LENGTH
+                bhi    !exit
                 incb
                 lsrb
                 mul
-                cmpd  #25                     ; CHECK MAX BLOCK #
-SIZFL           rts
+                cmpd   #25                  ; CHECK MAX BLOCK #
+!exit           rts
 
-;
-; EXPLOSION START
-; X=OBJECT POINTER
-;
 
-EXSTT           pshs  U,Y,D
-                lda SAMEXC                    ; SAM EXCLUSION
-                bne NOEXP
-                bsr SIZCHK
-                bhi NOEXP
-                lda STATUS
-                bita  #4                      ; SAM BIT??
-                bne NOEXP                     ; YES QUIT
+;;; EXPLOSION START
+;;; X=OBJECT POINTER
+EXSTT           pshs   U,Y,D
+                lda    SAMEXC               ; SAM EXCLUSION
+                bne    !NOEXP
+                bsr    SIZCHK
+                bhi    !NOEXP
+                lda    STATUS
+                bita   #4                   ; SAM BIT??
+                bne    !NOEXP               ; YES QUIT
 
 ; GET RAM ALLOCATION
-
-EXSTT_          ldd OX16,X                    ; GET 16 BIT X COORDINATE
-                subd  BGL                     ; FIND SCREEN POSITION
-                cmpa  #$26                    ; CHECK IF OFF SCREEN
-                bhi NOEXP                     ; YES?, QUIT
-                std XSTART                    ; SAVE RELATIVE X COORDINATE
-                jsr EXGET                     ; GET A BLOCK FOR EXPLOSION
-                bcc EXST5                     ; ALL KOOL
-                jsr KILEXP                    ; KILL AN EXPLOSION TO GET ONE
-                bcs NOEXP                     ; NONE TO KILL...GIVE UP.
-                jsr EXGET                     ; KILLED..NOW GET ANOTHER
-EXST5           ldd #$100                     ; INITIALIZE SIZE
-                std RSIZE,Y
-                clr XCENT,Y                   ; CLEAR SCREEN #
-                ldu OPICT,X                   ; SAVE OBJECT PICTURE
-                stu OBDESC,Y
-                clr ERASES,Y
-                ldd XSTART                    ; GET RELATIVE X COORD
+                ldd    OX16,X               ; GET 16 BIT X COORDINATE
+                subd   BGL                  ; FIND SCREEN POSITION
+                cmpa   #$26                 ; CHECK IF OFF SCREEN
+                bhi    !NOEXP               ; YES?, QUIT
+                std    XSTART               ; SAVE RELATIVE X COORDINATE
+                jsr    EXGET                ; GET A BLOCK FOR EXPLOSION
+                bcc    !EXST5               ; ALL KOOL
+                jsr    KILEXP               ; KILL AN EXPLOSION TO GET ONE
+                bcs    !NOEXP               ; NONE TO KILL...GIVE UP.
+                jsr    EXGET                ; KILLED..NOW GET ANOTHER
+!EXST5          ldd    #$100                ; INITIALIZE SIZE
+                std    RSIZE,Y
+                clr    XCENT,Y              ; CLEAR SCREEN #
+                ldu    OPICT,X              ; SAVE OBJECT PICTURE
+                stu    OBDESC,Y
+                clr    ERASES,Y
+                ldd    XSTART               ; GET RELATIVE X COORD
                 aslb
                 rola
                 aslb
                 rola
-                ldb OY16,X                    ; GET OBJECT Y COORDINATE
-                std CENTER,Y                  ; TOPLEFT
-                ldd CENTMP                    ; VALID CENTER
-                subd  CENTER,Y                ; TOP LEFT
-                cmpa  ,U
-                bhs EXST6                     ; GET A PHONY
-                cmpb  1,U
-                blo EXST7
-EXST6           ldd ,U                        ; PHONY CENTER 1/2 W,H
+                ldb    OY16,X               ; GET OBJECT Y COORDINATE
+                std    CENTER,Y             ; TOPLEFT
+                ldd    CENTMP               ; VALID CENTER
+                subd   CENTER,Y             ; TOP LEFT
+                cmpa   ,U
+                bhs    !EXST6               ; GET A PHONY
+                cmpb   1,U
+                blo    !EXST7
+!EXST6          ldd    ,U                   ; PHONY CENTER 1/2 W,H
                 lsra
                 lsrb
-EXST7           lsrb                          ; Y/2
-                std XOF,Y
-                addd  CENTER,Y
-                std CENTER,Y
-NOEXP
-EXST8           puls  D,Y,U,PC
+!EXST7          lsrb                        ; Y/2
+                std    XOF,Y
+                addd   CENTER,Y
+                std    CENTER,Y
+!NOEXP
+                puls   D,Y,U,PC
 
-APGET           pshs  X
-                ldy FREEP                     ; GET THE FIRST IN THE FREE LIST
-                beq APEROR                    ; NONE THERE
-                ldx ,Y                        ; GET HIS NEXT
-                stx FREEP
-                ldx APPTR                     ; GET THE CURRENT LIST
-                stx ,Y                        ; MAKE US POINT TO IT
-                sty APPTR                     ; AND MAKE US THE LIST
-                andcc #$FE                    ; CLC NO PROBLEMS
-                puls  X,PC                    ; AND RETURN
-APEROR          orcc  #$01                    ; SEC INDICATE ERROR
-                puls  X,PC
+APGET           pshs   X
+                ldy    FREEP                ; GET THE FIRST IN THE FREE LIST
+                beq    APEROR               ; NONE THERE
+                ldx    ,Y                   ; GET HIS NEXT
+                stx    FREEP
+                ldx    APPTR                ; GET THE CURRENT LIST
+                stx    ,Y                   ; MAKE US POINT TO IT
+                sty    APPTR                ; AND MAKE US THE LIST
+                andcc  #$FE                 ; CLC NO PROBLEMS
+                puls   X,PC                 ; AND RETURN
+APEROR          orcc   #$01                 ; SEC INDICATE ERROR
+                puls   X,PC
 
-EXGET           pshs  X
-                ldy FREEP
-                beq APEROR
-                ldx ,Y
-                stx FREEP
-                ldx EXPTR
-                stx ,Y
-                sty EXPTR
-                andcc #$FE  ; CLC
-                puls  X,PC
+EXGET           pshs   X
+                ldy    FREEP
+                beq    APEROR
+                ldx    ,Y
+                stx    FREEP
+                ldx    EXPTR
+                stx    ,Y
+                sty    EXPTR
+                andcc  #$FE                 ; CLC
+                puls   X,PC
 
 EXKIL
-APKIL           pshs  X
-                ldx ,Y                          ; GET THE NEXT GUY
-                stx [LAST]                      ; MAKE THE LAST GUY POINT TO OUR NEXT
+APKIL           pshs   X
+                ldx    ,Y                   ; GET THE NEXT GUY
+                stx    [LAST]               ; MAKE THE LAST GUY POINT TO OUR NEXT
 
-                ldx FREEP
-                stx ,Y                          ; APPEND FREE LIST TO US
-                sty FREEP                       ; AND MAKE US THE LIST
-                ldy LAST                        ; MAKE POINT AT LAST FOR NEXT ITERATION
-                puls  X,PC
+                ldx    FREEP
+                stx    ,Y                   ; APPEND FREE LIST TO US
+                sty    FREEP                ; AND MAKE US THE LIST
+                ldy    LAST                 ; MAKE POINT AT LAST FOR NEXT ITERATION
+                puls   X,PC
 
-KILEXP          pshs  X
-                ldy #EXPTR
-                sty LAST                        ; ASSUME FIRST POINTS AT ME
-                ldy EXPTR                       ; GO THROUGH EXPLOSIONS
-                beq APEROR                      ; NONE THERE....GIVE ERROR
-KILEX0          ldx ,Y                          ; CHECK NEXT
-                beq KILEX1
-                sty LAST
-                ldy ,Y
-                bra KILEX0
-KILEX1          jsr EERASE                      ; CAN THE CURRENT EXPLOSION
-                bsr EXKIL                       ; KILL THE EXPLOSION
-                andcc #$FE                      ; CLC
-                puls  X,PC                      ; AND RETURN OK.
+KILEXP          pshs   X
+                ldy    #EXPTR
+                sty    LAST                 ; ASSUME FIRST POINTS AT ME
+                ldy    EXPTR                ; GO THROUGH EXPLOSIONS
+                beq    APEROR               ; NONE THERE....GIVE ERROR
+KILEX0          ldx    ,Y                   ; CHECK NEXT
+                beq    KILEX1
+                sty    LAST
+                ldy    ,Y
+                bra    KILEX0
+KILEX1          jsr    EERASE               ; CAN THE CURRENT EXPLOSION
+                bsr    EXKIL                ; KILL THE EXPLOSION
+                andcc  #$FE                 ; CLC
+                puls   X,PC                 ; AND RETURN OK.
 
-;
-; EXPANDED EXPLOSION/APPEAR UPDATE ROUTINE
-;
-
-EXPU            lda SAMEXC                      ; SAM EXCLUSION ON??
-                beq EXPU1                       ; NOPE....CONTINUE
+;;; EXPANDED EXPLOSION/APPEAR UPDATE ROUTINE
+EXPU            lda    SAMEXC               ; SAM EXCLUSION ON??
+                beq    EXPU1                ; NOPE....CONTINUE
 EXPU0           rts
-EXPU1           lda STATUS                      ; CHECK SYSTEM STATUS
-                bita  #4
-                beq EXPU5                       ; IN PLAY?, CONTINUE EXPLOSION/A
-                ldy #APPTR                      ; FLAG SAYS CLEAN UP..FIRST APPEARS
-EXPU2           sty LAST
-                ldy ,Y                          ; MOVE TO NEXT
-                beq EXPU3
-                ldd OBDESC,Y                    ; GET PICTURE (KILLING APPEAR)
-                ldx OBJPTR,Y                    ; GET OBJECT
-                std OPICT,X                     ; STORE PICTURE
-                lda OTYP,X                      ; GET FOR HYPER FLAG
-                anda  #$FD                      ; CLEAR HYPER FLAG
-                sta OTYP,X
-                jsr EERASE                      ; CLEAN UP STUFF
-                jsr APKIL                       ; FREE THE BLOCK
-                bra EXPU2
-EXPU3           ldy #EXPTR                      ; GO THROUGH EXPLOSIONS
-EXPU4           sty LAST
-                ldy ,Y
-                beq EXPU0                       ; DONE WITH THEM...EXIT
-                jsr EXKIL                       ; FREE THE BLOCK
-                bra EXPU4                       ; DONE
-EXPU5           lda OVCNT
-                cmpa  #2
-                ldb #$08
-                bhs EXPU5A
+EXPU1           lda    STATUS               ; CHECK SYSTEM STATUS
+                bita   #4
+                beq    EXPU5                ; IN PLAY?, CONTINUE EXPLOSION/A
+                ldy    #APPTR               ; FLAG SAYS CLEAN UP..FIRST APPEARS
+EXPU2           sty    LAST
+                ldy    ,Y                   ; MOVE TO NEXT
+                beq    EXPU3
+                ldd    OBDESC,Y             ; GET PICTURE (KILLING APPEAR)
+                ldx    OBJPTR,Y             ; GET OBJECT
+                std    OPICT,X              ; STORE PICTURE
+                lda    OTYP,X               ; GET FOR HYPER FLAG
+                anda   #$FD                 ; CLEAR HYPER FLAG
+                sta    OTYP,X
+                jsr    EERASE               ; CLEAN UP STUFF
+                jsr    APKIL                ; FREE THE BLOCK
+                bra    EXPU2
+EXPU3           ldy    #EXPTR               ; GO THROUGH EXPLOSIONS
+EXPU4           sty    LAST
+                ldy    ,Y
+                beq    EXPU0                ; DONE WITH THEM...EXIT
+                jsr    EXKIL                ; FREE THE BLOCK
+                bra    EXPU4                ; DONE
+EXPU5           lda    OVCNT
+                cmpa   #2
+                ldb    #$08
+                bhs    EXPU5A
                 negb
 EXPU5A          sex
-                addd  XSIZE
-                cmpd  #$140                     ; LIMIT CHECKING
-                bls EXPU5B
-                ldd #$140
-EXPU5B          cmpd  #$AA
-                bhs EXPU5C
-                ldd #$AA
-EXPU5C          std XSIZE
-                ldy EXPTR
-                beq EXPU8 ; NOBODY HOME
-                ldd BGL                         ; CALCULATE THE SCROLL FACTOR FOR EVERYONE
-                andb  #$C0
-                std XSTART
-                ldd BGLX
-                andb  #$C0
-                subd  XSTART
+                addd   XSIZE
+                cmpd   #$140                ; LIMIT CHECKING
+                bls    EXPU5B
+                ldd    #$140
+EXPU5B          cmpd   #$AA
+                bhs    EXPU5C
+                ldd    #$AA
+EXPU5C          std    XSIZE
+                ldy    EXPTR
+                beq    EXPU8                ; NOBODY HOME
+                ldd    BGL                  ; CALCULATE THE SCROLL FACTOR FOR EVERYONE
+                andb   #$C0
+                std    XSTART
+                ldd    BGLX
+                andb   #$C0
+                subd   XSTART
                 aslb
                 rola
                 aslb
                 rola
-                sta SAMSCL
-                ldy #EXPTR                      ; GO THROUGH EXPLOSIONS TO UPDATE
-EXPU6           sty LAST
-                ldy ,Y
-                beq EXPU8                       ; DONE
-                ldd RSIZE,Y                     ; GET SIZE
-                addd  XSIZE                     ; INCREASE SIZE
-                std RSIZE,Y
-                cmpa  #$30                      ; CHECK IF FINISHED
-                bls EXPU7                       ; NO?, CONTINUE EXPLOSION
-                jsr EERASE                      ; ERASE OBJECT
-                jsr EXKIL                       ; KILL EXPLOSION
-                bra EXPU6                       ; NEXT OBJECT
-EXPU7           ldb SAMSCL                      ; SCROLL CENTER
+                sta    SAMSCL
+                ldy    #EXPTR               ; GO THROUGH EXPLOSIONS TO UPDATE
+EXPU6           sty    LAST
+                ldy    ,Y
+                beq    EXPU8                ; DONE
+                ldd    RSIZE,Y              ; GET SIZE
+                addd   XSIZE                ; INCREASE SIZE
+                std    RSIZE,Y
+                cmpa   #$30                 ; CHECK IF FINISHED
+                bls    EXPU7                ; NO?, CONTINUE EXPLOSION
+                jsr    EERASE               ; ERASE OBJECT
+                jsr    EXKIL                ; KILL EXPLOSION
+                bra    EXPU6                ; NEXT OBJECT
+EXPU7           ldb    SAMSCL               ; SCROLL CENTER
                 sex
-                addd  XCENT,Y
-                std XCENT,Y
-                jsr EERASE  ; ERASE OLD?
-                jsr EWRITE  ; WRITE NEW?
-                bra EXPU6
-;
-; APPEAR UPDATES
-;
+                addd   XCENT,Y
+                std    XCENT,Y
+                jsr    EERASE               ; ERASE OLD?
+                jsr    EWRITE               ; WRITE NEW?
+                bra    EXPU6
 
-EXPU8           ldy #APPTR                      ; APPEAR POINTER
-EXPU9           sty LAST
-                ldy ,Y
-                beq EXPUE                       ; DO THE TRANSPORTER GUYS
-                ldd RSIZE,Y                     ; GET THE SIZE
-                subd  #$100                     ; DECREASE SIZE
-                std RSIZE,Y
-                bmi EXPUB                       ; FINISHED APPEARING?, KILL APPEAR
-EXPUA           ldx OBJPTR,Y                    ; GET OBJECT POINTER
-                ldd OX16,X                      ; GET 16 BIT X COORDINATE
-                subd  BGL                       ; FIND SCREEN POSITION
-                adda  #$C                       ; CHECK IF NEAR SCREEN
-                bita  #$C0
-                beq EXPUC                       ; ON SCREEN?, CONTINUE
-EXPUB           ldd OBDESC,Y                    ; GET OBJECT PICTURE, KILL APPEAR
-                ldx OBJPTR,Y                    ; GET OBJECT POINTER
-                std OPICT,X                     ; RESTORE OLD OBJECT PICTURE
-                lda OTYP,X                      ; CLEAR HYPER NOT FLAG
-                anda  #$FD
-                sta OTYP,X
-                jsr EERASE                      ; ERASE OBJECT
-                jsr APKIL                       ; NOW FREE THE BLOCK
-                bra EXPU9                       ; NEXT OBJECT
+// APPEAR UPDATES
+EXPU8           ldy    #APPTR               ; APPEAR POINTER
+EXPU9           sty    LAST
+                ldy    ,Y
+                beq    EXPUE                ; DO THE TRANSPORTER GUYS
+                ldd    RSIZE,Y              ; GET THE SIZE
+                subd   #$100                ; DECREASE SIZE
+                std    RSIZE,Y
+                bmi    EXPUB                ; FINISHED APPEARING?, KILL APPEAR
+EXPUA           ldx    OBJPTR,Y             ; GET OBJECT POINTER
+                ldd    OX16,X               ; GET 16 BIT X COORDINATE
+                subd   BGL                  ; FIND SCREEN POSITION
+                adda   #$C                  ; CHECK IF NEAR SCREEN
+                bita   #$C0
+                beq    EXPUC                ; ON SCREEN?, CONTINUE
+EXPUB           ldd    OBDESC,Y             ; GET OBJECT PICTURE, KILL APPEAR
+                ldx    OBJPTR,Y             ; GET OBJECT POINTER
+                std    OPICT,X              ; RESTORE OLD OBJECT PICTURE
+                lda    OTYP,X               ; CLEAR HYPER NOT FLAG
+                anda   #$FD
+                sta    OTYP,X
+                jsr    EERASE               ; ERASE OBJECT
+                jsr    APKIL                ; NOW FREE THE BLOCK
+                bra    EXPU9                ; NEXT OBJECT
 
-EXPUC           suba  #$C
+EXPUC           suba   #$C
                 aslb
                 rola
                 aslb
                 rola
-                ldb OY16,X                        ; GET OBJECT Y COORDINATE
-                std XTEMP                         ; SET TOP LEFT
-                ldb #$DA                          ; COMPUTE PHONEY CENTER
+                ldb    OY16,X               ; GET OBJECT Y COORDINATE
+                std    XTEMP                ; SET TOP LEFT
+                ldb    #$DA                 ; COMPUTE PHONEY CENTER
                 mul
                 asla
-                ldu OBDESC,Y
-                ldb ,U
+                ldu    OBDESC,Y
+                ldb    ,U
                 mul
-                ldb 1,U
+                ldb    1,U
                 lsrb
-                lsrb                              ; Y/2
-                std XOF,Y                         ; SAVE YOUR OFFSETS IDIOT++++
-                rolb                              ; READJUST
-                addd  XTEMP                       ; ADD TO TOP LEFT
-                std CENTER,Y                      ; SET CENTER OF APPEAR
-                jsr EERASE                        ; ERASE EXPANDED OBJECT
-                jsr EWRITE                        ; WRITE EXPANDED OBJECT
-                bra EXPU9
+                lsrb                        ; Y/2
+                std    XOF,Y                ; SAVE YOUR OFFSETS IDIOT++++
+                rolb                        ; READJUST
+                addd   XTEMP                ; ADD TO TOP LEFT
+                std    CENTER,Y             ; SET CENTER OF APPEAR
+                jsr    EERASE               ; ERASE EXPANDED OBJECT
+                jsr    EWRITE               ; WRITE EXPANDED OBJECT
+                bra    EXPU9
 EXPUE
-TRNX            rts                                 ; BYE
+TRNX            rts                         ; BYE
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-; EXPANDED ERASE ROUTINE
-; Y= EXPLOSION RAM AREA
+////////////////////////////////////////////////////////////////////////////////
+;;; EXPANDED ERASE ROUTINE
+;;; Y= EXPLOSION RAM AREA
 
-EERASE          ldb ERASES,Y
-                beq EERAS2                    ; NONE TO MAKE
-                subb  #50                     ; MAX OF 25 BLOCKS
-                bhi EERAS2                    ; TOO BIG
+EERASE          ldb    ERASES,Y
+                beq    EERAS2               ; NONE TO MAKE
+                subb   #50                  ; MAX OF 25 BLOCKS
+                bhi    EERAS2               ; TOO BIG
                 negb
-                ldx #ERASLP                   ; CALC STARTING ADDR
-                abx                           ; X2
+                ldx    #ERASLP              ; CALC STARTING ADDR
+                abx                         ; X2
                 lsrb
-                abx                           ; X3
-                ldd #0
-                jmp ,X                        ; GO TO YOUR ADDR
-ERASLP          std [62,Y]
-                std [60,Y]
-                std [58,Y]
-                std [56,Y]
-                std [54,Y]
-                std [52,Y]
-                std [50,Y]
-                std [48,Y]
-                std [46,Y]
-                std [44,Y]
-                std [42,Y]
-                std [40,Y]
-                std [38,Y]
-                std [36,Y]
-                std [34,Y]
-                std [32,Y]
-                std [30,Y]
-                std [28,Y]
-                std [26,Y]
-                std [24,Y]
-                std [22,Y]
-                std [20,Y]
-                std [18,Y]
-                std [16,Y]
-                std [14,Y]
+                abx                         ; X3
+                ldd    #0
+                jmp    ,X                   ; GO TO YOUR ADDR
+ERASLP          std    [62,Y]
+                std    [60,Y]
+                std    [58,Y]
+                std    [56,Y]
+                std    [54,Y]
+                std    [52,Y]
+                std    [50,Y]
+                std    [48,Y]
+                std    [46,Y]
+                std    [44,Y]
+                std    [42,Y]
+                std    [40,Y]
+                std    [38,Y]
+                std    [36,Y]
+                std    [34,Y]
+                std    [32,Y]
+                std    [30,Y]
+                std    [28,Y]
+                std    [26,Y]
+                std    [24,Y]
+                std    [22,Y]
+                std    [20,Y]
+                std    [18,Y]
+                std    [16,Y]
+                std    [14,Y]
 EERAS2          rts
 
-;
-; EXPANDED WRITE ROUTINE
-;
-
-EWRITE          ldu OBDESC,Y
-                pulu  D,X                       ; GET W,H,DATA PTR
-                std WIDTHC
-                lda RSIZE,Y
-                sta SIZE
-                ldb XOF,Y
+;;; EXPANDED WRITE ROUTINE
+EWRITE          ldu    OBDESC,Y
+                pulu   D,X                  ; GET W,H,DATA PTR
+                std    WIDTHC
+                lda    RSIZE,Y
+                sta    SIZE
+                ldb    XOF,Y
                 mul
-                std XSTART
-                ldd XCENT,Y
-                subd  XSTART
+                std    XSTART
+                ldd    XCENT,Y
+                subd   XSTART
                 tsta
-                beq EWR2
-EWR1            stb XSTART+1
-                ldb LENGTC                      ; FIND VALID X COLUMN
+                beq    EWR2
+EWR1            stb    XSTART+1
+                ldb    LENGTC               ; FIND VALID X COLUMN
                 abx
-                dec WIDTHC
-                bne EWR1A
-                jmp DONE2
-EWR1A           ldb XSTART+1
-                addb  SIZE
-                adca  #0
-                bne EWR1
-EWR2            std XSTART
-                cmpb  #$98
-                lbhi  DONE2                     ; OFF SCREEN
-                lda SIZE
+                dec    WIDTHC
+                bne    EWR1A
+                jmp    DONE2
+EWR1A           ldb    XSTART+1
+                addb   SIZE
+                adca   #0
+                bne    EWR1
+EWR2            std    XSTART
+                cmpb   #$98
+                lbhi   DONE2                ; OFF SCREEN
+                lda    SIZE
                 asla
-                sta DSIZE
-                ldb YOF,Y
+                sta    DSIZE
+                ldb    YOF,Y
                 mul
-                std YSTART
-                ldb CENTER+1,Y
+                std    YSTART
+                ldb    CENTER+1,Y
                 clra
-                sta YSKIP
-                subd  YSTART
+                sta    YSKIP
+                subd   YSTART
                 tsta
-                beq EWR5
-EWR4            inc YSKIP
-                dec LENGTC
-                dec LENGTC
-                bgt EWR4A
-                jmp DONE2                       ; NOTHING LEFT
-EWR4A           addb  DSIZE
-                adca  #0
-                bne EWR4
-EWR5            cmpb  #YMIN
-                blo EWR4
-                stb YSTART+1
-                asl YSKIP
-                ldu #STARTS                     ; GET LOOP START
-                lda LENGTC
+                beq    EWR5
+EWR4            inc    YSKIP
+                dec    LENGTC
+                dec    LENGTC
+                bgt    EWR4A
+                jmp    DONE2                ; NOTHING LEFT
+EWR4A           addb   DSIZE
+                adca   #0
+                bne    EWR4
+EWR5            cmpb   #YMIN
+                blo    EWR4
+                stb    YSTART+1
+                asl    YSKIP
+                ldu    #STARTS              ; GET LOOP START
+                lda    LENGTC
                 asla
-                ldu A,U
-                pshs  Y,U                       ; SAVE INDEX, SAVE STARTING ADDR
-                leay  ETAB,Y
-                lda YSKIP                       ; GET Y SKIP
-                leax  A,X                       ; ADD TO DATA POINTER
-                lda XSTART+1
-                jmp ,U                          ; JUMP TO WRITING
-STRTE           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcs STRTEX                      ; OFF SCREEN?, QUIT THIS COLUMN
-STRTC           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcs STRTCX                      ; OFF SCREEN?, QUIT THIS COLUMN
-STRTA           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcs STRTAX                      ; OFF SCREEN?, QUIT THIS COLUMN
-STRT8           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcs STRT8X                      ; OFF SCREEN?, QUIT THIS COLUMN
-STRT6           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcs STRT6X                      ; OFF SCREEN?, QUIT THIS COLUMN
-STRT4           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcs STRT4X                      ; OFF SCREEN?, QUIT THIS COLUMN
-STRT2           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-STRT0           dec WIDTHC                      ; DECREMENT WIDTH COUNTER
-                beq DONE0                       ; END OF OBJECT?, QUIT
-                adda  SIZE                      ; NEXT COLUMN
-                bcs DONE0                       ; WAY OFF SCREEN?, QUIT
-                cmpa  #$98                      ; CHECK IF OFF SCREEN
-                bhi DONE0                       ; NO?, NEXT COLUMN
-                ldb YSKIP
+                ldu    A,U
+                pshs   Y,U                  ; SAVE INDEX, SAVE STARTING ADDR
+                leay   ETAB,Y
+                lda    YSKIP                ; GET Y SKIP
+                leax   A,X                  ; ADD TO DATA POINTER
+                lda    XSTART+1
+                jmp    ,U                   ; JUMP TO WRITING
+STRTE           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcs    STRTEX               ; OFF SCREEN?, QUIT THIS COLUMN
+STRTC           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcs    STRTCX               ; OFF SCREEN?, QUIT THIS COLUMN
+STRTA           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcs    STRTAX               ; OFF SCREEN?, QUIT THIS COLUMN
+STRT8           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcs    STRT8X               ; OFF SCREEN?, QUIT THIS COLUMN
+STRT6           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcs    STRT6X               ; OFF SCREEN?, QUIT THIS COLUMN
+STRT4           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcs    STRT4X               ; OFF SCREEN?, QUIT THIS COLUMN
+STRT2           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+STRT0           dec    WIDTHC               ; DECREMENT WIDTH COUNTER
+                beq    DONE0                ; END OF OBJECT?, QUIT
+                adda   SIZE                 ; NEXT COLUMN
+                bcs    DONE0                ; WAY OFF SCREEN?, QUIT
+                cmpa   #$98                 ; CHECK IF OFF SCREEN
+                bhi    DONE0                ; NO?, NEXT COLUMN
+                ldb    YSKIP
                 abx
-                ldb YSTART+1
-                jmp [2,S]
-STRTEX          ldb #12
-                bra NEXCOL
-STRTCX          ldb #10
-                bra NEXCOL
-STRTAX          ldb #8
-                bra NEXCOL
-STRT8X          ldb #6
-                bra NEXCOL
-STRT6X          ldb #4
-                bra NEXCOL
-STRT4X          ldb #2
-                bra NEXCOL
-DONE0           bra DONE
-STRTF           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcc STRTD                       ; OFF SCREEN?, QUIT THIS COLUMN
-                ldb #13                         ; SKIP THE REST
-                bra NEXCOL
-STRTD           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcc STRTB                       ; OFF SCREEN?, QUIT THIS COLUMN
-                ldb #11
-                bra NEXCOL
-STRTB           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcc STRT9                       ; OFF SCREEN?, QUIT THIS COLUMN
-                ldb #9
-                bra NEXCOL
-STRT9           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcc STRT7                       ; OFF SCREEN?, QUIT THIS COLUMN
-                ldb #7
-                bra NEXCOL
-STRT7           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcc STRT5                       ; OFF SCREEN?, QUIT THIS COLUMN
-                ldb #5
-                bra NEXCOL
-STRT5           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE                     ; MOVE POINTER DOWN
-                bcc STRT3                       ; OFF SCREEN?, QUIT THIS COLUMN
-                ldb #3
-                bra NEXCOL
-STRT3           std ,Y                          ; SAVE ON ERASE TABLE
-                ldu ,X++                        ; GET DATA BLOCK
-                stu [,Y++]                      ; WRITE TO SCREEN
-                addb  DSIZE
-                bcc STRT1
-                ldb #1
-                bra NEXCOL
-STRT1           std ,Y
-                ldu ,X+
-                stu [,Y++]
+                ldb    YSTART+1
+                jmp    [2,S]
+STRTEX          ldb    #12
+                bra    NEXCOL
+STRTCX          ldb    #10
+                bra    NEXCOL
+STRTAX          ldb    #8
+                bra    NEXCOL
+STRT8X          ldb    #6
+                bra    NEXCOL
+STRT6X          ldb    #4
+                bra    NEXCOL
+STRT4X          ldb    #2
+                bra    NEXCOL
+DONE0           bra    DONE
+STRTF           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcc    STRTD                ; OFF SCREEN?, QUIT THIS COLUMN
+                ldb    #13                  ; SKIP THE REST
+                bra    NEXCOL
+STRTD           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcc    STRTB                ; OFF SCREEN?, QUIT THIS COLUMN
+                ldb    #11
+                bra    NEXCOL
+STRTB           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcc    STRT9                ; OFF SCREEN?, QUIT THIS COLUMN
+                ldb    #9
+                bra    NEXCOL
+STRT9           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcc    STRT7                ; OFF SCREEN?, QUIT THIS COLUMN
+                ldb    #7
+                bra    NEXCOL
+STRT7           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcc    STRT5                ; OFF SCREEN?, QUIT THIS COLUMN
+                ldb    #5
+                bra    NEXCOL
+STRT5           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE                ; MOVE POINTER DOWN
+                bcc    STRT3                ; OFF SCREEN?, QUIT THIS COLUMN
+                ldb    #3
+                bra    NEXCOL
+STRT3           std    ,Y                   ; SAVE ON ERASE TABLE
+                ldu    ,X++                 ; GET DATA BLOCK
+                stu    [,Y++]               ; WRITE TO SCREEN
+                addb   DSIZE
+                bcc    STRT1
+                ldb    #1
+                bra    NEXCOL
+STRT1           std    ,Y
+                ldu    ,X+
+                stu    [,Y++]
                 clrb
-NEXCOL          dec WIDTHC                      ; DECREMENT WIDTH COUNTER
-                beq DONE                        ; END OF OBJECT?, QUIT
-                adda  SIZE                      ; NEXT COLUMN
-                bcs DONE                        ; WAY OFF SCREEN?, QUIT
-                cmpa  #$98                      ; CHECK IF OFF SCREEN
-                bhi DONE                        ; NO?, NEXT COLUMN
-                addb  YSKIP
+NEXCOL          dec    WIDTHC               ; DECREMENT WIDTH COUNTER
+                beq    DONE                 ; END OF OBJECT?, QUIT
+                adda   SIZE                 ; NEXT COLUMN
+                bcs    DONE                 ; WAY OFF SCREEN?, QUIT
+                cmpa   #$98                 ; CHECK IF OFF SCREEN
+                bhi    DONE                 ; NO?, NEXT COLUMN
+                addb   YSKIP
                 abx
-                ldb YSTART+1
-                jmp [2,S]
-DONE            ldx ,S                          ; GET BLOCK ADDRESS
-                tfr Y,D
-                subd  ,S
-                subb  #ETAB
-                stb ERASES,X                    ; # OF BLOCKS TO ERASE X2
-                ldx CENTER,X                    ; GET CENTER BLOCK ADDRESS
-                cmpx  #$9800                    ; CHECK IF OFF SCREEN
-                bhi DONE1                       ; YES?, DO NOT ERASE
-                ldd #0                          ; ERASE CENTER BLOCK
-                std ,X
-DONE1           puls  Y,U,PC                    ; RESTORE REGISTERS, QUIT
-DONE2           clr ERASES,Y
+                ldb    YSTART+1
+                jmp    [2,S]
+DONE            ldx    ,S                   ; GET BLOCK ADDRESS
+                tfr    Y,D
+                subd   ,S
+                subb   #ETAB
+                stb    ERASES,X             ; # OF BLOCKS TO ERASE X2
+                ldx    CENTER,X             ; GET CENTER BLOCK ADDRESS
+                cmpx   #$9800               ; CHECK IF OFF SCREEN
+                bhi    DONE1                ; YES?, DO NOT ERASE
+                ldd    #0                   ; ERASE CENTER BLOCK
+                std    ,X
+DONE1           puls   Y,U,PC               ; RESTORE REGISTERS, QUIT
+DONE2           clr    ERASES,Y
                 rts
 
-; STARTING POINT TABLE
-STARTS  FDB STRT0,STRT1,STRT2,STRT3
-        FDB STRT4,STRT5,STRT6,STRT7
-        FDB STRT8,STRT9,STRTA,STRTB
-        FDB STRTC,STRTD,STRTE,STRTF
-        FCC "COPYRIGHT WILLIAMS ELECTRONICS INC. 1981"
+;;; STARTING POINT TABLE
+STARTS          FDB STRT0,STRT1,STRT2,STRT3
+                FDB STRT4,STRT5,STRT6,STRT7
+                FDB STRT8,STRT9,STRTA,STRTB
+                FDB STRTC,STRTD,STRTE,STRTF
+                FCC "COPYRIGHT WILLIAMS ELECTRONICS INC. 1981"
                                         ; END

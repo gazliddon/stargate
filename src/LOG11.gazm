@@ -6,30 +6,30 @@
 ;  TTL <<<<< S T A R G A T E  >>>>>
             org LOGORG
 
-ATTR            jmp ATTR_           ;;; ATTRACT MODE
-GOV             jmp ATTR_           ;;; ATTRACT MODE
-HALVCT          jmp HALL            ;;; Hall of fame
-GNCDAV          jmp GNCIDA          ;;; Kill everything
+ATTR            jmp    ATTR_           ;;; ATTRACT MODE
+GOV             jmp    ATTR_           ;;; ATTRACT MODE
+HALVCT          jmp    HALL            ;;; Hall of fame
+GNCDAV          jmp    GNCIDA          ;;; Kill everything
 
 ;;; ATTRACT MODE
-ATTR_           ldx #CHKS2+78                   ; HIDDEN CHECKSUM
-                ldy #$D004
+ATTR_           ldx    #CHKS2+78               ; HIDDEN CHECKSUM
+                ldy    #$D004
                 clrb
-ATTR0_          addb ,Y
-                leay $9,Y
-                cmpy #$F000
-                blo ATTR0_
-                stb -78,X
+ATTR0_          addb   ,Y
+                leay   $9,Y
+                cmpy   #$F000
+                blo    ATTR0_
+                stb    -78,X
                 nop
-                jsr GNCIDE
+                jsr    GNCIDE
 
-            // Create a new ATYPE proc
-            NEWP(CRDSCN,ATYPE)
-                lda ATRFLG
-                bne HALLV                       ; LET HIM SEE THE HALL
-                lda CREDIT
-                lbne CRDPAG
-HALLV           jmp HALL
+// Create a new ATYPE proc
+                NEWP(CRDSCN,ATYPE)
+                lda    ATRFLG
+                bne    HALLV                   ; LET HIM SEE THE HALL
+                lda    CREDIT
+                lbne   CRDPAG
+HALLV           jmp    HALL
 
 ;;; __Function:__ GNCIDA
 ;;;
@@ -37,308 +37,310 @@ HALLV           jmp HALL
 ;;;
 ;;; * CTYPE are coin monitoring procs
 ;;; * ATYPE are attract mode proc
-GNCIDA          pshs A,X
-                ldx #ACTIVE
-!loop           ldx ,X
-                beq !exit           ; exit if end of list
-                cmpx CRPROC         ; next if this is currentproc
-                beq !loop
+GNCIDA          pshs   A,X
+                ldx    #ACTIVE
+!loop           ldx    ,X
+                beq    !exit                   ; exit if end of list
+                cmpx   CRPROC                 ; next if this is currentproc
+                beq    !loop
 
             ; Do not kill procs of CTYPE or ATYPE
-                lda proc.type,X
-                cmpa #CTYPE
-                beq !loop
-                cmpa #ATYPE
-                beq !loop
+                lda    proc.type,X
+                cmpa   #CTYPE
+                beq    !loop
+                cmpa   #ATYPE
+                beq    !loop
 
-                jsr KILL            ; Woo kill it and loop
-                bra !loop
-!exit           puls A,X,PC         ; Return
+                jsr    KILL                    ; Woo kill it and loop
+                bra    !loop
+!exit           puls   A,X,PC                 ; Return
 
 ////////////////////////////////////////////////////////////////////////////////
 ;;; __Function:__ CRDSCN
 ;;; Proc to scan for new coins being inserted
 ;;; Runs every other frame
-CRDSCN          lda CREDIT
-                sta proc.data,U
-                clr proc.d1,U
-                clr proc.d2,U
-CRDSLP          lda CREDIT
-                cmpa proc.data,U
-                beq CRDSLX
-                sta proc.data,U
-                lda ATRFLG
-                cmpa #$50                       ; CREDIT PAGE??
-                bne CRDSL1
-                jsr OCRDM
-                bra CRDSLX
-CRDSL1          jsr GNCIDE
-                lda STYPE
-                ldx #CRDPAG
-                jsr MSPROC
-CRDSLX          lda PIA21
-                anda #$8
-                cmpa proc.d1,U
-                beq HALSX
-                sta proc.d1,U
-                beq HALSX
-                lda ATRFLG
-                cmpa #$10
-                beq HALSX
-                jsr GNCIDE
-                lda STYPE
-                ldx #HALL
-                jsr MSPROC
-HALSX           lda PIA21
-                anda #$40
-                cmpa proc.d2,U
-                beq SECSX
-                sta proc.d2,U
-                beq SECSX
-                lda ATRFLG
-                cmpa #$40
-                beq SECSX
-                jsr GNCIDE
-                lda STYPE
-                ldx #SECRET
-                jsr MSPROC
-SECSX       NAP (2,CRDSLP)
+CRDSCN          lda    CREDIT
+                sta    proc.data,U
+                clr    proc.d1,U
+                clr    proc.d2,U
+
+!loop           lda    CREDIT
+                cmpa   proc.data,U
+                beq    !CRDSLX
+                sta    proc.data,U
+                lda    ATRFLG
+                cmpa   #$50                   ; CREDIT PAGE??
+                bne    !CRDSL1
+                jsr    OCRDM
+                bra    !CRDSLX
+!CRDSL1         jsr    GNCIDE
+                lda    STYPE
+                ldx    #CRDPAG
+                jsr    MSPROC
+!CRDSLX         lda    PIA21
+                anda   #$8
+                cmpa   proc.d1,U
+                beq    !HALSX
+                sta    proc.d1,U
+                beq    !HALSX
+                lda    ATRFLG
+                cmpa   #$10
+                beq    !HALSX
+                jsr    GNCIDE
+                lda    STYPE
+                ldx    #HALL
+                jsr    MSPROC
+!HALSX          lda    PIA21
+                anda   #$40
+                cmpa   proc.d2,U
+                beq    !sleep
+                sta    proc.d2,U
+                beq    !sleep
+                lda    ATRFLG
+                cmpa   #$40
+                beq    !sleep
+                jsr    GNCIDE
+                lda    STYPE
+                ldx    #SECRET
+                jsr    MSPROC
+!sleep       
+                NAP (2,!loop)
 
 ;;; CREDIT PAGE DISPLAY
 CRDPAG  
         ; Storing $50 into ATRFLG means we're in the credits
-                lda #$50
-                sta ATRFLG
+                lda    #$50
+                sta    ATRFLG
 
-                lda #$FF
-                sta STATUS
-                jsr GNCIDA
-                jsr SCRCLR
-                jsr CRINIT
-                jsr BORDER
-                jsr ONCOLV
-            MAKP (OPMCOL)
-                jsr OCRDM
-                ldu CRPROC
-                lda CREDIT
-                sta proc.d4,U
-                lda #2
-                sta PLRCNT
-                lda #8
-                sta proc.d3,U                       ; TIMER
-                ldx #$14AC
-                jsr OSEXM                       ; OUTPUT EXTRA SHIP MESSAGE
-                ldx #$3EE0
-                lda #CPM                        ; COPYRIGHT MESSAGE
-                jsr WRD5FV
-                ldx #$35E8
-                lda #WEIM
-                jsr WRD5FV
-                lda #HSCRM                      ; HI SCOR AND SECRETS
-                ldx #$2BCC
-                jsr WRD5FV
-                ldx #$33C0
-                lda #SECM
-                jsr WRD5FV
-CRDP0           ldx #NSHIP
-                jsr RCMOSD
-                std proc.d1,U
-                ldb FREEPL+1
-                andb #$F
-                beq CRDP00                      ; NO FREE PLAY
-                clr proc.d2,U
-CRDP00          ldb proc.d2,U
-                bne CRDP1                       ; 2 CREDIT OPTION SELECTED
-                ldx #$3858
-                bra CRDP2
-CRDP1           ldx #$5958
-                tfr B,A
-                ldb #2
-                jsr CRDSB
-                lda proc.d1,U
-                ldx #$1958
-CRDP2           ldb #1
-                jsr CRDSB
-CRDP3           lda CREDIT
-                cmpa #1
-                beq CRDP3A                      ; NO TWO PLAYER, DONT ERASE
-                jsr CRDWT
-            NAP (10,CRDP3A)
-CRDP3A          ldb #1
-                ldx #$3514
-                lda #NPSM
-                jsr WRD7FV
-                lda CREDIT
-                cmpa #2
-                blo CRDP4
-                lda proc.d2,U
-                bne CRDP4A
-CRDP4           lda proc.d1,U
+                lda    #$FF
+                sta    STATUS
+                jsr    GNCIDA
+                jsr    SCRCLR
+                jsr    CRINIT
+                jsr    BORDER
+                jsr    ONCOLV
+                MAKP (OPMCOL)
+                jsr    OCRDM
+                ldu    CRPROC
+                lda    CREDIT
+                sta    proc.d4,U
+                lda    #2
+                sta    PLRCNT
+                lda    #8
+                sta    proc.d3,U               ; TIMER
+                ldx    #$14AC
+                jsr    OSEXM                   ; OUTPUT EXTRA SHIP MESSAGE
+                ldx    #$3EE0
+                lda    #CPM                    ; COPYRIGHT MESSAGE
+                jsr    WRD5FV
+                ldx    #$35E8
+                lda    #WEIM
+                jsr    WRD5FV
+                lda    #HSCRM                  ; HI SCOR AND SECRETS
+                ldx    #$2BCC
+                jsr    WRD5FV
+                ldx    #$33C0
+                lda    #SECM
+                jsr    WRD5FV
+CRDP0           ldx    #NSHIP
+                jsr    RCMOSD
+                std    proc.d1,U
+                ldb    FREEPL+1
+                andb   #$F
+                beq    CRDP00                  ; NO FREE PLAY
+                clr    proc.d2,U
+CRDP00          ldb    proc.d2,U
+                bne    CRDP1                   ; 2 CREDIT OPTION SELECTED
+                ldx    #$3858
+                bra    CRDP2
+CRDP1           ldx    #$5958
+                tfr    B,A
+                ldb    #2
+                jsr    CRDSB
+                lda    proc.d1,U
+                ldx    #$1958
+CRDP2           ldb    #1
+                jsr    CRDSB
+CRDP3           lda    CREDIT
+                cmpa   #1
+                beq    CRDP3A                  ; NO TWO PLAYER, DONT ERASE
+                jsr    CRDWT
+                NAP (10,CRDP3A)
+CRDP3A          ldb    #1
+                ldx    #$3514
+                lda    #NPSM
+                jsr    WRD7FV
+                lda    CREDIT
+                cmpa   #2
+                blo    CRDP4
+                lda    proc.d2,U
+                bne    CRDP4A
+CRDP4           lda    proc.d1,U
 CRDP4A          clrb
-                bsr CRDSB1
-            NAP ($80,CRDP5)
-CRDP5           lda CREDIT
-                cmpa #2
-                blo CRDP6
-                jsr CRDWT
-            NAP (10,CRDP50)
-CRDP50          ldb #2
-                ldx #$3514
-                lda #NPSM
-                jsr WRD7FV
-                ldb proc.d1,U
-                lda CREDIT
-                cmpa #4
-                blo CRDP5A
-                tst proc.d2,U
-                beq CRDP5A
-                ldb proc.d2,U
-CRDP5A          tfr B,A                         ; SAME FOR BOTH PLAYERS
-                bsr CRDSB1
-CRDP6           dec proc.d3,U                       ; TIMER
-                lbeq HALL                       ; TIME OUT
-                lda CREDIT
-                cmpa proc.d4,U
-                beq CRDP7
-                sta proc.d4,U
-                lda #08
-                sta proc.d3,U
+                bsr    CRDSB1
+                NAP ($80,CRDP5)
+CRDP5           lda    CREDIT
+                cmpa   #2
+                blo    CRDP6
+                jsr    CRDWT
+                NAP (10,CRDP50)
+CRDP50          ldb    #2
+                ldx    #$3514
+                lda    #NPSM
+                jsr    WRD7FV
+                ldb    proc.d1,U
+                lda    CREDIT
+                cmpa   #4
+                blo    CRDP5A
+                tst    proc.d2,U
+                beq    CRDP5A
+                ldb    proc.d2,U
+CRDP5A          tfr    B,A                     ; SAME FOR BOTH PLAYERS
+                bsr    CRDSB1
+CRDP6           dec    proc.d3,U               ; TIMER
+                lbeq   HALL                   ; TIME OUT
+                lda    CREDIT
+                cmpa   proc.d4,U
+                beq    CRDP7
+                sta    proc.d4,U
+                lda    #08
+                sta    proc.d3,U
 CRDP7
-        NAP ($80,CRDP3)
+                NAP ($80,CRDP3)
 
 ;;; CREDIT PAGE DISPLAY SUBROUTINE
 ;;; A=#SHIPS,B=#CREDIT GAME
-CRDSB           pshs A,X
-                lda #NCGM
-                jsr WRD7FV
-                ldb ,S
-                ldx 1,S
-                leax $18,X
-                lda #NSHM
-                jsr WRD7FV
-                ldx 1,S
-                leax $28,X
-                lda #NSBM
-                jsr WRD7FV
-                ldx 1,S
-                leax $38,X
-                lda #NIUM
-                jsr WRD7FV
-                puls A,X,PC
+CRDSB           pshs   A,X
+                lda    #NCGM
+                jsr    WRD7FV
+                ldb    ,S
+                ldx    1,S
+                leax   $18,X
+                lda    #NSHM
+                jsr    WRD7FV
+                ldx    1,S
+                leax   $28,X
+                lda    #NSBM
+                jsr    WRD7FV
+                ldx    1,S
+                leax   $38,X
+                lda    #NIUM
+                jsr    WRD7FV
+                puls   A,X,PC
 
 ;;; PLAYER OBJECT DISPLAY SUBROUINTE
 ;;; A=PLAYER 1 SHIP #,B=PLAYER 2
-CRDSB1          sta .P1LAS
-                sta .P1SBC
-                pshs B
-                ldb #10
+CRDSB1          sta    .P1LAS
+                sta    .P1SBC
+                pshs   B
+                ldb    #10
                 mul
-                stb .P1INV
-                puls B
-                stb .P2LAS
-                stb .P2SBC
-                lda #10
+                stb    .P1INV
+                puls   B
+                stb    .P2LAS
+                stb    .P2SBC
+                lda    #10
                 mul
-                stb .P2INV
-                jsr LDISP
-                jsr SBDISP
-                jmp IVDISP
+                stb    .P2INV
+                jsr    LDISP
+                jsr    SBDISP
+                jmp    IVDISP
 
 ;;; CREDIT START MESS OFF
-CRDWT           ldd #0
-                bsr CRDSB1
-                ldx #$2E13
-                ldd #$3D08
-                jmp BLKCLR
+CRDWT           ldd    #0
+                bsr    CRDSB1
+                ldx    #$2E13
+                ldd    #$3D08
+                jmp    BLKCLR
 
 ;;; OUTPUT EXTRA SHIP MESSAGE
 ;;; X=ADDR
-OSEXM           pshs X
-                ldx #REPLAY
-                jsr RCMOSB
+OSEXM           pshs   X
+                ldx    #REPLAY
+                jsr    RCMOSB
                 tstb
             // NO REPLAYS
-                beq !exit            
-                ldx ,S
-                lda #SEXM
-                jsr WRD5FV
-!exit           puls X,PC
+                beq    !exit            
+                ldx    ,S
+                lda    #SEXM
+                jsr    WRD5FV
+!exit           puls   X,PC
 
 ;;; OUTPUT CREDIT MESSAGE SUBROUTINE
-OCRDM           ldx #$3E40
-OCRDM1          ldb CREDIT
-                lda #CREDM
-                jmp WRD7FV
+OCRDM           ldx    #$3E40
+OCRDM1          ldb    CREDIT
+                lda    #CREDM
+                jmp    WRD7FV
 
 ;;; SECRETS PAGE
-SECRET          lda #$40
-                sta ATRFLG
-                lda #$FF
-                sta STATUS
-                jsr GNCIDA
-                lda #1
-                jsr DIMV
-                jsr SCRCLR
-                ldx #$0E10
-                ldd #$0801
-                jsr OTSGM
-                ldu CRPROC
-                lda #SECSM
-                ldx #$4044
-                jsr WRD7FV
-                ldx #GA1+14
-                jsr RCMOSB                             ; GET WARPING PARAMS
+SECRET          lda    #$40
+                sta    ATRFLG
+                lda    #$FF
+                sta    STATUS
+                jsr    GNCIDA
+                lda    #1
+                jsr    DIMV
+                jsr    SCRCLR
+                ldx    #$0E10
+                ldd    #$0801
+                jsr    OTSGM
+                ldu    CRPROC
+                lda    #SECSM
+                ldx    #$4044
+                jsr    WRD7FV
+                ldx    #GA1+14
+                jsr    RCMOSB                  ; GET WARPING PARAMS
                 clra
-                tfr D,Y
-                jsr RCMOSB
-                lda #SWRPM
-                jsr WRD7FV
-                ldd #$1111
-                std GATCL1
-                ldd #$4444
-                std GATCL2
-                ldd #$7777
-                std GATCL3
-                ldd #$338F
-                jsr ONSG
-                ldx #$14CA
-                jsr OSEXM
-                ldx #$3EE0
-                jsr OCRDM1
-            MAKP (OPMCOL)
-            MAKP (LOGCOL)
-            MAKP (CBOMB)
-                ldu CRPROC
-                ldd #$1040
-                std proc.data,U
-SECR0           dec proc.data+1,U
-                beq SECX                               ; MAXIMUM TIMEOUT
-                dec proc.data,U
-                beq SECR1
+                tfr    D,Y
+                jsr    RCMOSB
+                lda    #SWRPM
+                jsr    WRD7FV
+                ldd    #$1111
+                std    GATCL1
+                ldd    #$4444
+                std    GATCL2
+                ldd    #$7777
+                std    GATCL3
+                ldd    #$338F
+                jsr    ONSG
+                ldx    #$14CA
+                jsr    OSEXM
+                ldx    #$3EE0
+                jsr    OCRDM1
+                MAKP (OPMCOL)
+                MAKP (LOGCOL)
+                MAKP (CBOMB)
+                ldu    CRPROC
+                ldd    #$1040
+                std    proc.data,U
+SECR0           dec    proc.data+1,U
+                beq    SECX                    ; MAXIMUM TIMEOUT
+                dec    proc.data,U
+                beq    SECR1
 SEC55
-            NAP (60,SECR0)
-SECR1           lda PIA21
-                anda #$40
-                beq SECX
-                lda #1
-                sta proc.data,U
-                bra SEC55
-SECX            lda CREDIT
-                beq HALL
-                jmp CRDPAG
+                NAP (60,SECR0)
+SECR1           lda    PIA21
+                anda   #$40
+                beq    SECX
+                lda    #1
+                sta    proc.data,U
+                bra    SEC55
+SECX            lda    CREDIT
+                beq    HALL
+                jmp    CRDPAG
 
 ;;; STARGATE IMMORTALS HALL OF FAME
-HALL            lda #$FF
-                sta STATUS
-                lda #$66
-                sta SCNCOL
-                lda #$10
-                sta ATRFLG
-                jsr GNCIDA
-                clra                                   ; BECOME A SUPER PROCESS
-                ldx #HALL1
-                jsr MSPROC
-                jmp SUCIDE
+HALL            lda    #$FF
+                sta    STATUS
+                lda    #$66
+                sta    SCNCOL
+                lda    #$10
+                sta    ATRFLG
+                jsr    GNCIDA
+                clra                        ; BECOME A SUPER PROCESS
+                ldx    #HALL1
+                jsr    MSPROC
+                jmp    SUCIDE
 
 // ***********************
 // ***********************BEGINING OF LINKY INSERTION
@@ -349,63 +351,63 @@ HCOL1   equ $8
              
 ;;; __Proc:__ HALL1
 ;;; Proc that oversees the hall of fame
-HALL1           ldx #PCRAM                             ; CLEAR OUT COLORS
-!loop           clr ,X+
-                cmpx #PCRAM+16
-                blo !loop
+HALL1           ldx    #PCRAM                  ; CLEAR OUT COLORS
+!loop           clr    ,X+
+                cmpx   #PCRAM+16
+                blo    !loop
 
-                jsr PRINV
-                jsr SCRCLR
-                jsr SCLEAN                             ; KILL SAM STUFF
-            MAKP (OPMCOL)
-                lda #HSTABM                            ; PRINT BORING STUFF ON THE SCREEN
-                jsr WRD7V
-                ldx #SGMSP                             ; MAKE A PROCESS TO OUTPUT THE STARGATE MESSAGE
+                jsr    PRINV
+                jsr    SCRCLR
+                jsr    SCLEAN                  ; KILL SAM STUFF
+                MAKP (OPMCOL)
+                lda    #HSTABM                 ; PRINT BORING STUFF ON THE SCREEN
+                jsr    WRD7V
+                ldx    #SGMSP                  ; MAKE A PROCESS TO OUTPUT THE STARGATE MESSAGE
                 clra
-                jsr MSPROC                             ; DONE
-                lda #$AA
-                sta TEXCOL                             ; MAKE GOD NAME VISIBLE
+                jsr    MSPROC                  ; DONE
+                lda    #$AA
+                sta    TEXCOL                  ; MAKE GOD NAME VISIBLE
 
-                ldx #GODSCR+38                         ; POINT AT LAST LETTER
-!loop2          jsr RCMOSA                             ; FETCH A LETTER
-                leax -4,X                              ; UNDO INC, AND BACKUP 1
-                cmpa #$3A                              ; SPACE??
-                bne !LHAL2
-                cmpx #GODSCR
-                bhs !loop2
+                ldx    #GODSCR+38              ; POINT AT LAST LETTER
+!loop2          jsr    RCMOSA                  ; FETCH A LETTER
+                leax   -4,X                   ; UNDO INC, AND BACKUP 1
+                cmpa   #$3A                   ; SPACE??
+                bne    !LHAL2
+                cmpx   #GODSCR
+                bhs    !loop2
 
-!LHAL2          leax 2,X                               ; POINT AT LAST
-                pshs X                                 ; PUT IT ON STACK
-                ldx #$0E47                             ; GODS PLACE IN THE WORLD
-                lda #$31
-                jsr PR57V
-                lda #$5C
-                jsr PR57V
-                leax $300,X
-                ldy #GODSCR
-!LHAL3          exg X,Y
-                jsr RCMOSA                             ; GET A CHARACTER
-                exg X,Y
-                jsr PR57V                              ; PRINT IT
-                cmpy ,S                                ; COMPARE TO LAST
-                bls !LHAL3                              ; GOD NAME HAS BEEN PRINTED
-                leax $200,X                            ; SLIDE OVER 8 PIXELS
-                ldy #GODSCR+40                         ; POINT AT SCORE
-                ldu #WRD7V                             ; PRINT IN 7 HIGH
-                jsr PRSCOR                             ; PRINT GOD SCORE
-                leax $500,X
-                lda #$5B
-                jsr PR57V
-                ldy #GODINT                            ; POINT AT INITIALS
-                ldb #3
-!LHA3__         exg X,Y
-                jsr RCMOSA
-                exg X,Y
-                jsr PR57V
+!LHAL2          leax   2,X                    ; POINT AT LAST
+                pshs   X                      ; PUT IT ON STACK
+                ldx    #$0E47                  ; GODS PLACE IN THE WORLD
+                lda    #$31
+                jsr    PR57V
+                lda    #$5C
+                jsr    PR57V
+                leax   $300,X
+                ldy    #GODSCR
+!LHAL3          exg    X,Y
+                jsr    RCMOSA                  ; GET A CHARACTER
+                exg    X,Y
+                jsr    PR57V                   ; PRINT IT
+                cmpy   ,S                     ; COMPARE TO LAST
+                bls    !LHAL3                  ; GOD NAME HAS BEEN PRINTED
+                leax   $200,X                 ; SLIDE OVER 8 PIXELS
+                ldy    #GODSCR+40              ; POINT AT SCORE
+                ldu    #WRD7V                  ; PRINT IN 7 HIGH
+                jsr    PRSCOR                  ; PRINT GOD SCORE
+                leax   $500,X
+                lda    #$5B
+                jsr    PR57V
+                ldy    #GODINT                 ; POINT AT INITIALS
+                ldb    #3
+!LHA3__         exg    X,Y
+                jsr    RCMOSA
+                exg    X,Y
+                jsr    PR57V
                 decb
-                bne !LHA3__
-                lda #$5C
-                jsr PR57V
+                bne    !LHA3__
+                lda    #$5C
+                jsr    PR57V
 
 //  PD = CURRENT INDEX
 //  PD1= ENTRIES LEFT IN THIS COLUMN
@@ -414,222 +416,222 @@ HALL1           ldx #PCRAM                             ; CLEAR OUT COLORS
 //  PD4= CURRENT Y
 //  PD5= POINTER TO CURRENT GUY IN CMOS
 //  PD7= # OF ENTRIES IN COLUMN
-                ldu     CRPROC
-                lda     #$2                                ; START WITH INDEX 2
-                sta     proc.data,U
-                ldd     #$0C56
-                std     proc.data+3,U
-                ldy     #CMSCOR
-                sty     proc.data+5,U
-                lda     #13
-                sta     proc.data+7,U
-                jmp     HSCOLM                             ; PRINT THIS MATRIX OF THE TABLE
-PRTODY          ldu     CRPROC
-                lda     #1
-                sta     proc.data,U                        ; START WITH 1 FOR TODAYS
-                ldd     #$0CD0
-                std     proc.data+3,U
-                ldy     #TODAYS
-                sty     proc.data+5,U
-                lda     #2
-                sta     proc.data+7,U
-                jmp     HSCOLM
-HSCOLM          lda     #3                                 ; 3 COLUMNS
-                sta     proc.data+2,U                      ; SET IT HARD
-                clr     TXFLAV
-HSCOL0          lda     proc.data+7,U                      ; NUMBER PER COLUMN
-                sta     proc.data+1,U                      ; MAKE THAT NUMBER LEFT IN THIS COLUMN
+                ldu    CRPROC
+                lda    #$2                 ; START WITH INDEX 2
+                sta    proc.data,U
+                ldd    #$0C56
+                std    proc.data+3,U
+                ldy    #CMSCOR
+                sty    proc.data+5,U
+                lda    #13
+                sta    proc.data+7,U
+                jmp    HSCOLM              ; PRINT THIS MATRIX OF THE TABLE
+PRTODY          ldu    CRPROC
+                lda    #1
+                sta    proc.data,U         ; START WITH 1 FOR TODAYS
+                ldd    #$0CD0
+                std    proc.data+3,U
+                ldy    #TODAYS
+                sty    proc.data+5,U
+                lda    #2
+                sta    proc.data+7,U
+                jmp    HSCOLM
+HSCOLM          lda    #3                  ; 3 COLUMNS
+                sta    proc.data+2,U       ; SET IT HARD
+                clr    TXFLAV
+HSCOL0          lda    proc.data+7,U       ; NUMBER PER COLUMN
+                sta    proc.data+1,U       ; MAKE THAT NUMBER LEFT IN THIS COLUMN
 HSCOL3
-            NAP (1,!sleep)                         ; TIME BREAK HERE
+                NAP (1,!sleep)                         ; TIME BREAK HERE
 
 !sleep
             // Update the text colour
-                lda TEXCOL                             ; GET CURRENT COLOR
-                adda #$11                              ; PUSH TO NEXT
-                cmpa #$88
-                bls !nowrap
-                lda #$11
-!nowrap         sta TEXCOL
+                lda    TEXCOL                  ; GET CURRENT COLOR
+                adda   #$11                   ; PUSH TO NEXT
+                cmpa   #$88
+                bls    !nowrap
+                lda    #$11
+!nowrap         sta    TEXCOL
 
-                ldx proc.data+3,U                      ; GET ADDRESS
-                ldb proc.data,U                        ; GET PLAYERS INDEX
-                lda #HSINDX                            ; INDEX MESSAGE
-                jsr WRD5V                              ; PRINT IT
+                ldx    proc.data+3,U           ; GET ADDRESS
+                ldb    proc.data,U             ; GET PLAYERS INDEX
+                lda    #HSINDX                 ; INDEX MESSAGE
+                jsr    WRD5V                   ; PRINT IT
 
-                ldy proc.data+5,U                      ; POINT AT PLAYERS INITIALS
-                ldb #3                                 ; ITERATE 3 TIMES
-!hscol2         exg X,Y
-                jsr RCMOSA                             ; GET AN INITIAL
-                exg X,Y
-                jsr PR35V                              ; PRINT IT OUT
+                ldy    proc.data+5,U           ; POINT AT PLAYERS INITIALS
+                ldb    #3                      ; ITERATE 3 TIMES
+!hscol2         exg    X,Y
+                jsr    RCMOSA                  ; GET AN INITIAL
+                exg    X,Y
+                jsr    PR35V                   ; PRINT IT OUT
                 decb
-                bne !hscol2                             ; INITIALS ARE OUT THERE
+                bne    !hscol2                 ; INITIALS ARE OUT THERE
 
-                ldx proc.data+3,U                      ; GET CURSOR POINTER AGAIN
-                leax $E00,X                            ; POSITION FOR SCORE
-                ldu #WRD5V                             ; USE 3 BY 5 SCORE ROUTINE
-                jsr PRSCOR                             ; PRINT OUT THE GUYS SCORE
-                ldu CRPROC
-                ldy proc.data+5,U                      ; GET CMOS POINTER
-                leay SCRSIZ,Y
-                sty proc.data+5,U
-                ldx proc.data+3,U                      ; GET CURRENT CURSOR
-                leax 7,X                               ; MOVE 7 PIXELS
-                stx proc.data+3,U
-                lda proc.data,U                        ; KICK INDEX
-                adda #1
+                ldx    proc.data+3,U           ; GET CURSOR POINTER AGAIN
+                leax   $E00,X                 ; POSITION FOR SCORE
+                ldu    #WRD5V                  ; USE 3 BY 5 SCORE ROUTINE
+                jsr    PRSCOR                  ; PRINT OUT THE GUYS SCORE
+                ldu    CRPROC
+                ldy    proc.data+5,U           ; GET CMOS POINTER
+                leay   SCRSIZ,Y
+                sty    proc.data+5,U
+                ldx    proc.data+3,U           ; GET CURRENT CURSOR
+                leax   7,X                    ; MOVE 7 PIXELS
+                stx    proc.data+3,U
+                lda    proc.data,U             ; KICK INDEX
+                adda   #1
                 daa
-                sta proc.data,U
-                dec proc.data+1,U                      ; ONE LESS GUY IN THIS COLUMN
-                bne HSCOL3
-                leax $3000,X                           ; MOVE TO NEXT COLUMN
-                lda #7                                 ; HEIGHT PER ENTRY
-                ldb proc.data+7,U                      ; ENTRIES PER COLUMN
+                sta    proc.data,U
+                dec    proc.data+1,U           ; ONE LESS GUY IN THIS COLUMN
+                bne    HSCOL3
+                leax   $3000,X                ; MOVE TO NEXT COLUMN
+                lda    #7                      ; HEIGHT PER ENTRY
+                ldb    proc.data+7,U           ; ENTRIES PER COLUMN
                 mul
-                negb                                   ; OPPOSITE OF TOTAL HEIGHT
-                leax B,X                               ; TO RESTORE THAT HEIGHT
-                stx proc.data+3,U                      ; RESTORED
-                dec proc.data+2,U                      ; ONE LESS COLUMN
-                bne HSCOL0                             ; DO ANOTHER
-                cmpy #TODAYS+SCRSIZ                    ; ARE WE IN TODAYS
-                lbls PRTODY                            ; NOPE...GO AND DO TODAYS
+                negb                        ; OPPOSITE OF TOTAL HEIGHT
+                leax   B,X                    ; TO RESTORE THAT HEIGHT
+                stx    proc.data+3,U           ; RESTORED
+                dec    proc.data+2,U           ; ONE LESS COLUMN
+                bne    HSCOL0                  ; DO ANOTHER
+                cmpy   #TODAYS+SCRSIZ         ; ARE WE IN TODAYS
+                lbls   PRTODY                 ; NOPE...GO AND DO TODAYS
                                                ;
-            MAKP (LOGCOL)                          ; DONE...START THE COLORS
-                ldu CRPROC
-                lda #8
-                sta proc.data,U
-!HALX1          dec proc.data,U
-                beq !HALX
-            NAP (60,!HALX1)
-!HALX           lda #120
-                sta proc.data,U
-!halx2          lda PIA21
-                anda #$8
-                beq LOGO
-                dec proc.data,U
-                beq LOGO
-            NAP (30,!halx2)
+                MAKP (LOGCOL)                          ; DONE...START THE COLORS
+                ldu    CRPROC
+                lda    #8
+                sta    proc.data,U
+!HALX1          dec    proc.data,U
+                beq    !HALX
+                NAP (60,!HALX1)
+!HALX           lda    #120
+                sta    proc.data,U
+!halx2          lda    PIA21
+                anda   #$8
+                beq    LOGO
+                dec    proc.data,U
+                beq    LOGO
+                NAP (30,!halx2)
 
-SGMSP           ldx #$0E10                             ; TOP OF SCREEN
-                ldd #$0A01
-                jsr OTSGM                              ; PUT IT OUT
-                jmp SUCIDE                             ; AND DIE
-PRSCOR          pshs Y                                 ; SAVE Y FOR THE HELL OF IT
-                exg X,Y                                ; SWAP EM
-                jsr RCMOSA
-                jsr RCMOSB
-                exg X,Y
-                anda #$0F
-                bne PR2SC                              ; THIS WILL BE A TWO CALL JOB
+SGMSP           ldx    #$0E10                  ; TOP OF SCREEN
+                ldd    #$0A01
+                jsr    OTSGM                   ; PUT IT OUT
+                jmp    SUCIDE                  ; AND DIE
+PRSCOR          pshs   Y                      ; SAVE Y FOR THE HELL OF IT
+                exg    X,Y                     ; SWAP EM
+                jsr    RCMOSA
+                jsr    RCMOSB
+                exg    X,Y
+                anda   #$0F
+                bne    PR2SC                   ; THIS WILL BE A TWO CALL JOB
                 tstb
-                bne PR2SC                              ; THIS WILL BE A ONE CALL JOB
-                lda #HIGH3                             ; USE OTHER ROUTINE
-                bra PR3SC
-PR2SC           pshs Y                                 ; SAVE NEW Y
-                tfr D,Y                                ; DATA TO PRINT
-                lda #HIGH1                             ; USE FIRST PRINT TEXT
-                jsr ,U                                 ; CALL PASSED ROUTINE TO DO IT
-                puls Y
-                lda #AUDM2                             ; USE AUDIT TEXT TO PUT OUT LOW HALF
-PR3SC           pshs A
-                exg X,Y
-                jsr RCMOSA
-                jsr RCMOSB
-                exg X,Y
-                tfr D,Y
-                puls A
-                jsr ,U
-                puls Y,PC                              ; AND RETURN
+                bne    PR2SC                   ; THIS WILL BE A ONE CALL JOB
+                lda    #HIGH3                  ; USE OTHER ROUTINE
+                bra    PR3SC
+PR2SC           pshs   Y                      ; SAVE NEW Y
+                tfr    D,Y                     ; DATA TO PRINT
+                lda    #HIGH1                  ; USE FIRST PRINT TEXT
+                jsr    ,U                      ; CALL PASSED ROUTINE TO DO IT
+                puls   Y
+                lda    #AUDM2                  ; USE AUDIT TEXT TO PUT OUT LOW HALF
+PR3SC           pshs   A
+                exg    X,Y
+                jsr    RCMOSA
+                jsr    RCMOSB
+                exg    X,Y
+                tfr    D,Y
+                puls   A
+                jsr    ,U
+                puls   Y,PC                   ; AND RETURN
 
 // ***********************
 // ***********************END OF LINKY INSERTION
 // ***********************
-LOGO            jsr GNCIDA
-                lda #$20
-                sta ATRFLG                             ; LOGO PROGRAM
-                lda #1
-                jsr DIMV                               ; DIM DOWN, CHAPS
-                jsr SCRCLR
-            MAKP (OPMCOL)
+LOGO            jsr    GNCIDA
+                lda    #$20
+                sta    ATRFLG                  ; LOGO PROGRAM
+                lda    #1
+                jsr    DIMV                    ; DIM DOWN, CHAPS
+                jsr    SCRCLR
+                MAKP (OPMCOL)
                                                ;
                                                ; OUTPUT OPERATOR MESSAGE
                                                ; PD=MESS PTR,PD2=SCREEN ADDR,PD4=BYTE CNT.,PD5=PASS FLAG
-OOM             clr proc.d6,U
-                jsr ATMCK                              ; MESSAGE O.K.???
-                beq OOM0
-                ldx #OMST
-                inc proc.d6,U                          ; ERROR FLAG
-                bra OOM00
-OOM0            ldx #OPMESS
-OOM00           stx proc.data,U
-                ldx #OPL1                              ; LOCATION OF LINE 1
-                ldb #$20
-                jsr GETMEX
-                stx proc.d2,U
-                lda #25
-                sta proc.d4,U
-                sta proc.d5,U
-                lda #$AA
-                sta TEXCOL
-                clr TXFLAV
-OOML            ldx proc.data,U
-                lda proc.d6,U                          ; ERROR?
-                beq OOML0                              ; NO
-                lda ,X+
-                bra OOML00
-OOML0           jsr RCMOSA
-OOML00          stx proc.data,U
-                ldx proc.d2,U
-                jsr PR57V
-                stx proc.d2,U
-                dec proc.d4,U
-                beq OOFIN
+OOM             clr    proc.d6,U
+                jsr    ATMCK                   ; MESSAGE O.K.???
+                beq    OOM0
+                ldx    #OMST
+                inc    proc.d6,U               ; ERROR FLAG
+                bra    OOM00
+OOM0            ldx    #OPMESS
+OOM00           stx    proc.data,U
+                ldx    #OPL1                   ; LOCATION OF LINE 1
+                ldb    #$20
+                jsr    GETMEX
+                stx    proc.d2,U
+                lda    #25
+                sta    proc.d4,U
+                sta    proc.d5,U
+                lda    #$AA
+                sta    TEXCOL
+                clr    TXFLAV
+OOML            ldx    proc.data,U
+                lda    proc.d6,U               ; ERROR?
+                beq    OOML0                   ; NO
+                lda    ,X+
+                bra    OOML00
+OOML0           jsr    RCMOSA
+OOML00          stx    proc.data,U
+                ldx    proc.d2,U
+                jsr    PR57V
+                stx    proc.d2,U
+                dec    proc.d4,U
+                beq    OOFIN
 OOML1
-            NAP (3,OOML)
-OOFIN           lda proc.d5,U
-                beq OOFX
-                clr proc.d5,U
-                lda #25
-                sta proc.d4,U
-                ldx #OPL2
-                ldb #$30
-                jsr GETMEX
-                stx proc.d2,U
-                clr TXFLAV
-                bra OOML1
+                NAP (3,OOML)
+OOFIN           lda    proc.d5,U
+                beq    OOFX
+                clr    proc.d5,U
+                lda    #25
+                sta    proc.d4,U
+                ldx    #OPL2
+                ldb    #$30
+                jsr    GETMEX
+                stx    proc.d2,U
+                clr    TXFLAV
+                bra    OOML1
 OOFX
-            MAKP (COLSHK)
-                ldx #$0E58
-                ldd #$0102
-                jsr OTSGM
-            NAP (40,LOG20)
-LOG20           jsr GNCIDA
-                clr PCRAM
-            MAKP (OPMCOL)
-            MAKP (LOGCOL)
-                lda #CPM
-                ldx #$3498
-                jsr WRD7FV
-                lda #WEIM
-                ldx #$25A8
-                jsr WRD7FV
-                ldx #$3ABC
-                jsr OCRDM1                             ; OUTPUT CREDIT MESSAGE
-                lda #HSCRM
-                ldx #$28CC
-                jsr WRD5FV
-                lda #SECM
-                ldx #$30D4
-                jsr WRD5FV
-            NAP (40,LOG2)
+                MAKP (COLSHK)
+                ldx    #$0E58
+                ldd    #$0102
+                jsr    OTSGM
+                NAP (40,LOG20)
+LOG20           jsr    GNCIDA
+                clr    PCRAM
+                MAKP (OPMCOL)
+                MAKP (LOGCOL)
+                lda    #CPM
+                ldx    #$3498
+                jsr    WRD7FV
+                lda    #WEIM
+                ldx    #$25A8
+                jsr    WRD7FV
+                ldx    #$3ABC
+                jsr    OCRDM1                  ; OUTPUT CREDIT MESSAGE
+                lda    #HSCRM
+                ldx    #$28CC
+                jsr    WRD5FV
+                lda    #SECM
+                ldx    #$30D4
+                jsr    WRD5FV
+                NAP (40,LOG2)
 LOG2
-                ldx proc.data+10,U                     ; GET START ADDRESS
-                leay $8824,X
-                lda #7                                 ; SET COLOR 9 TO RED
-                sta PCRAM+9
-                lda #$99                               ; AND DO HALO IN COLOR 9
-                jsr HALO
-            NAP ($FF,PICKUP)                       ; DELAY 4 SECS AND GO TO LOOP
+                ldx    proc.data+10,U          ; GET START ADDRESS
+                leay   $8824,X
+                lda    #7                      ; SET COLOR 9 TO RED
+                sta    PCRAM+9
+                lda    #$99                    ; AND DO HALO IN COLOR 9
+                jsr    HALO
+                NAP ($FF,PICKUP)                       ; DELAY 4 SECS AND GO TO LOOP
 
 ; OPERATOR DEFAULT MESSAGE
 
@@ -639,49 +641,49 @@ OMST        FCC "WILLIAMS ELECTRONICS INC"
             FCB $3F                         ; COLON
             FCC "     "
 ;
-GETMEX          lda #$25                        ; ASSUME ERROR
-                tst proc.data+6,U
-                bne GETME3
-                jsr RCMOSA                      ; GET THE BYTE
-                cmpa #$10
-                bhs GETME2
-                lda #$10
-GETME2          cmpa #$3C
-                bls GETME3
-                lda #$3C
-GETME3          tfr D,X
+GETMEX          lda    #$25                    ; ASSUME ERROR
+                tst    proc.data+6,U
+                bne    GETME3
+                jsr    RCMOSA                  ; GET THE BYTE
+                cmpa   #$10
+                bhs    GETME2
+                lda    #$10
+GETME2          cmpa   #$3C
+                bls    GETME3
+                lda    #$3C
+GETME3          tfr    D,X
                 rts
 
 ; OPERATOR MESS COLORER
-OPMCOL          inc proc.data,U
-                lda proc.data,U
-                anda #$7
-                ldx #OPMTAB
-                lda A,X
-                sta PCRAM+$A
-            NAP (5,OPMCOL)
+OPMCOL          inc    proc.data,U
+                lda    proc.data,U
+                anda   #$7
+                ldx    #OPMTAB
+                lda    A,X
+                sta    PCRAM+$A
+                NAP (5,OPMCOL)
 OPMTAB      FCB $7,$87,$FF,$FF,$C7,$C7,$FF,$FF
 
 ;;; LOGO CYCLER
 ;;; PD,U=COLOR INDEX
-LOGCOL          ldx #LCTAB
-                stx proc.data,U
-LOGLP           ldx proc.data,U
-                ldy #PCRAM+1
-LOGL0           lda ,X+
-                bne LOGL1
-                ldx #LCTAB
-                bra LOGL0
-LOGL1           sta ,Y+
-                cmpy #PCRAM+9
-                bne LOGL0
-                ldx proc.data,U
-                leax 1,X
-                lda ,X
-                bne LOGL2
-                ldx #LCTAB
-LOGL2           stx proc.data,U
-            NAP (3,LOGLP)
+LOGCOL          ldx    #LCTAB
+                stx    proc.data,U
+LOGLP           ldx    proc.data,U
+                ldy    #PCRAM+1
+LOGL0           lda    ,X+
+                bne    LOGL1
+                ldx    #LCTAB
+                bra    LOGL0
+LOGL1           sta    ,Y+
+                cmpy   #PCRAM+9
+                bne    LOGL0
+                ldx    proc.data,U
+                leax   1,X
+                lda    ,X
+                bne    LOGL2
+                ldx    #LCTAB
+LOGL2           stx    proc.data,U
+                NAP (3,LOGLP)
 ;
 ; LOGO COLORING TABLE
 ;
@@ -693,16 +695,16 @@ LCTAB       FCB $37,$2F,$27,$1F,$17,$47,$47,$87
 ;
 ; COLOR SHAKER
 ;
-COLSHK          ldx #SHKTAB
-                jsr RAND
-                anda #$F
-                lda A,X
-                sta PCRAM
-                lda #5
-                ldx #COLSH1
-                jmp SLEEP
-COLSH1          clr PCRAM
-            NAP (3,COLSHK)
+COLSHK          ldx    #SHKTAB
+                jsr    RAND
+                anda   #$F
+                lda    A,X
+                sta    PCRAM
+                lda    #5
+                ldx    #COLSH1
+                jmp    SLEEP
+COLSH1          clr    PCRAM
+                NAP (3,COLSHK)
 SHKTAB      FCB $7,$F,$17,$1E,$25,$2C,$2B,$2A
             FCB $28,$60,$D0,$C0,$C3,$85,$47,$87
 
@@ -710,96 +712,96 @@ SHKTAB      FCB $7,$F,$17,$1E,$25,$2C,$2B,$2A
 ;;; SUPER PROCESS
 ;;; PD+8=TABLE X,PD+40=RET ADD,PD10=SADDR
 ;;; A=COLS/DELAY;X=SADD;B=DELAY/SLEEP
-OTSGM           stx proc.data+10,U                     ; START ADDR
-                sta proc.d1,U                       ; COLS/DELAY
-                stb proc.data+13,U
-                puls X
-                stx proc.data+14,U                     ; RET ADDR
-                ldx #SGMTAB
-                stx proc.data+8,U
-                clr proc.data+12,U
-OTSGM1          ldx proc.data+8,U
-                ldy ,X++                        ; LETTER ADDR
-                beq OTSGMX                      ; THE END
-                lda ,X+
-                std proc.d2,U                       ; COLOR
-                lda ,X+
-                sta proc.data,U                        ; FLAVOR MASK
-                ldd ,X++                        ; SCREEN ADDR OFFSET
-                addd proc.data+10,U
-                stx proc.data+8,U
-                tfr D,X
-                jmp OUTLET
-OTSGMX          jmp [proc.data+14,U]                   ; RETURN
+OTSGM           stx    proc.data+10,U          ; START ADDR
+                sta    proc.d1,U               ; COLS/DELAY
+                stb    proc.data+13,U
+                puls   X
+                stx    proc.data+14,U          ; RET ADDR
+                ldx    #SGMTAB
+                stx    proc.data+8,U
+                clr    proc.data+12,U
+OTSGM1          ldx    proc.data+8,U
+                ldy    ,X++                    ; LETTER ADDR
+                beq    OTSGMX                  ; THE END
+                lda    ,X+
+                std    proc.d2,U               ; COLOR
+                lda    ,X+
+                sta    proc.data,U             ; FLAVOR MASK
+                ldd    ,X++                    ; SCREEN ADDR OFFSET
+                addd   proc.data+10,U
+                stx    proc.data+8,U
+                tfr    D,X
+                jmp    OUTLET
+OTSGMX          jmp    [proc.data+14,U]        ; RETURN
 
 ;;; OUTPUT LETTER
 ;;; X=SCREEN ADDR TOP LEFT
 ;;; Y=LETTER DATA TABLE
 ;;; PD=FLAVOR MASKL;PD1=DELAY;PD3=REPCNT
 ;;; PD12=DELAY TEMP
-OUTLET          clr proc.d3,U
-                stx proc.d4,U
-OUTL0           lda ,Y
-                beq OUTLX                       ; END
-                bpl OUTL1
-                bita #$40
-                bne OUTL1
-                anda #$3F
-                sta proc.d3,U
-                leay 1,Y
-                bra OUTL0
-OUTL1           pshs Y
-                jsr OUTCOL
-                lda proc.d3,U
-                beq OUTL2
-                dec proc.d3,U
-                beq OUTL2
-                ldy ,S
-OUTL2           leas 2,S
-                com proc.data,U
-                bpl OUTL2A
-                inc proc.d4,U
-OUTL2A          sty proc.d6,U
-                dec proc.data+12,U
-                bpl OUTL3
-                lda proc.d1,U
-                sta proc.data+12,U
-                ldx #OUTL3
-                lda proc.data+13,U
-                jmp SLEEP
-OUTL3           ldx proc.d4,U
-                ldy proc.d6,U
-                bra OUTL0
-OUTLX           jmp OTSGM1
+OUTLET          clr    proc.d3,U
+                stx    proc.d4,U
+OUTL0           lda    ,Y
+                beq    OUTLX                   ; END
+                bpl    OUTL1
+                bita   #$40
+                bne    OUTL1
+                anda   #$3F
+                sta    proc.d3,U
+                leay   1,Y
+                bra    OUTL0
+OUTL1           pshs   Y
+                jsr    OUTCOL
+                lda    proc.d3,U
+                beq    OUTL2
+                dec    proc.d3,U
+                beq    OUTL2
+                ldy    ,S
+OUTL2           leas   2,S
+                com    proc.data,U
+                bpl    OUTL2A
+                inc    proc.d4,U
+OUTL2A          sty    proc.d6,U
+                dec    proc.data+12,U
+                bpl    OUTL3
+                lda    proc.d1,U
+                sta    proc.data+12,U
+                ldx    #OUTL3
+                lda    proc.data+13,U
+                jmp    SLEEP
+OUTL3           ldx    proc.d4,U
+                ldy    proc.d6,U
+                bra    OUTL0
+OUTLX           jmp    OTSGM1
 
 ;;; OUTPUT COLUMN
 ;;; X=ADDR TOP LEFT
 ;;; Y=DATA ADDR
 ;;; PD,U=FLAVOR MASK ;PD2,U=COLOR
-OUTCOL          pshs D
-OUTC1           lda ,Y+
-                pshs A                          ; END OF COLUMN FLAG
-                bita #$40
-                bne OUTC2
-                anda #$3F
-                leax A,X
-                bra OUTCX
-OUTC2           anda #$3F
-                beq OUTCX
-OUTC3           ldb proc.data,U
-                andb proc.d2,U
-                orcc #$10                       ; SEI
-                clr RWCNTL                      ; ENABLE RAM READ
-                orb ,X
-                stb ,X+
-                ldb #1
-                stb RWCNTL
-                andcc #$EF                      ; (CLI)
+OUTCOL          pshs   D
+OUTC1           lda    ,Y+
+                pshs   A                      ; END OF COLUMN FLAG
+                bita   #$40
+                bne    OUTC2
+                anda   #$3F
+                leax   A,X
+                bra    OUTCX
+OUTC2           anda   #$3F
+                beq    OUTCX
+OUTC3           ldb    proc.data,U
+                andb   proc.d2,U
+                orcc   #$10                   ; SEI
+                clr    RWCNTL                  ; ENABLE RAM READ
+                orb    ,X
+                stb    ,X+
+                ldb    #1
+                stb    RWCNTL
+                andcc  #$EF                  ; (CLI)
                 deca
-                bne OUTC3
-OUTCX           lda ,S+
-                bpl OUTC1
-                puls D,PC
+                bne    OUTC3
+OUTCX           lda    ,S+
+                bpl    OUTC1
+                puls   D,PC
 
 ;;;  HALO ROUTINE---THIS ROUTINE PUTS OUT A HALO AROUND THE EDGES OF
 ;;;  ALL SOLID REGIONS IN A DEFINED AREA.
@@ -807,137 +809,141 @@ OUTCX           lda ,S+
 ;;;  X = UPPER LEFT CORNER OF REGION
 ;;;  Y = LOWER RIGHT CORNER (JUST OUTSIDE OF REGION)
 ;;;  A = COLOR OF HALO
-HALO            sty XTEMP                       ; SAVE BOTTOM RIGHT IN MEMORY
-                puls Y                          ; GET RETURN ADDRESS
-                ldu CRPROC
-                stx proc.data,U                        ; SAVE UPPER LEFT
-                sty proc.data+6,U                      ; RETURN ADDRESS
-                clrb                            ; START ON EVEN FLAVOR
-HALO0           bsr VFILL                       ; FILL A VERTICAL LINE
-                tstb                            ; MOVE TO NEXT FLAVOR
-                beq HALO1                       ; EVEN FLAVOR..MOVE TO ODD
-                ldu CRPROC
-                std proc.data+2,U
-                stx proc.data+4,U
-            NAP (1,HALO50)
-HALO50          ldd proc.data+2,U
-                ldx proc.data+4,U
-                leax $100,X                     ; ODD FLAVOR MOVE TO NEXT BYTE
-                ldb #$FF                        ; SETUP FOR EVEN FLAVOR
-HALO1           incb                            ; TO NEXT FLAVOR
-                exg X,D                         ; SEE IF DUN
-                cmpa XTEMP                      ; DONE IF X BEYOND OR EQUAL TO PASSED Y
-                exg X,D
-                blo HALO0                       ; WE STILL IN RANGE...DO ANOTHER COLUMN
+HALO            sty    XTEMP                   ; SAVE BOTTOM RIGHT IN MEMORY
+                puls   Y                      ; GET RETURN ADDRESS
+                ldu    CRPROC
+                stx    proc.data,U             ; SAVE UPPER LEFT
+                sty    proc.data+6,U           ; RETURN ADDRESS
+                clrb                        ; START ON EVEN FLAVOR
 
-                ldu CRPROC
-                ldx proc.data,U                        ; RESTORE ORIGINAL CURSOR
-HALO2           lda #$4B                        ; HALF A LINE DOWN
-                sta XTEMP
-                jsr HFILL                       ; DO A HORIZONTAL ROW
-                stx proc.data+4,U
-            NAP (1,HAL_55)
-HAL_55          lda #$8C
-                sta XTEMP
-                ldb proc.data+5,U
-                lda #$4B
-                tfr D,X
-                jsr HFILL
-            NAP (1,HALO55)
-HALO55          ldx proc.data+4,U
-                leax 1,X                        ; MOVE TO NEXT ROW
-                exg X,D
-                lda #$0E
-                cmpb XTEMP+1                    ; TOO MUCH Y?
-                exg X,D
-                blo HALO2                       ; NOT THIS PASS
-                ldu CRPROC
-                jmp [proc.data+6,U]                    ; RETURN
-VFILL           pshs X,D                        ; SAVE POINTER, COLOR, FLAVOR
-VFILL1          bsr WCHK                        ; SEE IF THERE IS WHITE OR BLACK
-                bne VFILL2                      ; ITS WHITE....BOUNDARY FOUND
-                bsr VADV                        ; DO AN ADVANCE TO NEXT PIXEL
-                bra VFILL1
-VFILL2          bsr VON                         ; TURN ON THE CURRENT PIXEL
-                bsr VADV                        ; PUSH TO NEXT ONE
-                bsr VON                         ; TURN IT ON TOO
-VFILL3          bsr WCHK                        ; LOOK FOR BLACK NOW...WE IN A WHITE REGION
-                beq VFILL4                      ; FOUND SOME BLACK
-                bsr VADV                        ; NEXT PIX
-                bra VFILL3
-VFILL4          leax -2,X                       ; MOVE BACK 2 TO WHITEN
-                bsr VON                         ; TURN EM ON
-                leax 1,X
-                bsr VON
-                leax 1,X                        ; BACK TO BLACK PIX THAT TRIGGERED IT
-                bra VFILL1
-WCHK            pshs D                          ; SEE IF CURRENT POINTED TO IS ON OR OFF
-                orcc #$10                       ; (SEI) WE HAVE TO READ THE SCREEN
-                clr RWCNTL
-                bsr GETMSK                      ; GET THE RIGHT MASK
-                anda ,X
-                ldb #1
-                stb RWCNTL                      ; UNCONTROL
-                andcc #$EF                      ; (CLI)
-                tsta                            ; SET FLAGS FOR RETURN
-                puls D,PC
-GETMSK          lda #$F0                        ; ASSUME EVEN
+!loop           bsr    VFILL                   ; FILL A VERTICAL LINE
+                tstb                        ; MOVE TO NEXT FLAVOR
+                beq    !odd                    ; EVEN FLAVOR..MOVE TO ODD
+                ldu    CRPROC
+                std    proc.data+2,U
+                stx    proc.data+4,U
+                SLEEP (1)
+                ldd    proc.data+2,U
+                ldx    proc.data+4,U
+                leax   $100,X                 ; ODD FLAVOR MOVE TO NEXT BYTE
+                ldb    #$FF                    ; SETUP FOR EVEN FLAVOR
+!odd            incb                        ; TO NEXT FLAVOR
+                exg    X,D                     ; SEE IF DUN
+                cmpa   XTEMP                  ; DONE IF X BEYOND OR EQUAL TO PASSED Y
+                exg    X,D
+                blo    !loop                   ; WE STILL IN RANGE...DO ANOTHER COLUMN
+
+                ldu    CRPROC
+                ldx    proc.data,U             ; RESTORE ORIGINAL CURSOR
+!HALO2          lda    #$4B                    ; HALF A LINE DOWN
+                sta    XTEMP
+                jsr    HFILL                   ; DO A HORIZONTAL ROW
+                stx    proc.data+4,U
+                SLEEP (1)
+                lda    #$8C
+                sta    XTEMP
+                ldb    proc.data+5,U
+                lda    #$4B
+                tfr    D,X
+                jsr    HFILL
+                SLEEP (1)
+                ldx    proc.data+4,U
+                leax   1,X                    ; MOVE TO NEXT ROW
+                exg    X,D
+                lda    #$0E
+                cmpb   XTEMP+1                ; TOO MUCH Y?
+                exg    X,D
+                blo    !HALO2                  ; NOT THIS PASS
+                ldu    CRPROC
+                jmp    [proc.data+6,U]         ; RETURN
+
+
+;;; VFILL
+VFILL           pshs   X,D                    ; SAVE POINTER, COLOR, FLAVOR
+VFILL1          bsr    WCHK                    ; SEE IF THERE IS WHITE OR BLACK
+                bne    VFILL2                  ; ITS WHITE....BOUNDARY FOUND
+                bsr    VADV                    ; DO AN ADVANCE TO NEXT PIXEL
+                bra    VFILL1
+VFILL2          bsr    VON                     ; TURN ON THE CURRENT PIXEL
+                bsr    VADV                    ; PUSH TO NEXT ONE
+                bsr    VON                     ; TURN IT ON TOO
+VFILL3          bsr    WCHK                    ; LOOK FOR BLACK NOW...WE IN A WHITE REGION
+                beq    VFILL4                  ; FOUND SOME BLACK
+                bsr    VADV                    ; NEXT PIX
+                bra    VFILL3
+VFILL4          leax   -2,X                   ; MOVE BACK 2 TO WHITEN
+                bsr    VON                     ; TURN EM ON
+                leax   1,X
+                bsr    VON
+                leax   1,X                    ; BACK TO BLACK PIX THAT TRIGGERED IT
+                bra    VFILL1
+WCHK            pshs   D                      ; SEE IF CURRENT POINTED TO IS ON OR OFF
+                orcc   #$10                   ; (SEI) WE HAVE TO READ THE SCREEN
+                clr    RWCNTL
+                bsr    GETMSK                  ; GET THE RIGHT MASK
+                anda   ,X
+                ldb    #1
+                stb    RWCNTL                  ; UNCONTROL
+                andcc  #$EF                  ; (CLI)
+                tsta                        ; SET FLAGS FOR RETURN
+                puls   D,PC
+GETMSK          lda    #$F0                    ; ASSUME EVEN
                 tstb
-                beq GETMX                       ; YEP
-                lda #$0F                        ; ODD
+                beq    GETMX                   ; YEP
+                lda    #$0F                    ; ODD
 GETMX           rts
-VADV            leax 1,X                        ; PUSH TO NEXT PIXEL
-                exg X,D                         ; COMPARE
-                cmpb XTEMP+1                    ; IS OUR Y ENOUGH??
-                exg X,D
-                blo GETMX                       ; DONE..IN RANGE...RETURN
-HADV2           leas 2,S                        ; REMOVE CALL TO US
-                puls X,D,PC                     ; AND RETURN FOR VFILL
-VON             pshs D                          ; SAVE
-                orcc #$10                       ; (SEI) READ SCREEN
-                clr RWCNTL
-                bsr GETMSK                      ; GET THE CURRENT MASK
-                anda ,X                         ; READ THE SCREEN
-                beq VBYE                        ; NOTHING THERE....DONT SHADE.
-                bsr GETMSK                      ; GET MASK BACK
-                anda #$99                       ; MASK COLOR ON
-                pshs A                          ; PUT THAT HALF OF BYTE UP
-                bsr GETMSK                      ; ANOTHER MASK PLEASE
-                coma                            ; OTHER HALF
-                anda ,X                         ; GET WHATS ON SCREEN.
-                ora ,S+                         ; OR IN OTHER HALF
-                sta ,X                          ; AND STORE
-VBYE            lda #1
-                sta RWCNTL
-                andcc #$EF                      ; (CLI)
-                puls D,PC
-HFILL           pshs X,D
-                clrb                            ; START ON EVEN FLAVOR
-HFILL1          bsr WCHK
-                bne HFILL2                      ; STILL LOOKING FOR WHITE
-                bsr HADV                        ; MOVE TO NEXT PIX
-                bra HFILL1
-HFILL2          bsr VON                         ; TURN ONE ON
-                bsr HADV                        ; MOVE TO NEXT
-                bsr VON                         ; TURN ONE ON
-HFILL3          bsr WCHK
-                beq HFILL4
-                bsr HADV
-                bra HFILL3
-HFILL4          leax -$100,X                    ; MOVE BACK 2 PIXELS
-                bsr VON
-                bsr HADV                        ; MOVE 1 PIX FWD
-                bsr VON
-                bsr HADV
-                bra HFILL1
+VADV            leax   1,X                    ; PUSH TO NEXT PIXEL
+                exg    X,D                     ; COMPARE
+                cmpb   XTEMP+1                ; IS OUR Y ENOUGH??
+                exg    X,D
+                blo    GETMX                   ; DONE..IN RANGE...RETURN
+HADV2           leas   2,S                    ; REMOVE CALL TO US
+                puls   X,D,PC                 ; AND RETURN FOR VFILL
+VON             pshs   D                      ; SAVE
+                orcc   #$10                   ; (SEI) READ SCREEN
+                clr    RWCNTL
+                bsr    GETMSK                  ; GET THE CURRENT MASK
+                anda   ,X                     ; READ THE SCREEN
+                beq    VBYE                    ; NOTHING THERE....DONT SHADE.
+                bsr    GETMSK                  ; GET MASK BACK
+                anda   #$99                   ; MASK COLOR ON
+                pshs   A                      ; PUT THAT HALF OF BYTE UP
+                bsr    GETMSK                  ; ANOTHER MASK PLEASE
+                coma                        ; OTHER HALF
+                anda   ,X                     ; GET WHATS ON SCREEN.
+                ora    ,S+                     ; OR IN OTHER HALF
+                sta    ,X                      ; AND STORE
+VBYE            lda    #1
+                sta    RWCNTL
+                andcc  #$EF                  ; (CLI)
+                puls   D,PC
+HFILL           pshs   X,D
+                clrb                        ; START ON EVEN FLAVOR
+HFILL1          bsr    WCHK
+                bne    HFILL2                  ; STILL LOOKING FOR WHITE
+                bsr    HADV                    ; MOVE TO NEXT PIX
+                bra    HFILL1
+HFILL2          bsr    VON                     ; TURN ONE ON
+                bsr    HADV                    ; MOVE TO NEXT
+                bsr    VON                     ; TURN ONE ON
+HFILL3          bsr    WCHK
+                beq    HFILL4
+                bsr    HADV
+                bra    HFILL3
+HFILL4          leax   -$100,X                ; MOVE BACK 2 PIXELS
+                bsr    VON
+                bsr    HADV                    ; MOVE 1 PIX FWD
+                bsr    VON
+                bsr    HADV
+                bra    HFILL1
 HADV            tstb
-                beq HADV1
-                leax $100,X                     ; TO NEXT BYTE
-                exg X,D
-                cmpa XTEMP                      ; SEE IF TOO MUCH
-                exg X,D
-                bhs HADV2
-                ldb #$FF
+                beq    HADV1
+                leax   $100,X                 ; TO NEXT BYTE
+                exg    X,D
+                cmpa   XTEMP                  ; SEE IF TOO MUCH
+                exg    X,D
+                bhs    HADV2
+                ldb    #$FF
 HADV1           incb
                 rts
 

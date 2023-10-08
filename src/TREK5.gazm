@@ -21,23 +21,23 @@ RINDEL  EQU  $9     ;;; UPDATES UNTIL NEXT RING
 ;;;```
 ;;; lda #10
 ;;;```
-TEMP1   RMB  1
-TEMP6   RMB  1  ;;; VALUE TO RESTORE TEMP1 WITH TO ACCELERATE
-TEMP2   RMB  1  ;;; USED TO MEASURE TIME TILL NEXT GUY OUT.
-TEMP3   RMB  1  ;;; NUMBER OF RINGS TO DO.
-TEMP4   RMB  2  ;;; USED BY RNG
-TEMP5   RMB  2  ;;; USED BY ROCK GENERATOR
-FROBPT  RMB  2  ;;; THIS POINTS AT CURRENT FROB
-TABPTR  RMB  2  ;;; POINTER TO FIRST UNUSED ENTRY IN TABLE
-DELTA	EQU	$14	;;; STEP SIZE (IN Y DIRECTION)
-RADIUS	EQU	$140
-NRINGS	EQU	7
+TEMP1       RMB  1
+TEMP6       RMB  1  ;;; VALUE TO RESTORE TEMP1 WITH TO ACCELERATE
+TEMP2       RMB  1  ;;; USED TO MEASURE TIME TILL NEXT GUY OUT.
+TEMP3       RMB  1  ;;; NUMBER OF RINGS TO DO.
+TEMP4       RMB  2  ;;; USED BY RNG
+TEMP5       RMB  2  ;;; USED BY ROCK GENERATOR
+FROBPT      RMB  2  ;;; THIS POINTS AT CURRENT FROB
+TABPTR      RMB  2  ;;; POINTER TO FIRST UNUSED ENTRY IN TABLE
+DELTA	    EQU	$14	;;; STEP SIZE (IN Y DIRECTION)
+RADIUS	    EQU	$140
+NRINGS	    EQU	7
 
 
 SDDD            ;;; Random Seed word
-HSDDD   RMB  1  ;;; Random Seed High
-LSDDD   RMB  1  ;;; Random Seed low
-PCSAV   RMB  8  ;;; SAVE OLD PCRAM VALUES
+HSDDD       RMB  1  ;;; Random Seed High
+LSDDD       RMB  1  ;;; Random Seed low
+PCSAV       RMB  8  ;;; SAVE OLD PCRAM VALUES
 
 struct ptable {
     YACC : word,
@@ -51,10 +51,10 @@ struct ptable {
 }
 
 PTABLE
-        RMB  ptable.size * 300
+                RMB  ptable.size * 300
 
-            ORG  WRPORG
-WARPV           jmp  ROCK0  ; WARP
+                ORG  WRPORG
+WARPV           jmp    ROCK0                ; WARP
 
 ;;; Table that an element is pointted to by FROBPT
 ;;; FROBT increases over time and loops at ENDPIC
@@ -88,53 +88,53 @@ ROKSUB          clrb
 ; Ah seems to be building init tables for an object
 ; X,Y,vels
 
-!loop           std   TEMP5             ; SAVE INDEX
-                std   ,X++              ; Y DONE FOR FIRST POINT
-                bsr   !RNDDIS           ; GET A RANDMOM DISPLACEMENT IN D
-                std   ,X++
-                bsr   STORSB            ; STORE THE REST OF THE CRUD
-                ldd   TEMP5             ; GET IT BACK
-                std   ,X++              ; USE THE SAME Y
-                bsr   !RNDDIS
+!loop           std    TEMP5                ; SAVE INDEX
+                std    ,X++                 ; Y DONE FOR FIRST POINT
+                bsr    !RNDDIS              ; GET A RANDMOM DISPLACEMENT IN D
+                std    ,X++
+                bsr    STORSB               ; STORE THE REST OF THE CRUD
+                ldd    TEMP5                ; GET IT BACK
+                std    ,X++                 ; USE THE SAME Y
+                bsr    !RNDDIS
                 coma
                 comb
-                addd  #1
-                std   ,X++
-                bsr   STORSB
-                ldd   TEMP5
+                addd   #1
+                std    ,X++
+                bsr    STORSB
+                ldd    TEMP5
                 coma
                 comb
-                addd  #1
-                std   ptable.size,X              ; STORE THE NEGATIVE SIDE FOR THE NEXT ONE
-                std   ,X++
-                bsr   !RNDDIS
-                std   ,X++
-                bsr   STORSB
-                leax  2,X              ; ALREADY STORED BUMB IT
-                bsr   !RNDDIS
+                addd   #1
+                std    ptable.size,X        ; STORE THE NEGATIVE SIDE FOR THE NEXT ONE
+                std    ,X++
+                bsr    !RNDDIS
+                std    ,X++
+                bsr    STORSB
+                leax   2,X                  ; ALREADY STORED BUMB IT
+                bsr    !RNDDIS
                 coma
                 comb
-                addd  #1
-                std   ,X++
-                bsr   STORSB
+                addd   #1
+                std    ,X++
+                bsr    STORSB
 
-                ldd   TEMP5
-                addd  #DELTA            ; MOVE UP TO NEXT
-                cmpd  #RADIUS           ; ARE WE UP TO RADIUS??
-                blo   !loop            ; NOPE...DO ANOTHER
+                ldd    TEMP5
+                addd   #DELTA               ; MOVE UP TO NEXT
+                cmpd   #RADIUS              ; ARE WE UP TO RADIUS??
+                blo    !loop                ; NOPE...DO ANOTHER
 
-                stx   TABPTR              ; THIS IS THE NEW POINTER VALUE
+                stx    TABPTR               ; THIS IS THE NEW POINTER VALUE
                 rts
 
-!RNDDIS         jsr  RANDM
-                bpl  !RNDDS1
-                orb  #$C0
-                bra  !RNDDS2
-!RNDDS1         andb  #$3F
+!RNDDIS         jsr    RANDM
+                bpl    !RNDDS1
+                orb    #$C0
+                bra    !RNDDS2
+!RNDDS1         andb   #$3F
 !RNDDS2         sex
-                subd  TEMP5  ; THIS FORMS X.
-                addd  #RADIUS
-                asra  ; HALVE FOR X
+                subd   TEMP5                ; THIS FORMS X.
+                addd   #RADIUS
+                asra                        ; HALVE FOR X
                 rorb
                 rts
 
@@ -146,169 +146,169 @@ ROKSUB          clrb
 ;;; byte [FROBPT]
 STORSB          clra
                 clrb
-                std  ,X++  ; VELOCITY
-                std  ,X++
-                ldd  #BLOPT&$FF00
-                std  ,X++
-                ldd  #BLOPT  ; OLD
-                std  ,X++
-                clr  ,X+
-                lda  [FROBPT]
-                sta  ,X+  ; PUT THE FROB DOWN
+                std    ,X++                 ; VELOCITY
+                std    ,X++
+                ldd    #BLOPT&$FF00
+                std    ,X++
+                ldd    #BLOPT               ; OLD
+                std    ,X++
+                clr    ,X+
+                lda    [FROBPT]
+                sta    ,X+                  ; PUT THE FROB DOWN
                 rts
 
 ;;; Warping!
-ROCK0           ldu  CRPROC
-                puls  X       ; GET RETURN ADDRESS
-                stx  proc.data+6,U
-                ldx  #PCRAM+1
-                ldy  #PCSAV
-                ldu  #PCTAB
-!loop           ldd  ,X
-                std  ,Y++
-                ldd  ,U++
-                std  ,X++
-                cmpx  #PCRAM+9
-                bne  !loop
-                ldd  #RCKSND
-                jsr  SNDLD
-                ldd  SDDD     ; RANDMOMIZE IT
-                addd  #$3456
-                std  SDDD
-                ldd  #PIECES
-                std  FROBPT
-                lda  #NRINGS
-                sta  TEMP3
-                lda  #RINDEL  ; NUMBER OF UPDATES UNTIL NEXT WAVE
-                sta  TEMP2
-                lda  #$7      ; INITIAL COUNTDOWN FOR BACKGROUND COLOR CHANGE
-                sta  TEMP6    ; HOLD FOR ACCELERATION
-                lda  #1       ; LET COLOR TIMER TIME OUT RIGHT AWAY
-                sta  TEMP1
-                ldx  #PTABLE  ; LETS WALK THROUGH AND INIT THE TABLE
-                jsr  ROKSUB   ; ADD TEMP1 ROCKS
+ROCK0           ldu    CRPROC
+                puls   X                    ; GET RETURN ADDRESS
+                stx    proc.data+6,U
+                ldx    #PCRAM+1
+                ldy    #PCSAV
+                ldu    #PCTAB
+!loop           ldd    ,X
+                std    ,Y++
+                ldd    ,U++
+                std    ,X++
+                cmpx   #PCRAM+9
+                bne    !loop
+                ldd    #RCKSND
+                jsr    SNDLD
+                ldd    SDDD                 ; RANDMOMIZE IT
+                addd   #$3456
+                std    SDDD
+                ldd    #PIECES
+                std    FROBPT
+                lda    #NRINGS
+                sta    TEMP3
+                lda    #RINDEL              ; NUMBER OF UPDATES UNTIL NEXT WAVE
+                sta    TEMP2
+                lda    #$7                  ; INITIAL COUNTDOWN FOR BACKGROUND COLOR CHANGE
+                sta    TEMP6                ; HOLD FOR ACCELERATION
+                lda    #1                   ; LET COLOR TIMER TIME OUT RIGHT AWAY
+                sta    TEMP1
+                ldx    #PTABLE              ; LETS WALK THROUGH AND INIT THE TABLE
+                jsr    ROKSUB               ; ADD TEMP1 ROCKS
 
 !UPDATE
                 clra
-                dec  TEMP1      ; DECREMENT COLOR TIMER
-                bne  !skip
-                lda  TEMP6      ; ACCELERATION RESTORE
-                sta  TEMP1
-                ldu  #PCTAB-2
-                lda  A,U          ; GET OFFSET CORRESPONDING TO TEMP6
+                dec    TEMP1                ; DECREMENT COLOR TIMER
+                bne    !skip
+                lda    TEMP6                ; ACCELERATION RESTORE
+                sta    TEMP1
+                ldu    #PCTAB-2
+                lda    A,U                  ; GET OFFSET CORRESPONDING TO TEMP6
 
-!skip           sta  PCRAM
-                lda  TEMP2
-                deca              ; REMOVE ONE
-                sta  TEMP2
-                bne  !skip2
-                jsr  NWRING
-                bra  !update
+!skip           sta    PCRAM
+                lda    TEMP2
+                deca                        ; REMOVE ONE
+                sta    TEMP2
+                bne    !skip2
+                jsr    NWRING
+                bra    !update
 
 !skip2
-            NAP  (2,!update)  ; TAKE A NAP IF NO NEW RING
+                SLEEP  (2)            ; TAKE A NAP IF NO NEW RING
 
-!update         ldy  #0
-                ldx  #PTABLE      ; GET START OF TABLE
-                cmpx  TABPTR      ; NOTHING IN TABLE??
-                bne   !rokup2      ; SOMETHING THERE...CONTINUE
-                clr   PCRAM        ; RESTORE BACKGROUND COLOR
-                ldy   #PCRAM+1     ; AND COLOR MATRIX
-                ldx   #PCSAV
+!update         ldy    #0
+                ldx    #PTABLE              ; GET START OF TABLE
+                cmpx   TABPTR               ; NOTHING IN TABLE??
+                bne    !rokup2              ; SOMETHING THERE...CONTINUE
+                clr    PCRAM                ; RESTORE BACKGROUND COLOR
+                ldy    #PCRAM+1             ; AND COLOR MATRIX
+                ldx    #PCSAV
 !loop2   
-                ldd  ,X++
-                std  ,Y++
-                cmpy  #PCRAM+9
-                bne  !loop2
-                ldu  CRPROC  ; GET PROCESS IN CASE OF BASHING
-                jmp  [proc.data+6,U] ; RETURN
+                ldd    ,X++
+                std    ,Y++
+                cmpy   #PCRAM+9
+                bne    !loop2
+                ldu    CRPROC               ; GET PROCESS IN CASE OF BASHING
+                jmp    [proc.data+6,U]      ; RETURN
 
 !rokup2  
-                cmpx  TABPTR                ; AT END???
-                beq  !UPDATE
+                cmpx   TABPTR               ; AT END???
+                beq    !UPDATE
 
-                sty   [ptable.OLD,X]        ; ERASES OLD ONE
-                ldd   ptable.YACC,X
-                addd  ptable.YV,X
-                std   ptable.YV,X
-                addd  ptable.YPOS,X
-                cmpa  #YMAXX
-                bcc   !byept2
-                cmpa  #YMINN
-                bcs   !byept2
-                std   ptable.YPOS,X
-                ldd   ptable.XACC,X
-                addd  ptable.XV,X
-                std   ptable.XV,X
-                addd  ptable.XPOS,X
-                cmpa  #XMAX
-                bcc   !byept2
-                std   ptable.XPOS,X
-                sta   ptable.OLD,X
-                lda   ptable.FROB,X
-                ldb   ptable.FROB,X
-                std   [ptable.OLD,X]        ; STORE FROB
-                leax  ptable.size,X         ; MOVE TO NEXT
-                bra   !rokup2
+                sty    [ptable.OLD,X]       ; ERASES OLD ONE
+                ldd    ptable.YACC,X
+                addd   ptable.YV,X
+                std    ptable.YV,X
+                addd   ptable.YPOS,X
+                cmpa   #YMAXX
+                bcc    !byept2
+                cmpa   #YMINN
+                bcs    !byept2
+                std    ptable.YPOS,X
+                ldd    ptable.XACC,X
+                addd   ptable.XV,X
+                std    ptable.XV,X
+                addd   ptable.XPOS,X
+                cmpa   #XMAX
+                bcc    !byept2
+                std    ptable.XPOS,X
+                sta    ptable.OLD,X
+                lda    ptable.FROB,X
+                ldb    ptable.FROB,X
+                std    [ptable.OLD,X]       ; STORE FROB
+                leax   ptable.size,X        ; MOVE TO NEXT
+                bra    !rokup2
 
 !byept2  
-                ldu  TABPTR  ; GET THE POINTER
-                leau    -ptable.size,U ; MOVE DOWN ONE ENTRY
-                stu  TABPTR
-                ldd  ptable.YACC,U
-                std  ptable.YACC,X
-                ldd  ptable.XACC,U
-                std  ptable.XACC,X
-                ldd  ptable.XV,U
-                std  ptable.XV,X
-                ldd  ptable.YV,U
-                std  ptable.YV,X
-                ldd  ptable.XPOS,U
-                std  ptable.XPOS,X
-                ldd  ptable.OLD,U
-                std  ptable.OLD,X
-                ldd  ptable.OLD+2,U
-                std  ptable.OLD+2,X
-                bra  !rokup2
+                ldu    TABPTR               ; GET THE POINTER
+                leau   -ptable.size,U       ; MOVE DOWN ONE ENTRY
+                stu    TABPTR
+                ldd    ptable.YACC,U
+                std    ptable.YACC,X
+                ldd    ptable.XACC,U
+                std    ptable.XACC,X
+                ldd    ptable.XV,U
+                std    ptable.XV,X
+                ldd    ptable.YV,U
+                std    ptable.YV,X
+                ldd    ptable.XPOS,U
+                std    ptable.XPOS,X
+                ldd    ptable.OLD,U
+                std    ptable.OLD,X
+                ldd    ptable.OLD+2,U
+                std    ptable.OLD+2,X
+                bra    !rokup2
 
-NWRING          lda  TEMP6
+NWRING          lda    TEMP6
                 deca
-                cmpa  #5
-                blo  !skip
-                sta  TEMP6
+                cmpa   #5
+                blo    !skip
+                sta    TEMP6
 
-!skip           lda  #RINDEL        ; Updates until next ring
-                sta  TEMP2          
-            ; ret if TEMP3 is zero
-                tst  TEMP3
-                beq  NWRTS
-            ; otherwise dec it and bump frobpt
-                dec  TEMP3
-                ldd  FROBPT         ; Bump FROBPT by one
-                addd  #1
-                cmpd  #ENDPIC       ; wrap if at the endbale of the PIECES table
-                bne  !not_end
-                ldd  #PIECES
+!skip           lda    #RINDEL              ; Updates until next ring
+                sta    TEMP2          
+// ret if TEMP3 is zero
+                tst    TEMP3
+                beq    NWRTS
+// otherwise dec it and bump frobpt
+                dec    TEMP3
+                ldd    FROBPT               ; Bump FROBPT by one
+                addd   #1
+                cmpd   #ENDPIC              ; wrap if at the endbale of the PIECES table
+                bne    !not_end
+                ldd    #PIECES
 !not_end
-                std  FROBPT
-                ldx  TABPTR
-                jmp  ROKSUB  ; ADD THE NEW WAVE AND RETURN
+                std    FROBPT
+                ldx    TABPTR
+                jmp    ROKSUB               ; ADD THE NEW WAVE AND RETURN
 
-RCKSND  FCB  $FF,$20,2,$F2,$60,$01,$F2,0
+RCKSND      FCB  $FF,$20,2,$F2,$60,$01,$F2,0
 
-RANDM           ldd   SDDD
+RANDM           ldd    SDDD
                 rora
-                rorb                ; B NOW HAS HIGH HALF OF NEW SDDD
-                lda   HSDDD         ; FOR LOW SEVEN BITS
+                rorb                        ; B NOW HAS HIGH HALF OF NEW SDDD
+                lda    HSDDD                ; FOR LOW SEVEN BITS
                 asla
-                eora  HSDDD         ;   BIT 6-0 IS NOW LOW SEVEN BITS OF NEW SDDD
-                stb   HSDDD         ; NOW STORE OFF B
-                asla                ; BIT 7-1 NOW HAVE LOW SEVEN BITS OF NEW SDDD
-                ldb   LSDDD         ; GET THE EITH BIT FROM THE OLD LOW BIT
+                eora   HSDDD                ;   BIT 6-0 IS NOW LOW SEVEN BITS OF NEW SDDD
+                stb    HSDDD                ; NOW STORE OFF B
+                asla                        ; BIT 7-1 NOW HAVE LOW SEVEN BITS OF NEW SDDD
+                ldb    LSDDD                ; GET THE EITH BIT FROM THE OLD LOW BIT
                 rorb
                 rora
-                sta   LSDDD
-                ldb   LSDDD      ; RETURN IN B
+                sta    LSDDD
+                ldb    LSDDD                ; RETURN IN B
 NWRTS           rts
 
  ; END

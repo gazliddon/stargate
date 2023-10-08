@@ -59,115 +59,114 @@
 BLKTIM  equ $18                         ; BLINK TIMER.
 
            org MESORG
-MESLDV            jmp MESSLD                      ;;; LOADER
-MESINV            jmp MESSIN                      ;;; INITIALIZER
+MESLDV          jmp    MESSLD                      ;;; LOADER
+MESINV          jmp    MESSIN                      ;;; INITIALIZER
 
 ;;;  UPDATE
 MESUPV   
-                lda STATUS                      ; OK TO DO IT??
-                bita #$2C                       ; NOT IF OJBECTS OR SAM TURNED OFF, OR PLAYER DEAD
-                bne MESSUX
-                lda MESSTM                      ; GET TIMER
-                beq MESSUX                      ; NOTHING THERE...WHAT A WASTE OF TIME
-                dec MESSTM                      ; SO KNOCK IT DOWN ONE
-                bne MESSUX                      ; NOT DONE HERE
-                lda MESSSP                      ; GET THE SPECIAL STUFF
-                bita #CONT                      ; CONTINUATION??
-                beq MESSU1                      ; NOPE
-                ldb MESSB                       ; RESTORE THE POSSIBLE NUMBER PARAMS
-                ldy MESSY
-                ldx MESSST                      ; LOAD X WITH THE MESSAGE STARTER
-                jmp MESSCV                      ; DO PHONEY CALL AND RETURN.
-MESSU1          ldx #0                          ; CLEAR START POINTER SO NO SATISFACTION OF CONDITION
-                stx MESSST                      ; DONE.
-MESIN1          bsr CLMESS                      ; CLEAR OUT THE REGION
-                lda #DEFMES                     ; PUT DEFAULT MESSAGE OUT.
-                jmp WRD5FS                      ; AND RETURN.
-MESSUX          rts                             ; EXIT
+                lda    STATUS               ; OK TO DO IT??
+                bita   #$2C                 ; NOT IF OJBECTS OR SAM TURNED OFF, OR PLAYER DEAD
+                bne    MESSUX
+                lda    MESSTM               ; GET TIMER
+                beq    MESSUX               ; NOTHING THERE...WHAT A WASTE OF TIME
+                dec    MESSTM               ; SO KNOCK IT DOWN ONE
+                bne    MESSUX               ; NOT DONE HERE
+                lda    MESSSP               ; GET THE SPECIAL STUFF
+                bita   #CONT                ; CONTINUATION??
+                beq    MESSU1               ; NOPE
+                ldb    MESSB                ; RESTORE THE POSSIBLE NUMBER PARAMS
+                ldy    MESSY
+                ldx    MESSST               ; LOAD X WITH THE MESSAGE STARTER
+                jmp    MESSCV               ; DO PHONEY CALL AND RETURN.
+MESSU1          ldx    #0                   ; CLEAR START POINTER SO NO SATISFACTION OF CONDITION
+                stx    MESSST               ; DONE.
+MESIN1          bsr    CLMESS               ; CLEAR OUT THE REGION
+                lda    #DEFMES              ; PUT DEFAULT MESSAGE OUT.
+                jmp    WRD5FS               ; AND RETURN.
+MESSUX          rts                         ; EXIT
 
-MESSU6  equ *
-CLMESS          pshs X,A,U,Y                    ; CLEAR MESSAGE AREA
-                ldx #0
-                leay ,X
+;;; Clear Message Area
+CLMESS          pshs   X,A,U,Y              ; CLEAR MESSAGE AREA
+                ldx    #0
+                leay   ,X
                 clra
-                ldu #MESSUL+5
-CLMES0          pshu X,Y,A
-                leau 261,U                      ; NEXT COLUMN AND DOWN THE 5 BYTES
-                cmpu #MESSLR+$100                ; BEYOND LOWER RIGHT??
-                blo CLMES0
-                puls X,A,U,Y,PC
+                ldu    #MESSUL+5
+CLMES0          pshu   X,Y,A
+                leau   261,U                ; NEXT COLUMN AND DOWN THE 5 BYTES
+                cmpu   #MESSLR+$100         ; BEYOND LOWER RIGHT??
+                blo    CLMES0
+                puls   X,A,U,Y,PC
 
-MESSIN          ldd #0
-                std MESSST                      ; NO CURRENT MESSAGE
-                sta MESSTM                      ; NO TIME IN CURRENT FRAME
-                bra MESIN1                      ; PUT DEFAULT MESSAGE UP ETC.
+MESSIN          ldd    #0
+                std    MESSST               ; NO CURRENT MESSAGE
+                sta    MESSTM               ; NO TIME IN CURRENT FRAME
+                bra    MESIN1               ; PUT DEFAULT MESSAGE UP ETC.
 
-MESSCV          pshs D,X                        ; DO BUNKO PUSH
-                ldx MESSCR                      ; GET THE CURRENT POINTER
-                bra MESEN2                      ; GO TO SECOND ENTRYPOINT IN MESSLD
-MESSLD          pshs X,D                        ; SAVE STATE
-                lda MESSTM                      ; ANY MESSAGE THERE???
-                beq MESS1                       ; NOPE.....PROCEED
-                lda ,X                          ; GET PRIORITY
-                cmpa [MESSST]                   ; COMPARE TO CURRENT MESSAGES PRIORITY
-                blo MESSX                       ; NOT GOOD ENOUGH....BYE
-MESS1           leax 1,X                        ; INX PUSH PAST PRIORITY
-MESEN2          lda ,X+                         ; GET THE SPECIAL CONSIDERATIONS
-                sta MESSSP                      ; AND PUT THEM IN VISIBILITY RANGE
-                bita #COND                      ; SEE IF CONDITIONAL THERE
-                beq MESS3                       ; NOPE
-                ldd ,X++                        ; GET CONDITIONAL
-                cmpd MESSST                     ; SEE IF THAT IS THE RESIDENT MESSAGE
-                bne MESSX                       ; NOPE...BYE
-MESS3           lda ,X+                         ; GET TIME
-                sta MESSTM                      ; AND SAVE
-                lda MESSSP                      ; LOOK AT SPECIAL BYTE
-                bita #CLEAR                     ; DO WE CLEAR THE REGION
-                beq MESS4                       ; NOPE
-                bsr CLMESS                      ; CLEAR IT
-MESS4           lda ,X+                         ; GET CODE
-                sta MESSCD                      ; SAVE
-                stx MESSCR                      ; SAVE POINTER
-                ldb 1,S                         ; RESTORE PASSED X,D
-                ldx 2,S
-                stb MESSB                       ; SAVE FOR BLINK
-                sty MESSY                       ; SAVE FOR BLINK
-                stx MESSST                      ; INDICATE CURRENT MESSAGE
-                jsr WRD5FS                      ; PRINT THE MESSAGE
-                lda MESSSP                      ; CHECK SPECIAL BIT
-                bita #PTR                       ; DO WE POINT TO CONTINUATION
-                beq MESS2                       ; NOPE
-                ldx MESSCR                      ; GET CURRENT POINTER
-                ldx ,X                          ; GET PLACE TO CONTINUE
-                stx MESSST                      ; MAKE PLACE WE GOING SATISFY CONDITIONAL
-                jsr MESSLD                      ; ISN RECURSION WONDERFUL??
+MESSCV          pshs   D,X                  ; DO BUNKO PUSH
+                ldx    MESSCR               ; GET THE CURRENT POINTER
+                bra    MESEN2               ; GO TO SECOND ENTRYPOINT IN MESSLD
+MESSLD          pshs   X,D                  ; SAVE STATE
+                lda    MESSTM               ; ANY MESSAGE THERE???
+                beq    MESS1                ; NOPE.....PROCEED
+                lda    ,X                   ; GET PRIORITY
+                cmpa   [MESSST]             ; COMPARE TO CURRENT MESSAGES PRIORITY
+                blo    MESSX                ; NOT GOOD ENOUGH....BYE
+MESS1           leax   1,X                  ; INX PUSH PAST PRIORITY
+MESEN2          lda    ,X+                  ; GET THE SPECIAL CONSIDERATIONS
+                sta    MESSSP               ; AND PUT THEM IN VISIBILITY RANGE
+                bita   #COND                ; SEE IF CONDITIONAL THERE
+                beq    MESS3                ; NOPE
+                ldd    ,X++                 ; GET CONDITIONAL
+                cmpd   MESSST               ; SEE IF THAT IS THE RESIDENT MESSAGE
+                bne    MESSX                ; NOPE...BYE
+MESS3           lda    ,X+                  ; GET TIME
+                sta    MESSTM               ; AND SAVE
+                lda    MESSSP               ; LOOK AT SPECIAL BYTE
+                bita   #CLEAR               ; DO WE CLEAR THE REGION
+                beq    MESS4                ; NOPE
+                bsr    CLMESS               ; CLEAR IT
+MESS4           lda    ,X+                  ; GET CODE
+                sta    MESSCD               ; SAVE
+                stx    MESSCR               ; SAVE POINTER
+                ldb    1,S                  ; RESTORE PASSED X,D
+                ldx    2,S
+                stb    MESSB                ; SAVE FOR BLINK
+                sty    MESSY                ; SAVE FOR BLINK
+                stx    MESSST               ; INDICATE CURRENT MESSAGE
+                jsr    WRD5FS               ; PRINT THE MESSAGE
+                lda    MESSSP               ; CHECK SPECIAL BIT
+                bita   #PTR                 ; DO WE POINT TO CONTINUATION
+                beq    MESS2                ; NOPE
+                ldx    MESSCR               ; GET CURRENT POINTER
+                ldx    ,X                   ; GET PLACE TO CONTINUE
+                stx    MESSST               ; MAKE PLACE WE GOING SATISFY CONDITIONAL
+                jsr    MESSLD               ; ISN RECURSION WONDERFUL??
 MESS2
-                lda MESSSP                      ; GET SPECIALS
-                bita #BLINK                     ; BLINK??
-                beq MESSX                       ; NOPE
+                lda    MESSSP               ; GET SPECIALS
+                bita   #BLINK               ; BLINK??
+                beq    MESSX                ; NOPE
                 MAKP (BLPROK)                   ; START A PROCESS TO DO SO
-MESSX           puls X,D,PC                     ; CLEANUP AND RETURN FOR BULLSHIT EXIT
+MESSX           puls   X,D,PC               ; CLEANUP AND RETURN FOR BULLSHIT EXIT
 
-BLPROK          ldd MESSST                      ; GET ID OF CURRENT MESSAGE
-                std proc.data,U                        ; AND SAVE
-BLPR1           lda MESSBC                      ; GET THE BLINK COLOR
-                sta PCRAM+5                     ; MESSAGE BLINK COLOR
-                lda MESSBL                      ; GET BLINK RATE
-                ldx #BLPR2
-                jmp SLEEP
-BLPR2           ldd MESSST
-                cmpd proc.data,U                       ; SAME MESSAGE CURRENT??
-                bne BLPRX                       ; BYE....
-                clr PCRAM+5
-                lda MESSBL
-                ldx #BLPR1
-                jmp SLEEP
-BLPRX           jmp SUCIDE
+BLPROK          ldd    MESSST               ; GET ID OF CURRENT MESSAGE
+                std    proc.data,U          ; AND SAVE
+BLPR1           lda    MESSBC               ; GET THE BLINK COLOR
+                sta    PCRAM+5              ; MESSAGE BLINK COLOR
+                lda    MESSBL               ; GET BLINK RATE
+                ldx    #BLPR2
+                jmp    SLEEP
+BLPR2           ldd    MESSST
+                cmpd   proc.data,U          ; SAME MESSAGE CURRENT??
+                bne    BLPRX                ; BYE....
+                clr    PCRAM+5
+                lda    MESSBL
+                ldx    #BLPR1
+                jmp    SLEEP
+BLPRX           jmp    SUCIDE
 
-WRD5FS          jsr WRD5FV
-                lda #1
-                sta TIMER                       ; STOP MESSAGE RELATED HYPERS
+WRD5FS          jsr    WRD5FV
+                lda    #1
+                sta    TIMER                ; STOP MESSAGE RELATED HYPERS
                 rts
 
-;  END
 
