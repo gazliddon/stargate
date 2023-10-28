@@ -1,9 +1,5 @@
+//  <<<<< S T A R G A T E  >>>>>
 
-;  NLIST
-;  INCLUDE SPHR56.SRC
-;  INCLUDE EQ4.SRC
-;  LIST
-;  TTL <<<<< S T A R G A T E  >>>>>
             org LOGORG
 
 ATTR            jmp    ATTR_           ;;; ATTRACT MODE
@@ -12,7 +8,7 @@ HALVCT          jmp    HALL            ;;; Hall of fame
 GNCDAV          jmp    GNCIDA          ;;; Kill everything
 
 ;;; ATTRACT MODE
-ATTR_           ldx    #CHKS2+78               ; HIDDEN CHECKSUM
+ATTR_           ldx    #CHKS2+78               ; HIDDEN CHECK SUM
                 ldy    #$D004
                 clrb
 ATTR0_          addb   ,Y

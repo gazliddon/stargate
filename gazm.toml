@@ -7,6 +7,7 @@ mem-size = 94208
 project-file = "src/stargate.gazm"
 source-mapping = "$(OUT_DIR)/stargate.map"
 syms-file = "$(OUT_DIR)/stargate.sym"
+cpu="Cpu6809"
 
 bin-references = [
     { file = "orig/roms/01", addr = 0x0000 },

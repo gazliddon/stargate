@@ -38,8 +38,6 @@
     scope fixups
         include "fixups.gazm"
 
-	; scope hirom
-
 	;; Write the roms
 	writebin "$(OUT_DIR)/01",stargate_rom_1, $1000
 	writebin "$(OUT_DIR)/02",stargate_rom_2, $1000

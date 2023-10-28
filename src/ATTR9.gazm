@@ -85,7 +85,7 @@ PHS1A           ldd    ,X++
                 bne    PH8                    ; ERROR
                 bra    PHS1A
 PHS1B           stx    proc.data,U
-                pshs   D
+                pshs   d
                 bitb   #$20
                 beq    PHS2
                 NEWP (LFIRE,LTYPE)

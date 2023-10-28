@@ -1,8 +1,3 @@
-;  NLIST
-;  INCLUDE	SPHR56.SRC
-;  INCLUDE	EQ4.SRC
-;  LIST
-;  TTL	<<<<< S T A R G A T E  >>>>>
         org SWTAB
 
         FDB LFIRE                       ; FIRE

@@ -1,8 +1,4 @@
-; NLIST
-; INCLUDE   SPHR56.SRC
-; INCLUDE   EQ4.SRC
-; LIST
-; TTL   <<<<<  S T A R G A T E  >>>>>
+; <<<<<  S T A R G A T E  >>>>>
 
         ORG BPSORG
 

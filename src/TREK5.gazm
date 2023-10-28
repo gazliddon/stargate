@@ -1,8 +1,4 @@
-  ; NLIST
-  ; INCLUDE  SPHR56.SRC
-  ; INCLUDE  EQ4.SRC
-  ; LIST
-  ; TTL  <<<<<  S T A R G A T E  >>>>>
+; TTL  <<<<<  S T A R G A T E  >>>>>
 
 ; Does stuff for the warp sequence
 
@@ -21,6 +17,7 @@ RINDEL  EQU  $9     ;;; UPDATES UNTIL NEXT RING
 ;;;```
 ;;; lda #10
 ;;;```
+
 TEMP1       RMB  1
 TEMP6       RMB  1  ;;; VALUE TO RESTORE TEMP1 WITH TO ACCELERATE
 TEMP2       RMB  1  ;;; USED TO MEASURE TIME TILL NEXT GUY OUT.
@@ -34,7 +31,7 @@ RADIUS	    EQU	$140
 NRINGS	    EQU	7
 
 
-SDDD            ;;; Random Seed word
+SDDD                ;;; Random Seed word
 HSDDD       RMB  1  ;;; Random Seed High
 LSDDD       RMB  1  ;;; Random Seed low
 PCSAV       RMB  8  ;;; SAVE OLD PCRAM VALUES
@@ -87,7 +84,6 @@ ROKSUB          clrb
 ; Loop RADIUS / DELTA times 21
 ; Ah seems to be building init tables for an object
 ; X,Y,vels
-
 !loop           std    TEMP5                ; SAVE INDEX
                 std    ,X++                 ; Y DONE FOR FIRST POINT
                 bsr    !RNDDIS              ; GET A RANDMOM DISPLACEMENT IN D
