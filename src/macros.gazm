@@ -1,13 +1,12 @@
-	;; Set a byte in physical memeory 
-	macro poke(a,b) {
+	macro poke(addr,val) {
 		org 0
-		put a
-		fcb b
+		put addr
+		fcb val
 	}
 
-	macro section(a) {
+	macro section(addr) {
 		org 0
-		put a
+		put addr
 	}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,15 +14,15 @@
 
 ;;; Create a process with a run address of addr
 macro MAKP(addr) {
-                jsr	MAKEP
+    jsr	MAKEP
     fdb addr
 }
 
 ;;; Sleep for time frames and then run from wakeup
 macro NAP(time,wakeup) {
-                lda    #time                ;TIME
-                ldx    #wakeup              ;WAKEUP ADDR
-                jmp    SLEEP
+        lda    #time                ;TIME
+        ldx    #wakeup              ;WAKEUP ADDR
+        jmp    SLEEP
 }
 ;;; Sleep for time frames and continue
 ;;; after sleep
@@ -33,20 +32,20 @@ macro SLEEP(time) {
                 jmp    SLEEP
 }
 
-macro SHL(a,b,c) {
+macro SHL(x0,x1,x2) {
                 jsr    GETSHL
-        FDB    a, b, c
+        FDB    x0, x1, x2
 }
 
-macro KILP (a,b) {
+macro KILP (v0,v1) {
                 jsr    KILPOS
-        FDB    a
-        FDB    b
+        FDB    v0
+        FDB    v1
 	}
 
-macro KILO(a,b) {
+macro KILO(v0,v1) {
                 jsr    KILOS
-        FDB  a, b
+        FDB  v0, v1
         }
 
 ;;; *INIT OBJECT
@@ -54,10 +53,10 @@ macro KILO(a,b) {
 ;;;         JSR    OBINIT
 ;;;         FDB    \1,\2,\3
 ;;;         ENDM 
-macro OBI(a,b,c) {
+macro OBI(va,vb,vc) {
                 jsr    OBINIT
-        FDB    a,b,c
-}
+        FDB    va,vb,vc
+    }
 
 ; CLRD    MACRO
 ;         CLRA 
