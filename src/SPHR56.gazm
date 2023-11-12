@@ -733,7 +733,7 @@ struct lava {
     xvel     : word,
     yvel     : word,
     x16      : word,
-    x        : byte,
+    x8       : byte,
     y16      : word,
     col      : word,
     time     : byte,

@@ -2364,7 +2364,7 @@ HYPACH          lda    SCRFLG               ; ANY SCORE OR IS IT SAFE TO KILL HI
 HYPC1           jmp    PLNDV1
 
 VOLPAC          clr    lava.time,X
-                clr    lava.x,X
+                clr    lava.x8,X
                 jmp    VOLCLX
 
 

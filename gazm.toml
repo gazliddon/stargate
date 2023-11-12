@@ -23,8 +23,6 @@ bin-references = [
     { file = "orig/roms/11", addr = 0xe000 },
     { file = "orig/roms/12", addr = 0xf000 }, ]
 
-# no-async=true
-
 [vars]
 OUT_DIR = "roms"
 TMP_DIR = "tmp"

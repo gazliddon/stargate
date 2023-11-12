@@ -1307,10 +1307,10 @@ VOLC            lda    #$87
                 clrb
                 sta    VFLG
                 ldx    #lava_tab
-                std    [lava.x,X]
-                std    [lava.x+lava.size,X]
-                std    [lava.x+2*lava.size,X]
-                std    [lava.x+3*lava.size,X]   
+                std    [lava.x8,X]
+                std    [lava.x8+lava.size,X]
+                std    [lava.x8+2*lava.size,X]
+                std    [lava.x8+3*lava.size,X]   
                 sta    lava.time,X
                 sta    lava.time+lava.size,X
                 sta    lava.time+2*lava.size,X
@@ -1334,10 +1334,10 @@ VOLC            lda    #$87
                 std    ITEMP                ; X OFFSET
                 ldd    #0
                 ldx    #lava_tab
-                std    [lava.x,X]           ; OFF OLDIES
-                std    [lava.x+lava.size,X]
-                std    [lava.x+2*lava.size,X]
-                std    [lava.x+3*lava.size,X]
+                std    [lava.x8,X]           ; OFF OLDIES
+                std    [lava.x8+lava.size,X]
+                std    [lava.x8+2*lava.size,X]
+                std    [lava.x8+3*lava.size,X]
 
 
 VOLCLP          lda    lava.time,X
@@ -1353,7 +1353,7 @@ VOLCLP          lda    lava.time,X
 !volc11         jmp    VOLPAC
 
                 nop
-!volc10         sta    lava.x,X
+!volc10         sta    lava.x8,X
                 ldd    lava.yvel,X
                 addd   #$0010               ; Y ACCEL
                 std    lava.yvel,X
@@ -1363,7 +1363,7 @@ VOLCLP          lda    lava.time,X
                 cmpa   #YMIN+$10
                 bls    !volc11
                 ldd    #$4444               ; GET COLOR
-                std    [lava.x,X]
+                std    [lava.x8,X]
 
 
 VOLCLX          leax   lava.size,X
