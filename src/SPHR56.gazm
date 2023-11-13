@@ -520,7 +520,7 @@ struct proc {
 
 ;;; **Process table**
 ;;; Holds information on the games active processes.
-PTAB    RMB    proc.size*(85)
+PTAB    RMB    proc.size*85
 
 ;;; End of process table `PTAB`
 TABEND  

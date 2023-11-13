@@ -128,7 +128,7 @@ INIT12          stb    CREDIT               ; INTO RAM
                 sta    SOUND
                 com    STATUS               ; FF---STATUS
                 andcc  #$00                 ; ENABLE IRQ,FIRQ
-                jmp    EXEC
+                jmp    EXEC_LOOP
 ;
 ; MISC INIT ROUTINES
 ;
@@ -282,7 +282,7 @@ PLSTR1
                 bne    PLSTR1
 PLSTR2          jsr    PINIT                ; REINIT
                 NEWP (PLSTR3,STYPE)
-                jmp    EXEC
+                jmp    EXEC_LOOP
 PLSTR3          lda    PIA3
                 bmi    PLSR2                ; COCKTAIL
                 jsr    P1SW                 ; ASSURE IRQ VECTOR RESTORED

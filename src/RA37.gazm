@@ -12,7 +12,7 @@ OFSHIT          pshs   X,U,D,Y
 
 
 ;;; EXECUTIVE LOOP
-EXEC            ldx    #ACTIVE
+EXEC_LOOP       ldx    #ACTIVE
                 stx    CRPROC
 
 !wait           lda    TIMER                ; Wait until TIMER changes
@@ -115,7 +115,7 @@ SLEEP           ldu    CRPROC
 DISP2           ldu    ,U
                 bne    DISP1
                 lds    #HSTK
-                jmp    EXEC
+                jmp    EXEC_LOOP
 
 ;;; COLCHK
 COLCHK          lda    STATUS

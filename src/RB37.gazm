@@ -14,7 +14,7 @@
 ;;; * 6 -
 ;;; * 7 -
 
-SCPROC      
+SCPROC
 // Move any offscreen objs to the innactive list
                 jsr    ISCAN
                 SLEEP(2)

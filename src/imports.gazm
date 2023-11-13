@@ -5,7 +5,7 @@
     import ::core::ERROR
     import ::core::KILL
     import ::core::SCRCLR
-    import ::core::EXEC
+    import ::core::EXEC_LOOP
     import ::core::SCLR1
     import ::core::MSPROC
     import ::core::MKPROC
@@ -33,6 +33,7 @@
     import ::core::FBALON
     import ::core::LCOIN
     import ::core::RCOIN
+
     import ::core::CCOIN
     import ::core::PDSND
     import ::core::ST1SND
@@ -190,4 +191,4 @@
 
     import ::lorom::MESUPV
     import ::lorom::MESINV
-        
+

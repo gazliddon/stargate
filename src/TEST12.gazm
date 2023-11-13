@@ -188,7 +188,7 @@ DIAG3           clr    ,X+                  ;  CLR USABLE MEMORY
                 MAKP    ( DIAG4 )                          ;  START A PROCESS TO CONTINUE
                 bsr    ZLED                 ;  ZERO IN LED
                 andcc  #0                 ;  LET THE INTERRUPTS IN
-                jmp    EXEC                 ;  GO!
+                jmp    EXEC_LOOP                 ;  GO!
 DIAG4           jsr    AVWAIT               ;  WAIT FOR ADVANCE SWITCH.
                 jsr    CMTEST               ;  TEST CMOS.
                 andcc  #1                 ;  INTERRUPTS BACK ON    LEAVE CARRY
