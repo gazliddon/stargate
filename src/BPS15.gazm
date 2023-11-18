@@ -99,8 +99,7 @@ UFONV           lda    SEED
                 bls    UFONVX
 
 ;;; Makes the UFO seek the player
-UFONV0          ldd    #$4001
-                std    XTEMP
+UFONV0          ldd    #$4001 : std XTEMP
                 ldd    OX16,X
                 subd   PLABX
                 bmi    UFONV1
@@ -146,21 +145,21 @@ MPROB_          pshs   D,Y
 
         // Okay! Make a proc
                 clra                        ; user type = 0
-                ldu    4,S                    ; User stack -> at passed params
-                pulu   X                   ; X -> run process routine
-                jsr    MKPROC                 ; X -> proc data
-                leay   ,X                     ; Y -> proc
+                ldu    4,S                  ; User stack -> at passed params
+                pulu   X                    ; X -> run process routine
+                jsr    MKPROC               ; X -> proc data
+                leay   ,X                   ; Y -> proc
 
 
         // Okay! Lets make an object!
-                jsr    GETOB                  ; X -> object
-                pulu   D                   ; Copy the pic param into the object struct
+                jsr    GETOB                ; X -> object
+                pulu   D                    ; Copy the pic param into the object struct
                 std    OPICT,X               
-                pulu   D                   ; Copy collission parm into the object struct
+                pulu   D                    ; Copy collission parm into the object struct
                 std    OCVECT,X
                 pulu   D
-                std    OBJCOL,X               ; Object blip
-                stu    4,S                    ; NEW RET ADDR
+                std    OBJCOL,X             ; Object blip
+                stu    4,S                  ; NEW RET ADDR
 
         // U -> proc
                 leau   ,Y
@@ -341,9 +340,9 @@ BMKIL           dec    BMCNT
                 KILP    ($120,BMKSND)
                 rts
 
-BMSSND      FCB $D0,$01,$10,$18,0               ; BM SHOOT SND
-BMKSND      FCB $D0,$01,$0C,$01,$1,$08,$17,0    ; BM KILL
-MCKSND      FCB $D0,$01,$0C,$1A,$1,$08,$17,0    ; MUNCHY KILL
+BMSSND          FCB $D0,$01,$10,$18,0               ; BM SHOOT SND
+BMKSND          FCB $D0,$01,$0C,$01,$1,$08,$17,0    ; BM KILL
+MCKSND          FCB $D0,$01,$0C,$1A,$1,$08,$17,0    ; MUNCHY KILL
                                             
 ;;; MUNCHIES
 ;;; PD=OBJECT,PD2=IMAGE#,PD3=SLEEP TIME,PD4=BASE IMAGE TABLE
@@ -838,13 +837,11 @@ SBSWP
 
 ///
 RIPST_          jsr    GNCIDE                 ; STOP ALL OF THE ACTION
-                lda    #$FF
-                sta    STATUS                 ; FOR REAL!
-                SLEEP(1)                       ; STOP SAM BIT INTERFERENCE
+                lda #$FF : sta STATUS         ; FOR REAL!
+                SLEEP(1)                      ; STOP SAM BIT INTERFERENCE
                 jsr    SCRCLR                 ; CLEAR THE SCREEN
                 jsr    PRINV                  ; INITIALIZE PRINTING PARAMETERS
-                ldb    #$7F
-                stb    PCRAM+1                ; MAKE SURE ITS VISIBLE
+                ldb #$7F : stb PCRAM+1        ; MAKE SURE ITS VISIBLE
                 ldy    RIPTV
                 leay   B,Y
 RIPST0          lda    ,Y+                    ; GET A BYTE
@@ -870,14 +867,13 @@ RIPST1          adda   #$2E                   ; GET OUT OF READABLE ASCII
                 jmp    ,U
 
 ;   BRA RIPST0  THIS IS WHAT WOULD HAVE FOLLOWED A CONVENTIONAL JSR.
-RIPEND          
-                SLEEP(1)
+RIPEND          SLEEP(1)
                 lda    PIA21
                 bmi    RIPEND
 RIPEN2          jsr    SCRCLR
                 jmp    [$FFFE]                ; END RESET
 
-RIPT1   FDB PR57V-($76*3)
+RIPT1           FDB PR57V-($76*3)
 
 ;;;RANDOM VELOCITY
 ;;;X=OBJECT
@@ -898,17 +894,17 @@ RANDV           jsr    RAND
 ;;; Y=OBJECT AT CENTER,A=#
 MMSW_           pshs   D,X,Y,U
                 sta    XTEMP
-MMSLP           lda    SWCNT
+!loop           lda    SWCNT
                 inca
                 cmpa   #20
-                bhi    MMSWX                  ; TOO MANY GUYS
+                bhi    !exit                  ; TOO MANY GUYS
+
                 MKPROB  (MSWM,SWPIC1,MSWKIL,$2424)
-                beq    MMSWX                  ; NONE LEFT
+                beq    !exit                  ; NONE LEFT
+
                 sta    SWCNT
-                ldd    OX16,Y
-                std    OX16,X
-                ldd    OY16,Y
-                std    OY16,X
+                ldd OX16,Y : std OX16,X
+                ldd OY16,Y : std OY16,X
                 bsr    RANDV
                 ldd    HSEED
                 andb   SWAC
@@ -919,11 +915,11 @@ MMSLP           lda    SWCNT
                 jsr    RMAX
                 sta    proc.d4,U
                 stx    OPTR
-                dec    XTEMP
-                bne    MMSLP
-MMSWX           puls   D,X,Y,U,PC
+                dec    XTEMP : bne !loop
 
-;
+!exit           puls   D,X,Y,U,PC
+
+
 ;;; MINI SWARM KILL
 ;;; X=OBJECT
 MSWKIL          dec    SWCNT

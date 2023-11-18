@@ -5,10 +5,8 @@
       ORG ATRORG
 ;;; __Routine:__ PICKUP
 PICKUP
-                lda    #$FF
-                sta    STATUS
-                lda    #$30
-                sta    ATRFLG
+                lda #$FF : sta STATUS
+                lda #$30 : sta ATRFLG
 
                 clr    .P1LAS                 ; CLEAR SHIP COUNTS
                 clr    .P2LAS
@@ -19,8 +17,7 @@ PICKUP
                 jsr    GNCDAV
                 jsr    SCRCLR
                 jsr    CRINIT
-                lda    #1
-                ldu    CRPROC
+                lda    #1 : ldu CRPROC
                 jsr    DIMV
                 ldx    #0
                 jsr    SCINIT
@@ -106,38 +103,38 @@ PH8             bra    FIGHT
 ;;; PHONY CATCH COMMANDS
 ;;; B7=DOWN,B5=LASER,B4=REV,B1=THRUST,B0=UP
 ;;; FF=CKPNT--LNDCNT,MANCTR
-PHSTAB  FCB $30,$02
-        FCB $0C,$A2
-        FCB $FF,$13,$00
-        FCB $05,$82
-        FCB $18,$00
-        FCB $FF,$13,$01
-        FCB $20,$01
-        FCB $0C,$A2
-        FCB $FF,$12,$01
-        FCB $18,$02
-        FCB $FF,$12,$02
-        FCB $1A,$01
-        FCB $0D,$A2
-        FCB $FF,$11,$02
-        FCB $1C,$02
-        FCB $FF,$11,$03
-        FCB $1A,$01
-        FCB $07,$22
-        FCB $FF,$10,$03
-        FCB $19,$02
-        FCB $2C,$92
-        FCB $28,$02
-        FCB $1C,$12
-        FCB $FF,$10,$04
-        FCB $09,$01
-        FCB $98,$02
-        FCB $00,$00
-        RMB 20
+PHSTAB      FCB $30,$02
+            FCB $0C,$A2
+            FCB $FF,$13,$00
+            FCB $05,$82
+            FCB $18,$00
+            FCB $FF,$13,$01
+            FCB $20,$01
+            FCB $0C,$A2
+            FCB $FF,$12,$01
+            FCB $18,$02
+            FCB $FF,$12,$02
+            FCB $1A,$01
+            FCB $0D,$A2
+            FCB $FF,$11,$02
+            FCB $1C,$02
+            FCB $FF,$11,$03
+            FCB $1A,$01
+            FCB $07,$22
+            FCB $FF,$10,$03
+            FCB $19,$02
+            FCB $2C,$92
+            FCB $28,$02
+            FCB $1C,$12
+            FCB $FF,$10,$04
+            FCB $09,$01
+            FCB $98,$02
+            FCB $00,$00
+            RMB 20
 
 ;;; FIGHTING MODE
-;;; PD,U=TABLE PTR
-;;; PD2,U=TIMER
+;;;    PD,U=TABLE PTR
+;;;    PD2,U=TIMER
 FIGHT           ldx    #FITAB
                 stx    proc.data,U
                 lda    #$FF
@@ -306,31 +303,31 @@ DIEDIE          ldx    NPLAXC
 
 ;;;FIREBOMBERS fight tables
 ;;; BGL,ENEMY#,ENEMY START ROUTINE,MESS#,MESS ADDR
-FITAB       FDB $B000                               ; BGL
-            FCB 8                                   ; #
-            FDB FBSTRT                              ; START ROUTINE
-            FCB FBAM                                ; MESS #
-            FDB $3227                               ; MESS UPPER LEFT
-                                                    ; YLLABIANS
-            FDB $8000
-            FCB 20
-            FDB YLST
-            FCB YLAM
-            FDB $3627
-                                                    ; DYNAMOS
-            FDB $8000
-            FCB 10
-            FDB DYNSTV
-            FCB DYNAM
-            FDB $3327
-                                                    ; MUNCHIES
-            FDB 0
-            FCB 0
-            FDB MCHST
-            FCB MCHAM
-            FDB $2D27
-                                                    ; END
-            FDB $FFFF
+FITAB           FDB $B000                               ; BGL
+                FCB 8                                   ; #
+                FDB FBSTRT                              ; START ROUTINE
+                FCB FBAM                                ; MESS #
+                FDB $3227                               ; MESS UPPER LEFT
+                                                        ; YLLABIANS
+                FDB $8000
+                FCB 20
+                FDB YLST
+                FCB YLAM
+                FDB $3627
+                                                        ; DYNAMOS
+                FDB $8000
+                FCB 10
+                FDB DYNSTV
+                FCB DYNAM
+                FDB $3327
+                                                        ; MUNCHIES
+                FDB 0
+                FCB 0
+                FDB MCHST
+                FCB MCHAM
+                FDB $2D27
+                                                        ; END
+                FDB $FFFF
 
 ; ON SCANNER,TERRAIN,SCORES,STARS
 ; X=BGL
@@ -498,92 +495,92 @@ ANASLP          lda    proc.d5,U
 
 ;;; ENEMIES
 ;;; OPICT(2),ANIM#(1),RATE(1),ADDR(2)
-EMTAB   FDB PRBP1V
-        FCB 1,0
-        FDB $6696
+EMTAB       FDB PRBP1V
+            FCB 1,0
+            FDB $6696
 
-        FDB YLPV
-        FCB 5,8
-        FDB $1D4A
+            FDB YLPV
+            FCB 5,8
+            FDB $1D4A
 
-        FDB LNDPV
-        FCB 4,3
-        FDB $6848
+            FDB LNDPV
+            FCB 4,3
+            FDB $6848
 
-        FDB TIEP1V
-        FCB 4,8
-        FDB $1372
+            FDB TIEP1V
+            FCB 4,8
+            FDB $1372
 
-        FDB PHRDPV
-        FCB 3,8
-        FDB $47BA
+            FDB PHRDPV
+            FCB 3,8
+            FDB $47BA
 
-        FDB SCZP1V
-        FCB 1,0
-        FDB $7D70
+            FDB SCZP1V
+            FCB 1,0
+            FDB $7D70
 
-        FDB FBMBPV
-        FCB 4,1
-        FDB $3C3C
+            FDB FBMBPV
+            FCB 4,1
+            FDB $3C3C
 
-        FDB DYNPV
-        FCB 4,2
-        FDB $1294
+            FDB DYNPV
+            FCB 4,2
+            FDB $1294
 
-        FDB BAITPV
-        FCB 7,2
-        FDB $7E4A
+            FDB BAITPV
+            FCB 7,2
+            FDB $7E4A
 
-        FDB FBALPV
-        FCB 8,2
-        FDB $563C
+            FDB FBALPV
+            FCB 8,2
+            FDB $563C
 
-        FDB HUMPV
-        FCB 2,4
-        FDB $2C98
+            FDB HUMPV
+            FCB 2,4
+            FDB $2C98
 
-        FDB SWP1V
-        FCB 1,0
-        FDB $7C9A
+            FDB SWP1V
+            FCB 1,0
+            FDB $7C9A
 
-        FDB BREDPV
-        FCB 3,8
-        FDB $36BA
+            FDB BREDPV
+            FCB 3,8
+            FDB $36BA
 
-        FDB MCHGPV
-        FCB 3,8
-        FDB $5DBC
+            FDB MCHGPV
+            FCB 3,8
+            FDB $5DBC
 
-        FDB 0
+            FDB 0
 
-SWP1V           FDB SWPIC1
-SCZP1V          FDB SCZP1
-PRBP1V          FDB PRBP1
-TIEP1V          FDB TIEP1
+SWP1V       FDB SWPIC1
+SCZP1V      FDB SCZP1
+PRBP1V      FDB PRBP1
+TIEP1V      FDB TIEP1
 
 
 ;;; ENEMY MESSAGES
 ;;; MESS#(1),SCREEN ADDR(2)
-EMESTB          FCB YLAM
-                FDB $0C58
-                FCB LNDAM
-                FDB $6058
-                FCB BMBAM
-                FDB $0C7E
-                FCB MCHAM
-                FDB $2DC8
-                FCB MUTAM
-                FDB $767E
-                FCB FBAM
-                FDB $3030
-                FCB PODAM
-                FDB $60A2
-                FCB DYNAM
-                FDB $0CA2
-                FCB BTAM
-                FDB $7858
-                FCB SGAM
-                FDB $2F78
-                FCB 0
+EMESTB      FCB YLAM
+            FDB $0C58
+            FCB LNDAM
+            FDB $6058
+            FCB BMBAM
+            FDB $0C7E
+            FCB MCHAM
+            FDB $2DC8
+            FCB MUTAM
+            FDB $767E
+            FCB FBAM
+            FDB $3030
+            FCB PODAM
+            FDB $60A2
+            FCB DYNAM
+            FDB $0CA2
+            FCB BTAM
+            FDB $7858
+            FCB SGAM
+            FDB $2F78
+            FCB 0
 
 

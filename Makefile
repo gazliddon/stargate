@@ -8,7 +8,6 @@ SRCS := stargate.gazm
 SYMS := $(SRCS:%.gazm=$(TMP_DIR)/%.sym)
 DEPS := $(SRCS:%.gazm=$(DEPS_DIR)/%.d)
 
-GAZM_DIR := ~/development/gazm/gazm
 
 ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
     OS = Windows
@@ -27,7 +26,7 @@ all: dirs gazm.toml $(SYMS)
 
 $(TMP_DIR)/%.sym : $(SRC_DIR)/%.gazm
 	@echo Assembling $< to $@
-	$(ASM) gazm.toml
+	@$(ASM) gazm.toml
 
 dirs:
 	@mkdir -p $(TMP_DIR) $(OUT_DIR) $(DEPS_DIR)

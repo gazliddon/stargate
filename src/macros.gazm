@@ -1,16 +1,16 @@
-	macro poke(addr,val) {
-		org 0
-		put addr
-		fcb val
-	}
-
-	macro section(addr) {
-		org 0
-		put addr
-	}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Game macros
+macro poke(addr,val) {
+    org 0
+    put addr
+    fcb val
+}
+
+macro section(addr) {
+    org 0
+    put addr
+}
+
 
 ;;; Create a process with a run address of addr
 macro MAKP(addr) {
@@ -20,108 +20,58 @@ macro MAKP(addr) {
 
 ;;; Sleep for time frames and then run from wakeup
 macro NAP(time,wakeup) {
-        lda    #time                ;TIME
-        ldx    #wakeup              ;WAKEUP ADDR
-        jmp    SLEEP
+    lda    #time                ;TIME
+    ldx    #wakeup              ;WAKEUP ADDR
+    jmp    SLEEP
 }
 ;;; Sleep for time frames and continue
 ;;; after sleep
 macro SLEEP(time) {
-                lda    #time            ; A = time
-                ldx    #*+6             ; Return address after sleep
-                jmp    SLEEP
+    lda    #time            ; A = time
+    ldx    #*+6             ; Return address after sleep
+    jmp    SLEEP
 }
 
 macro SHL(x0,x1,x2) {
-                jsr    GETSHL
-        FDB    x0, x1, x2
+    jsr    GETSHL
+    FDB    x0, x1, x2
 }
 
 macro KILP (v0,v1) {
-                jsr    KILPOS
-        FDB    v0
-        FDB    v1
-	}
-
-macro KILO(v0,v1) {
-                jsr    KILOS
-        FDB  v0, v1
-        }
-
-;;; *INIT OBJECT
-;;; OBI     MACRO  \1,\2,\3
-;;;         JSR    OBINIT
-;;;         FDB    \1,\2,\3
-;;;         ENDM 
-macro OBI(va,vb,vc) {
-                jsr    OBINIT
-        FDB    va,vb,vc
-    }
-
-; CLRD    MACRO
-;         CLRA 
-;         CLRB 
-;         ENDM 
-
-macro CLRD() {
-	               clra 
-	               clrb 
+    jsr    KILPOS
+    FDB    v0
+    FDB    v1
 }
 
-; DIE     MACRO
-;         JMP    SUCIDE           ;DIE!
-;         ENDM 
+macro KILO(v0,v1) {
+    jsr    KILOS
+    FDB  v0, v1
+}
+
+macro OBI(va,vb,vc) {
+    jsr    OBINIT
+    FDB    va,vb,vc
+}
+
+macro CLRD() {
+    clra 
+    clrb 
+}
+
 macro 	DIE()  {
-                jmp    SUCIDE           ;DIE!
-        }
-
-
-; *
-; NAP     MACRO  \1,\2
-;         LDA    #\1              ;TIME
-;         LDX    #\2              ;WAKEUP ADDR
-;         JMP    SLEEP
-;         ENDM 
+    jmp    SUCIDE
+}
 
 
 macro NEWP(addr, type) {
-                ldx    #addr  ;ADDR
-                lda    #type  ;TYPE
-                jsr    MKPROC
+    ldx    #addr
+    lda    #type
+    jsr    MKPROC
 }
 
-; *
-; *OBJECT OFF MACRO
-; *
-; OBJOFF  MACRO  \1
-;         IFEQ   NARG-1
-;         LDY    #\1
-;         ENDC 
-;         JSR    COFF
-;         ENDM 
-; *
-; *OBJECT  ON MACRO
-; *
-; OBJON   MACRO  \1
-;         IFEQ   NARG-1
-;         LDY    #\1
-;         ENDC 
-;         JSR    CWRIT
-;         ENDM 
-;         PAGE 
-
-;;; a = process routine
-;;; b = object pic
-;;; c = collision vector
-;;; d = blip
 macro MKPROB(process,object_pic,collion_vec,blip) {
-                jsr    MPROB
-     FDB    process,object_pic,collion_vec,blip
+    jsr    MPROB
+    fdb    process,object_pic,collion_vec,blip
 }
 
-;MAKE A PROCESS AND OBJECT
-; MKPROB    MACRO    \0,\1,\2,\3
-;     JSR    MPROB
-;     FDB    \0,\1,\2,\3
-;     ENDM
-;
+
