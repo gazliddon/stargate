@@ -1,0 +1,10 @@
+{
+  "plugin": {
+	"name": "stargate",
+	"description": "Stargate hacking plugin",
+	"version": "0.0.1",
+	"author": "gaz Liddon",
+	"type": "plugin",
+	"start": "true"
+  }
+}
