@@ -3,5 +3,8 @@
         "vim",
         "emu",
         "manager"
+    ],
+    "diagnostics.disable": [
+        "need-check-nil"
     ]
 }

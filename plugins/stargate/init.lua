@@ -27,46 +27,58 @@ local function hex(val)
     return string.format("%04x", val)
 end
 
+local function get_dev_info(tag)
+    local dev = get_device(tag)
+    if dev == nil then
+        return nil
+    else
+        local sym_tab = emu.symbol_table(dev)
+        local mem = manager.machine.memory.regions[tag]
+        local debug = manager.machine.devices[tag].debug
+
+        return {
+            debug = debug,
+            mem = mem,
+            sym_tab = sym_tab,
+        }
+    end
+end
+
 local function init_symbols()
-    local snd_device = get_device(":soundcpu")
+    local dev_info = get_dev_info(":soundcpu")
 
-    emu.print_info("Got sound device")
-    if snd_device == nil then
-        emu.print_info("Mother fucker is nil!")
+    if dev_info then
+        -- local mem = dev_info.mem
+        -- local dbg = dev_info.debug
+
+        for sym, val in pairs(sym_6800) do
+            dev_info.sym_tab:add(sym, val)
+        end
+
+        -- dump_info(dev_info.mem)
     end
-
-    local sym_tab = emu.symbol_table(snd_device)
-
-    for sym, val in pairs(sym_6800) do
-        sym_tab:add(sym, val)
-    end
-
-    local mm = manager.machine.memory
-
-    local snd_mem = mm.regions[":soundcpu"]
-
-    dump_info(snd_mem)
-
-    local irq = snd_mem:read_u16(0xfff8)
-    print("IRQ routine => " .. hex(irq))
-
-    for k, v in pairs(sym_6800) do
-        local vec = snd_mem:read_u16(v)
-        print(k .. " routine => " .. hex(vec))
-    end
-
 end
 
 local function process_frame() end
+local function process_frame_done() end
+local function on_reset()
+end
 
-local function subscribe()
-    emu.add_machine_reset_notifier(function()
-        emu.print_info("Reset " .. emu.gamename())
-    end)
+local function init()
+    emu.print_info("Reset " .. emu.gamename())
 
-    emu.add_machine_stop_notifier(function()
-        emu.print_info("Exiting " .. emu.gamename())
-    end)
+    local dev_info = get_dev_info(":soundcpu")
+
+    if dev_info then
+        local mem = dev_info.mem
+        local dbg = dev_info.debug
+        local irq = mem:read_u16(0xfff8)
+        print(hex(irq))
+    end
+end
+
+local function on_stop()
+    emu.print_info("Exiting " .. emu.gamename())
 end
 
 local function pre_start()
@@ -76,8 +88,12 @@ local function pre_start()
         emu.print_info("Starting stargate plugin")
 
         init_symbols()
-        subscribe()
+        init()
+
+        emu.add_machine_reset_notifier(on_reset)
+        emu.add_machine_stop_notifier(on_stop)
         emu.add_machine_frame_notifier(process_frame)
+        emu.register_frame_done(process_frame_done)
         manager.machine:load("menu")
     else
         emu.print_info("Not starting plugin for " .. gamename)
