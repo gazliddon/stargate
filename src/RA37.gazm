@@ -841,16 +841,26 @@ CN1             lda    SLMCNT
                 jsr    SNDLD
                 jsr    [proc.d2,U]
 SLAMX           jmp    SUCIDE
+
 ;  SOUND TABLE; SNDPRI,N*(REPCNT,SNDTMR,SND#) N>=1; SNDTMR IN 16 MSEC; SNDPRI : HI=HI,INTERRUPTABLE BY EQUALS; END: REPCNT=0
+
+; sfx step
+;   repcount: byte
+;   timer:    byte   // in frames
+;   sound:    byte
+
+; sfx
+;   priority : byte
+;   table:     [sfx_step]  // zero terminated
 
 CNSND       FCB $FF,$01,$18,$19,0                ; COIN SOUND
 RPSND       FCB $EF,$01,$20,$1E,0                ; FREE SHIP
-PDSND       FCB $EE,$02,$08,$11,$01,$20,$17,0                ; PLAYER DEATH
+PDSND       FCB $EE,$02,$08,$11,$01,$20,$17,0    ; PLAYER DEATH
 ST1SND      FCB $F0,$01,$40,$0A,0                ; START 1
 ST2SND      FCB $F0,$01,$10,$0B,0                ; START2
 TBSND       FCB $E8,$01,$04,$14,$02,$06,$11
-            FCB $02,$0A,$17,0                ; TERRAIN BLOW
-SBSND       FCB $E8,$06,$04,$11,$01,$10,$17,00                ; SMART BOMB
+            FCB $02,$0A,$17,0                    ; TERRAIN BLOW
+SBSND       FCB $E8,$06,$04,$11,$01,$10,$17,00   ; SMART BOMB
 ACSND       FCB $E0,$03,$0A,$08,0                ; ASTRO CATCH
 ALSND       FCB $E0,$01,$18,$1F,0                ; ASTRO LAND
 AHSND       FCB $E0,$01,$18,$11,0                ; ASTRO HIT
@@ -872,17 +882,20 @@ USHSND      FCB $C0,$01,$08,$03,0                ; UFO SHOOT
 SWSSND      FCB $C0,$01,$18,$0C,0                ; SWARM SHOOT
 
 ;;;  SOUND OUTPUT; B=SND TO MAKE
-SNDOUT          pshs   A,B,CC
-                orcc   #$FF
-                lda    #$3F
+SNDOUT          pshs   A,B,CC           ; Save A,B and codes
+                orcc   #$FF             ; disable everything
+                lda    #$3F             ; set all bits in outport
                 sta    SOUND
-                comb
-                andb   #$3F                 ; DONT TURN ON LEDS
-                stb    SOUND
-                puls   A,B,CC,PC
+                comb                    ; invert B (not sure why they invert)
+                andb   #$3F             ; mask off the top two bits (LEDS)
+                stb    SOUND            ; store sound command to PIA
+                puls   A,B,CC,PC        ; restore registers and return
+
 
 ;;;  SOUND LOADER; D=ADDR OF SOUND
 ;;;  SNDLD PSHS X,D,CC;  CLR THFLG RESET THRUST
+;;; point the sound sequencer at the SFX -> by D
+;;; if it's a higher priority
 SNDLD           jmp    SNDPCH               ;  *****************ATTR SOUND PATCH
                 nop                         ;  *****************WASTE A BYTE
                 tfr    D,X
@@ -899,10 +912,15 @@ SNDLD           jmp    SNDPCH               ;  *****************ATTR SOUND PATCH
 !skip           puls   X,D,CC,PC
 
 ;;;  SOUND SEQUENCER
-SNDSEQ          lda    SNDTMR
+SNDSEQ
+; if SNDTMR is not zero, decrement it and exit if we still aren't zero
+                lda    SNDTMR
                 beq    SNDS00
                 dec    SNDTMR
                 bne    SNDSX
+
+; there seems to be a q of sounds
+; and each sound can be repeated a number of times
                 ldx    SNDX
                 dec    SNDREP
                 bne    SNDS1
@@ -911,6 +929,8 @@ SNDSEQ          lda    SNDTMR
                 lda    ,X
                 bne    SNDS0                ; SOUND OVER?
                 sta    SNDPRI               ; YIP
+
+; play the sound
 SNDS00          lda    PIA21                ; THRUST ON?
                 bita   #2
                 bne    SNDS01               ; YES

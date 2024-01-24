@@ -2257,6 +2257,7 @@ PCH13           ldx    ,X                   ; DO THE REST
                 rts
 
 ;;; NO LOW PRIORITY SOUNDS IN ATTR
+; play sound fx in D
 SNDPCH          pshs   X,D,CC
                 clr    THFLG
                 tfr    D,X
