@@ -1,0 +1,5 @@
+    ; incbinref "video_sound_rom_2_std_744.ic12", 0xf800
+
+    include "vsndrm2.src"
+
+    writebin "$(OUT_DIR)/sound.bin", 0xf800,0x800

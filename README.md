@@ -5,3 +5,4 @@ Shells = bullets
 
 CMOS RAM seems to only accept lower nybble, like C64 CRAM
 
+stargate.sym : startgate.toml && stargate.asm

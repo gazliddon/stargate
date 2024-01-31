@@ -1,0 +1,19 @@
+[project]
+name = "sound"
+
+[vars]
+OUT_DIR = "roms"
+REF_ROMS_DIR = "stargate"
+
+[opts]
+cpu="Cpu6800"
+verbose="Debug"
+mem-size = 65536
+project-file = "snd_src/main.src"
+source-mapping = "$(OUT_DIR)/sound.map"
+syms-file = "$(OUT_DIR)/sound.sym"
+
+bin-references = [{ file = "stargate/sg.snd", addr = 0x800}]
+
+[checksums]
+rom = {addr=0xf800,size=0x800,sha1="9c4334ac3ff15d94001b22fc367af40f9deb7d57"}

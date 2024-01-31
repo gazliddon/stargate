@@ -1,6 +1,11 @@
 [project]
 name = "stargate"
 
+[vars]
+OUT_DIR = "roms"
+TMP_DIR = "tmp"
+REF_ROMS_DIR = "stargate"
+
 [opts]
 verbose="Silent"
 mem-size = 94208
@@ -22,11 +27,6 @@ bin-references = [
     { file = "orig/roms/10", addr = 0xd000 },
     { file = "orig/roms/11", addr = 0xe000 },
     { file = "orig/roms/12", addr = 0xf000 }, ]
-
-[vars]
-OUT_DIR = "roms"
-TMP_DIR = "tmp"
-REF_ROMS_DIR = "stargate"
 
 [checksums]
 rom_1 = { addr = 0x0000, size = 0x1000, sha1 = "f003a5a9319c4eb8991fa2aae3f10c72d6b8e81a" }

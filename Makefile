@@ -8,7 +8,6 @@ SRCS := stargate.gazm
 SYMS := $(SRCS:%.gazm=$(TMP_DIR)/%.sym)
 DEPS := $(SRCS:%.gazm=$(DEPS_DIR)/%.d)
 
-
 ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
     OS = Windows
 else
@@ -21,12 +20,12 @@ RUSTFLAGS_Darwin_x86_64 := RUSTFLAGS="-C target-cpu-native"
 
 ASM := gazm build
 
-all: dirs gazm.toml $(SYMS)
+all: dirs stargate.toml $(SYMS)
 	@echo All Done!
 
 $(TMP_DIR)/%.sym : $(SRC_DIR)/%.gazm
 	@echo Assembling $< to $@
-	@$(ASM) gazm.toml
+	@$(ASM) stargate.toml
 
 dirs:
 	@mkdir -p $(TMP_DIR) $(OUT_DIR) $(DEPS_DIR)
