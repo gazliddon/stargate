@@ -20,12 +20,12 @@ RUSTFLAGS_Darwin_x86_64 := RUSTFLAGS="-C target-cpu-native"
 
 ASM := gazm build
 
-all: dirs stargate.toml $(SYMS)
+all: dirs gazm.toml $(SYMS)
 	@echo All Done!
 
 $(TMP_DIR)/%.sym : $(SRC_DIR)/%.gazm
 	@echo Assembling $< to $@
-	@$(ASM) stargate.toml
+	@$(ASM) gazm.toml
 
 dirs:
 	@mkdir -p $(TMP_DIR) $(OUT_DIR) $(DEPS_DIR)
@@ -36,4 +36,3 @@ dirs:
 clean:
 	-@rm -rf $(TMP_DIR) $(OUT_DIR) $(DEPS_DIR)
 	@echo cleaned outputs
-

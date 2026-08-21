@@ -1,12 +1,10 @@
-[project]
-name = "stargate"
-
 [vars]
 OUT_DIR = "roms"
 TMP_DIR = "tmp"
 REF_ROMS_DIR = "stargate"
 
-[opts]
+[[targets]]
+name = "stargate"
 verbose="Silent"
 mem-size = 94208
 project-file = "src/stargate.gazm"
@@ -42,6 +40,19 @@ rom_a = { addr = 0xd000, size = 0x1000, sha1 = "ba833f48ddfc1bd04ddb41b1d1c840d6
 rom_b = { addr = 0xe000, size = 0x1000, sha1 = "6ca39f493eb8b370154ad46ef01976d352c929e1" }
 rom_c = { addr = 0xf000, size = 0x1000, sha1 = "c46872550e0ca031453c6513f8f0448ecc9b5572" }
 
+[[targets]]
+name = "sound"
+cpu = "Cpu6800"
+verbose = "Silent"
+mem-size = 65536
+project-file = "snd_src/main.src"
+source-mapping = "$(OUT_DIR)/sound.map"
+syms-file = "$(OUT_DIR)/sound.sym"
+bin-references = [{ file = "stargate/sg.snd", addr = 0x0800 }]
+
+[targets.checksums]
+rom = { addr = 0xf800, size = 0x0800, sha1 = "9c4334ac3ff15d94001b22fc367af40f9deb7d57" }
+
 [sections]
 lo_rom  = {start = 0x0000, size = 0x9000}
 hi_rom  = {start = 0xd000, size = 0x3000}
@@ -53,4 +64,3 @@ ATRORG = {start = 0xda00}
 
 [lsp]
 log-file="lsp.log"
-

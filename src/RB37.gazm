@@ -1,190 +1,192 @@
-;  TTL	<<<<<  S T A R G A T E  >>>>>
+;  TTL	<<<<<  Stargate  >>>>>
 
 ;;; Moves objects between active and inactive lists depending if the object
-;;; on screen or not
+;;; On screen or not
 ;;; Also draws the scanner
 ;;;
 ;;; __Frame Sequencing__
-;;; * 0 - ISCAN - Moves off screen objs to innactive list
-;;; * 1 - 
-;;; * 2 - OSCAN / SHSCAN
+;;; * 0 - Iscan - Moves off screen objs to innactive list
+;;; * 1 -
+;;; * 2 - Oscan / shscan
 ;;; * 3 -
-;;; * 4 - SCNR
+;;; * 4 - Scnr
 ;;; * 5 -
 ;;; * 6 -
 ;;; * 7 -
 
-SCPROC
+SCPROC:
 // Move any offscreen objs to the innactive list
-                jsr    ISCAN
+                jsr ISCAN
                 SLEEP(2)
 
 // move any on-acreen inactive objs to the active list
-                jsr    OSCAN
-                jsr    SHSCAN
+                jsr OSCAN
+                jsr SHSCAN
                 SLEEP(2)
-                jsr    SCNR
-                NAP   (4,SCPROC)
+                jsr SCNR
+                NAP (4,SCPROC)
 
 ;;; Scan all active objects
-;;; move any offscreen into an inactive list
-;;; called every 8 frames
-OSCAN           ldd    BGL                  ; get screen left
-                subd   #100*32
-                std    XTEMP
+;;; Move any offscreen into an inactive list
+;;; Called every 8 frames
 
-                ldx    #OPTR                ; X points to obj list ptr
-                bra    !next
+OSCAN:          ldd BGL                           ; Get screen left
+                subd #100*32
+                std XTEMP
 
-!doit           ldd    OX16,X
-                subd   XTEMP
-                cmpd   #500*32
-                blo    !next                ; IN SCREEN AREA
-                ldu    OLINK,X              ; NO,MOVE TO INACTIVE LIST
-                stu    ,Y
-                ldu    IPTR                 ; insert at head of innactive obj list
-                stu    OLINK,X
-                stx    IPTR
-                leax   ,Y                   ; X TO NEXT
+                ldx #OPTR                         ; X points to obj list ptr
+                bra !next
 
-!next           leay   ,X                   ; Y = X
-                ldx    ,X                   ; get ptr to next obj
-                bne    !doit                ; process next object
+!doit:          ldd OX16,x
+                subd XTEMP
+                cmpd #500*32
+                blo !next                         ; In screen area
+                ldu OLINK,x                       ; No,move to inactive LIST
+                stu ,y
+                ldu IPTR                          ; Insert at head of innactive obj list
+                stu OLINK,x
+                stx IPTR
+                leax ,y                           ; X to next
+
+!next:          leay ,x                           ; Y = X
+                ldx ,x                            ; Get ptr to next obj
+                bne !doit                         ; Process next object
                 rts
 
 ;;; Scan innactive objects for any that are now on screen
-;;; and move to the active objects list
-ISCAN           ldd    BGL                  ; get screen left
-                subd   #100*32              ; 100 PIXEL LEFT BUFFER
-                std    XTEMP
-                ldx    #IPTR
-                bra    ISCLP
+;;; And move to the active objects list
 
-ISC1            lda    STATUS               ; OBJECTS ACTIVE??
-                bita   #$20
-                bne    SCYV5                ; NOPE....NO VELOCITY STUFF...JUST CHECK IF ACTIVE
+ISCAN:          ldd BGL                           ; Get screen left
+                subd #100*32                      ; 100 Pixel left buffer
+                std XTEMP
+                ldx #IPTR
+                bra ISCLP
+
+ISC1:           lda STATUS                        ; Objects active??
+                bita #$20
+                bne SCYV5                         ; Nope....no velocity stuff...just check if active
 
 // Objects are active so
 // Add 8 times velocity to the inactive object
 // as we're only updating inacctive objects every 8 frames
-                ldd    OYV,X
+                ldd OYV,x
                 aslb
                 rola
                 aslb
                 rola
                 aslb
                 rola
-                addd   OY16,X
-                cmpa   #YMIN                ; WRAP AROUND
-                bhs    SCYV3
-                cmpa   #(YMIN/2)+(YMAX/2)-$80
-                bls    SCYV6
-                lda    #YMAX
-SCYV3           cmpa   #YMAX
-                bls    SCYV4
+                addd OY16,x
+                cmpa #YMIN                        ; Wrap around
+                bhs SCYV3
+                cmpa #(YMIN/2)+(YMAX/2)-$80
+                bls SCYV6
+                lda #YMAX
+SCYV3:          cmpa #YMAX
+                bls SCYV4
 
-SCYV6           lda    #YMIN
+SCYV6:          lda #YMIN
 
-SCYV4           std    OY16,X               ; ADD 8 TIMES VELOCITY
-                ldd    OXV,X                ; UPDATE X POSITION
+SCYV4:          std OY16,x                        ; ADD 8 times velocity
+                ldd OXV,x                         ; Update X position
                 aslb
                 rola
                 aslb
                 rola
                 aslb
                 rola
-                addd   OX16,X
-                std    OX16,X
+                addd OX16,x
+                std OX16,x
 
-; now check if this object is onscreen
-SCYV5           ldd    OX16,X               ; RELOAD IN CASE WE GET HERE BY BRANCH
-                subd   XTEMP
-                cmpd   #500*32              ; IN SCREEN AREA
-                bhs    ISCLP                ; NO
+; Now check if this object is onscreen
+SCYV5:          ldd OX16,x                        ; Reload in case we get here by branch
+                subd XTEMP
+                cmpd #500*32                      ; In screen area
+                bhs ISCLP                         ; No
 
 ; Move object active list
-; where's the delink?
-                ldu    OLINK,X              ; YES, TRANSFER TO ACTIVE
-                stu    ,Y
-                ldu    OPTR
-                stu    OLINK,X
-                stx    OPTR
-                clra                        ; MAKE SURE OFF SCREEN AFTER HYPER
+; Where's the delink?
+                ldu OLINK,x                       ; Yes, transfer to active
+                stu ,y
+                ldu OPTR
+                stu OLINK,x
+                stx OPTR
+                clra                              ; Make sure off screen after hyper
                 clrb
-                std    OBJX,X
-                leax   ,Y
+                std OBJX,x
+                leax ,y
 
-ISCLP           leay   ,X                   ; get the next object and loop
-                ldx    ,X
-                bne    ISC1
+ISCLP:          leay ,x                           ; Get the next object and loop
+                ldx ,x
+                bne ISC1
                 rts
 
-;;; SCANNER
-;;; OFF OLDE BOZOS+PLAYER
-SCNR            ldu    #0
-                ldb    #8
-                ldx    #SETAB
-!loop           stu    [,X]
-                stu    [2,X]
-                stu    [4,X]
-                stu    [6,X]
+;;; Scanner
+;;; Off olde bozos+player
+SCNR:           ldu #0
+                ldb #8
+                ldx #SETAB
+!loop:          stu [,x]
+                stu [2,x]
+                stu [4,x]
+                stu [6,x]
                 abx
-                cmpx   SETEND
-                blo    !loop
+                cmpx SETEND
+                blo !loop
 // OFF PLAYER +
-                ldx    [SETEND]
-                beq    !skip
-                stu    ,X
-                clr    2,X
-                stu    -$100,X
-; OUTPUT TERRAIN
-!skip           ldd    BGL                  ; CALC SCANL
-                subd   #$8000-(150*32)
-                std    XTEMP
+                ldx [SETEND]
+                beq !skip
+                stu ,x
+                clr 2,x
+                stu -$100,x
+; Output terrain
+!skip:          ldd BGL                           ; Calc scanl
+                subd #$8000-(150*32)
+                std XTEMP
                 lsra
-                lsra                        ; GET 6 BITS
-                ldu    #MTERR
-                ldb    #3
+                lsra                              ; Get 6 bits
+                ldu #MTERR
+                ldb #3
                 mul
-                leau   D,U                  ; GET ADDR
-                lda    STATUS
-                bita   #2                   ; NO TERRAIN???
-                bne    !MTX                 ; NONE
-                lda    #SCANER>>8
-                ldy    #STETAB              ; ERASE TABLE
-!mloop          ldx    #0
-                stx    [,Y]                 ; OFF OLD
-                pulu   B,X
-                std    ,Y                   ; SAVE NEW ADDR
-                stx    [,Y++]
+                leau d,u                          ; Get addr
+                lda STATUS
+                bita #2                           ; No terrain???
+                bne !MTX                          ; None
+                lda #SCANER>>8
+                ldy #STETAB                       ; Erase table
+!mloop:         ldx #0
+                stx [,y]                          ; Off old
+                pulu b,x
+                std ,y                            ; Save new addr
+                stx [,y++]
                 inca
-                ldx    #0
-                stx    [,Y]
-                pulu   B,X
-                std    ,Y
-                stx    [,Y++]
+                ldx #0
+                stx [,y]
+                pulu b,x
+                std ,y
+                stx [,y++]
                 inca
-                cmpa   #(SCANER>>8)+64
-                bne    !mloop
-; SCANNER BEZEL
-!MTX            ldx    #SCANER+$1C00
-                ldd    #$9090
-                std    ,X
-                std    26,X
-                ldx    #SCANER+$2300
-                ldd    #$0909
-                std    ,X
-                std    26,X
-; OUTPUT BOZOS
-                jmp    PACH1                ;  ****************THIS IS A PATCH*********
-; LDX #OPTR THIS USED TO BE HERE
-BOZ1            ldu    #SETAB               ; ERASE TABLE
-                bsr    SCNR3
-                ldx    #IPTR
-                bsr    SCNR3
-BOZ2            stu    SETEND               ; END OF ERASE TABLE
-; PLAYER BLIP OUTPUT
-                ldd    PLAXC
+                cmpa #(SCANER>>8)+64
+                bne !mloop
+; Scanner bezel
+!MTX:           ldx #SCANER+$1C00
+                ldd #$9090
+                std ,x
+                std 26,x
+                ldx #SCANER+$2300
+                ldd #$0909
+                std ,x
+                std 26,x
+; Output bozos
+                jmp PACH1                         ;  ****************This is A patch*********
+; Ldx #optr this used to BE here
+BOZ1:           ldu #SETAB                        ; Erase table
+                bsr SCNR3
+                ldx #IPTR
+                bsr SCNR3
+BOZ2:           stu SETEND                        ; End of erase table
+; Player blip output
+                ldd PLAXC
                 lsra
                 lsra
                 lsra
@@ -192,55 +194,55 @@ BOZ2            stu    SETEND               ; END OF ERASE TABLE
                 lsrb
                 lsrb
                 lsrb
-                addd   #$4700+SCANH-5       ; PLAYER BASE
-                std    ,U
-                ldx    ,U
-                ldd    #$9099
-                std    ,X
-                sta    2,X
-                lda    #$09
-                sta    -$FF,X
+                addd #$4700+SCANH-5               ; Player base
+                std ,u
+                ldx ,u
+                ldd #$9099
+                std ,x
+                sta 2,x
+                lda #$09
+                sta -$FF,x
                 rts
-; BLIP SCAN SUBROUTINE
-SCNR10          ldd    OX16,X               ; FIND OFFSET
-                subd   XTEMP                ; SUBTRACT SCANNER LEFT
-SCNR2           lsra                        ; SHIFT DOWN TO 6 BITS
+; Blip scan subroutine
+SCNR10:         ldd OX16,x                        ; Find offset
+                subd XTEMP                        ; Subtract scanner left
+SCNR2:          lsra                              ; Shift down to 6 bits
                 lsra
-                ldb    OY16,X
+                ldb OY16,x
                 lsrb
                 lsrb
                 lsrb
-                addd   #SCANER-5
-                std    ,U
-                ldd    OBJCOL,X             ; STORE BLIP
-                cmpa   #$1F                 ; STAR GATE?
-                bne    SCNR20               ; NO
-                ldd    ,U
-                cmpa   #( SCANER>>8 )+$3F   ; CLIP GATE AT LIMIT
-                bne    SCNR2A
+                addd #SCANER-5
+                std ,u
+                ldd OBJCOL,x                      ; Store blip
+                cmpa #$1F                         ; Star gate?
+                bne SCNR20                        ; No
+                ldd ,u
+                cmpa #( SCANER>>8 )+$3F           ; Clip gate at limit
+                bne SCNR2A
                 deca
-                sta    ,U
-SCNR2A          ldy    #$FFF0
-                sty    [,U++]
+                sta ,u
+SCNR2A:         ldy #$FFF0
+                sty [,u++]
                 incb
-                std    ,U
-                ldy    #$F0FF
-                sty    [,U++]
+                std ,u
+                ldy #$F0FF
+                sty [,u++]
                 inca
-                std    ,U
-                ldy    #$F0F0
-                sty    [,U++]
+                std ,u
+                ldy #$F0F0
+                sty [,u++]
                 decb
-                std    ,U
-                sty    [,U++]
-                bra    SCNR3
-SCNR20          std    [,U++]
-SCNR3           ldx    ,X                   ; DO THE REST
-                bne    SCNR10
+                std ,u
+                sty [,u++]
+                bra SCNR3
+SCNR20:         std [,u++]
+SCNR3:          ldx ,x                            ; Do the rest
+                bne SCNR10
                 rts
 
-;;; MINI TERRAIN DATA TABLE
-MTERR           FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
+;;; Mini terrain data table
+MTERR:          FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
                 FCB 31,$88,$00,31,$88,$00,30,$88,$00,28,$88,$00
                 FCB 26,$88,$00,28,$88,$00,30,$88,$00,31,$80,$08
                 FCB 32,$88,$00,32,$88,$00,31,$88,$00,30,$88,$00
@@ -256,7 +258,7 @@ MTERR           FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
                 FCB 31,$B0,$0B,31,$BB,$00,31,$B0,$0B,32,$BB,$00
                 FCB 31,$0B,$B0,31,$B0,$0B,31,$BB,$00,31,$0B,$B0
                 FCB 31,$BB,$00,31,$BB,$00,30,$0B,$B0,29,$0B,$B0
-                FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08                ; REPEAT
+                FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08  ; Repeat
                 FCB 31,$88,$00,31,$88,$00,30,$88,$00,28,$88,$00
                 FCB 26,$88,$00,28,$88,$00,30,$88,$00,31,$80,$08
                 FCB 32,$88,$00,32,$88,$00,31,$88,$00,30,$88,$00
@@ -273,189 +275,189 @@ MTERR           FCB 27,$08,$80,26,$80,$08,28,$80,$08,30,$80,$08
                 FCB 31,$0B,$B0,31,$B0,$0B,31,$BB,$00,31,$0B,$B0
                 FCB 31,$BB,$00,31,$BB,$00,30,$0B,$B0,29,$0B,$B0
 
-;;; WRITE AN OBJECT TO SCREEN
-;;; Y = OBJECT DESCRIPTOR ADDR
-;;; D = SCREEN ADDR
-;;; ALL SAVED
-;;; REENTRANT
-CWRIT           pshs   A,B,X,Y,U
-                tfr    D,X
-                ldd    OBJW,Y               ; GET WIDTH,LENGTH
-                ldy    OBJP0,Y              ; GET DATA
-                pshs   D                    ; SAVE WIDTH,HEIGHT
-                bitb   #1                   ; ODD LENGTH?
-                bne    CWRT1
-; EVEN BYTE COUNT
-CWRT00          subb   #2
-CWRT0           ldu    B,Y
-                stu    B,X
-                subb   #2
-                bpl    CWRT0
-                ldb    1,S
-                leax   $100,X
-                leay   B,Y
+;;; Write an object to screen
+;;; Y = object descriptor addr
+;;; D = screen addr
+;;; All saved
+;;; Reentrant
+CWRIT:          pshs a,b,x,y,u
+                tfr d,x
+                ldd OBJW,y                        ; Get width,length
+                ldy OBJP0,y                       ; Get data
+                pshs d                            ; Save width,height
+                bitb #1                           ; Odd length?
+                bne CWRT1
+; Even byte count
+CWRT00:         subb #2
+CWRT0:          ldu b,y
+                stu b,x
+                subb #2
+                bpl CWRT0
+                ldb 1,s
+                leax $100,x
+                leay b,y
                 deca
-                bne    CWRT00
-                bra    CWRTX
+                bne CWRT00
+                bra CWRTX
 // ODD BYTE COUNT
-CWRT1           decb
-                lda    B,Y
-                sta    B,X
-                subb   #2
-                bmi    CWRT3
-CWRT2           ldu    B,Y
-                stu    B,X
-                subb   #2
-                bpl    CWRT2
-CWRT3           ldb    1,S                  ; GET HEIGHT
-                leax   $100,X
-                leay   B,Y
-                dec    ,S                   ; DEC WIDTH
-                bne    CWRT1
-CWRTX           leas   2,S                  ; GET MAP +2 PHONIES
-                puls   A,B,X,Y,U,PC
+CWRT1:          decb
+                lda b,y
+                sta b,x
+                subb #2
+                bmi CWRT3
+CWRT2:          ldu b,y
+                stu b,x
+                subb #2
+                bpl CWRT2
+CWRT3:          ldb 1,s                           ; Get height
+                leax $100,x
+                leay b,y
+                dec ,s                            ; DEC width
+                bne CWRT1
+CWRTX:          leas 2,s                          ; Get map +2 phonies
+                puls a,b,x,y,u,pc
 
-;;; __Func:__ COFF
+;;; __Func:__ coff
 ;;; Y = Object descriptor addr
 ;;; D = Screen addr
-COFF            pshs   A,B,X,U
-                tfr    D,X
-                ldd    OBJW,Y               ; GET WIDTH ,HEIGHT
+COFF:           pshs a,b,x,u
+                tfr d,x
+                ldd OBJW,y                        ; Get width ,height
 
 ;;; Clear block
-;;; called by other functions and assumes
+;;; Called by other functions and assumes
 ;;; A,B,X,U already on stack
-COFFA           ldu    #0                   ; clear col
-                pshs   B                    ; SAVE HT
-                bitb   #1                   ; ODD LENGTH?
-                bne    !coff1               ; YES
+COFFA:          ldu #0                            ; Clear col
+                pshs b                            ; Save ht
+                bitb #1                           ; Odd length?
+                bne !coff1                        ; Yes
 
 // EVEN BYTE COUNT
-!coff00         subb   #2
-!coff0          stu    B,X
-                subb   #2
-                bpl    !coff0
-                ldb    ,S                   ; GET HT
-                leax   $100,X               ; Next column
+!coff00:        subb #2
+!coff0:         stu b,x
+                subb #2
+                bpl !coff0
+                ldb ,s                            ; Get ht
+                leax $100,x                       ; Next column
                 deca
-                bne    !coff00
-                bra    !COFFX
+                bne !coff00
+                bra !COFFX
 
 // ODD BYTE COUNT
-!coff1          decb
-                clr    B,X
-                subb   #2
-                bmi    !COFF3
-!COFF2          stu    B,X
-                subb   #2
-                bpl    !COFF2
-!COFF3          ldb    ,S                   ; GET HT
-                leax   $100,X
+!coff1:         decb
+                clr b,x
+                subb #2
+                bmi !COFF3
+!COFF2:         stu b,x
+                subb #2
+                bpl !COFF2
+!COFF3:         ldb ,s                            ; Get ht
+                leax $100,x
                 deca
-                bne    !coff1
-!COFFX          leas   1,S                  ; PULL HEIGHT
-                puls   A,B,X,U,PC
+                bne !coff1
+!COFFX:         leas 1,s                          ; Pull height
+                puls a,b,x,u,pc
 
-;;; __Func:__ BLKCLR
+;;; __Func:__ blkclr
 ;;; Clear a block on the screen
 ;;;     * X-> Screen
-;;;     * D = W,H
-BLKCLR          pshs   A,B,X,U
-                bra    COFFA
+;;;     * D = w,h
+BLKCLR:         pshs a,b,x,u
+                bra COFFA
 
-;;; SCREEN CLEAR
-SCRCLR          pshs   D,X,Y,U
-                ldu    #$9C00
-                ldx    #0
-                tfr    X,Y
-                tfr    X,D
-SCLRLP          pshu   X,Y,D
-                pshu   X,Y,D
-                pshu   X,Y,D
-                pshu   X,Y,D
-                pshu   X,Y,D
-                pshu   X                    ; 32 AT A CRACK
-                cmpu   #0
-                bne    SCLRLP
-                puls   D,X,Y,U,PC
+;;; Screen clear
+SCRCLR:         pshs d,x,y,u
+                ldu #$9C00
+                ldx #0
+                tfr x,y
+                tfr x,d
+SCLRLP:         pshu x,y,d
+                pshu x,y,d
+                pshu x,y,d
+                pshu x,y,d
+                pshu x,y,d
+                pshu x                            ; 32 At A crack
+                cmpu #0
+                bne SCLRLP
+                puls d,x,y,u,pc
 
-;;; CLEAR ACTIVE SCREEN
-SCLR1           pshs   D,X,Y,U,DP
-                ldu    #$9C00
-                ldx    #0
-                tfr    X,Y
-                tfr    X,D
-                tfr    A,DP
-SC0LP           ldb    #8
-SC1LP           pshu   X,Y,A,DP
-                pshu   X,Y,A,DP
-                pshu   X,Y,A,DP
-                pshu   X,Y,A,DP
+;;; Clear active screen
+SCLR1:          pshs d,x,y,u,dp
+                ldu #$9C00
+                ldx #0
+                tfr x,y
+                tfr x,d
+                tfr a,dp
+SC0LP:          ldb #8
+SC1LP:          pshu x,y,a,dp
+                pshu x,y,a,dp
+                pshu x,y,a,dp
+                pshu x,y,a,dp
                 decb
-                bne    SC1LP
-                pshu   X,Y,A,DP
-                pshu   X,Y,A,DP
-                pshu   X,Y,A,DP
-                pshu   X
-                leau   -YMIN,U
-                cmpu   #0
-                bne    SC0LP
-                puls   D,X,Y,U,DP,PC
+                bne SC1LP
+                pshu x,y,a,dp
+                pshu x,y,a,dp
+                pshu x,y,a,dp
+                pshu x
+                leau -YMIN,u
+                cmpu #0
+                bne SC0LP
+                puls d,x,y,u,dp,pc
 
-;;;  CMOS PRIMITIVE FOR READING
-RCMOSA          lda    1,X                  ; GET LSB
-                anda   #$0F                 ; LEAVE ONLY LS
-                pshs   A                    ; SAVE IT
-                lda    ,X++                 ; GET MSB + AUTO INC
+;;;  Cmos primitive for reading
+RCMOSA:         lda 1,x                           ; Get lsb
+                anda #$0F                         ; Leave only ls
+                pshs a                            ; Save it
+                lda ,x++                          ; Get msb + auto inc
                 asla
                 asla
                 asla
-                asla                        ; SHIFT LS TO MSB
-                adda   ,S+                  ; GET LSB + FIX STACK
-DRTS            rts                         ; BYE
+                asla                              ; Shift ls to msb
+                adda ,s+                          ; Get lsb + fix stack
+DRTS:           rts                               ; Bye
 
-;;;  READ CMOS INTO D POINTED TO BY X: A=X,X+1; B=X+2,X+3
-RCMOSD          bsr    RCMOSA               ; GET THE FIRST BYTE+FALL THRU FOR 2ND
+;;;  Read cmos into D pointed to by X: A=X,X+1; B=X+2,X+3
+RCMOSD:         bsr RCMOSA                        ; Get the first byte+fall thru for 2ND
 
-;;;  READ CMOS INTO B POINTED TO BY X
-RCMOSB          pshs   A                    ; SAVE A
-                bsr    RCMOSA               ; GET IN A
-                tfr    A,B                  ; PUT IT IN B
-                puls   A,PC                 ; DONE
+;;;  Read cmos into B pointed to by X
+RCMOSB:         pshs a                            ; Save A
+                bsr RCMOSA                        ; Get in A
+                tfr a,b                           ; Put it in B
+                puls a,pc                         ; Done
 
-;;;  WRITE TO CMOS PRIMITIVE
-WCMOSA
-                pshs   A                    ; SAVE WHATS TO BE WRITTEN
-                sta    1,X                  ; SAVE LSB
-                lsra                        ; SHIFT	MS TO LS
+;;;  Write to cmos primitive
+WCMOSA:
+                pshs a                            ; Save whats to BE written
+                sta 1,x                           ; Save lsb
+                lsra                              ; Shift	ms to ls
                 lsra
                 lsra
                 lsra
-                sta    ,X++                 ; SAVE MSB AND AUTO INC
-                puls   A,PC                 ; DONE
+                sta ,x++                          ; Save msb and auto inc
+                puls a,pc                         ; Done
 
-;;;  WRITE CMOS FROM D TO X: A=X,X+1; B=X+2,X+3
-WCMOSD          bsr    WCMOSA               ; DO IT AND FALL THRU FOR 2ND
+;;;  Write cmos from D to X: A=X,X+1; B=X+2,X+3
+WCMOSD:         bsr WCMOSA                        ; Do it and fall thru for 2ND
 
-;;;  WRITE CMOS FROM B TO X
-WCMOSB          pshs   A                    ; SAVE A
-                tfr    B,A                  ; MOVE B TO A
-                bsr    WCMOSA               ; FAKE IT
-                puls   A,PC                 ; DONE
+;;;  Write cmos from B to X
+WCMOSB:         pshs a                            ; Save A
+                tfr b,a                           ; Move B to A
+                bsr WCMOSA                        ; Fake it
+                puls a,pc                         ; Done
 
-;;; SCORE ROUTINE
+;;; Score routine
 ;;; A=0-7EXP,B=0-99
 ;;;
-;;; SCORE PSHS A,B,X,U,Y
-;;; ORCC #1 SET CARRY
-SCORE           jmp    SCRPCH               ;  *****************NO SCORE IN ATTR
-                nop                         ;  ***********************************************
+;;; Score pshs A,B,X,U,Y
+;;; Orcc #1 set carry
+SCORE:          jmp SCRPCH                        ;  *****************No score in attr
+                nop                               ;  ***********************************************
 
-SCORE2          rol    SCRFLG               ; SET FLAG
+SCORE2:         rol SCRFLG                        ; Set flag
                 lsra
-                pshs   A
-                lda    #0
-                bcc    !SCR1
+                pshs a
+                lda #0
+                bcc !SCR1
                 aslb
                 rola
                 aslb
@@ -464,808 +466,806 @@ SCORE2          rol    SCRFLG               ; SET FLAG
                 rola
                 aslb
                 rola
-!SCR1           jsr    PLINDX
-                std    XTEMP
-                ldb    #3
-                subb   ,S+
-                lda    B,X
-                adda   XTEMP+1
+!SCR1:          jsr PLINDX
+                std XTEMP
+                ldb #3
+                subb ,s+
+                lda b,x
+                adda XTEMP+1
                 daa
-                sta    B,X
+                sta b,x
                 decb
-                bmi    !SCRX
-!SCR2           lda    B,X
-                adca   XTEMP
+                bmi !SCRX
+!SCR2:          lda b,x
+                adca XTEMP
                 daa
-                sta    B,X
-                lda    #0
-                sta    XTEMP
+                sta b,x
+                lda #0
+                sta XTEMP
                 decb
-                bpl    !SCR2
+                bpl !SCR2
 // CHECK REPLAY
-!SCRX           ldd    REPLA                ; REPLAYS AVAILABLE
-                beq    SCRXX                ; NO
-                leay   4,X
-                bsr    RCHK
-                blo    SCRXX                ; NO
-                lda    2,Y                  ; GET NEXT LEVEL
-                adda   REPLA+1
+!SCRX:          ldd REPLA                         ; Replays available
+                beq SCRXX                         ; No
+                leay 4,x
+                bsr RCHK
+                blo SCRXX                         ; No
+                lda 2,y                           ; Get next level
+                adda REPLA+1
                 daa
-                sta    2,Y
-                lda    1,Y
-                adca   REPLA
+                sta 2,y
+                lda 1,y
+                adca REPLA
                 daa
-                sta    1,Y
-                lda    ,Y
-                adca   #0
-                daa                         ; DUMB	ASSHOLE ASSOCIATION
-                sta    ,Y
-                jsr    RPHK                 ; GO TO YOUR REPLAY HOOK
-                jsr    LDISPV               ; REWARD
-                jsr    SBDSPV
-                ldd    #RPSND
-                jsr    SNDLD
-                ldb    #5
-                jsr    AUD1
-SCRXX           bsr    SCRTRN
-                puls   A,B,X,U,Y
+                sta 1,y
+                lda ,y
+                adca #0
+                daa                               ; Dumb	asshole association
+                sta ,y
+                jsr RPHK                          ; Go to your replay hook
+                jsr LDISPV                        ; Reward
+                jsr SBDSPV
+                ldd #RPSND
+                jsr SNDLD
+                ldb #5
+                jsr AUD1
+SCRXX:          bsr SCRTRN
+                puls a,b,x,u,y
                 rts
 
-;;; REPLAY CHECK
-;;; X=PLAYER SCORE MSB 8 DIGITS
-;;; Y=REPLAY LEVEL MSB 8 DIGITS
-;;; RETURNS CC FOR PSCOR-RLEVL
-RCHK            pshs   D
-                ldd    ,X
-                cmpd   ,Y
-                bne    !skip
-                ldd    2,X
-                cmpd   2,Y
-!skip           puls   D,PC
+;;; Replay check
+;;; X=player score msb 8 digits
+;;; Y=replay level msb 8 digits
+;;; Returns CC for pscor-rlevl
+RCHK:           pshs d
+                ldd ,x
+                cmpd ,y
+                bne !skip
+                ldd 2,x
+                cmpd 2,y
+!skip:          puls d,pc
 
-;;; SCORE TRANSFER
-SCRTRN          lda    SAMEXC               ; Skip if TERRAIN BLOW UP OR WARP IN EFFECT??
-                beq    !no_sploding
+;;; Score transfer
+SCRTRN:         lda SAMEXC                        ; Skip if terrain blow up or warp in effect??
+                beq !no_sploding
                 rts
 
-!no_sploding
-                lda    CURPLR
-SCRTR0          ldx    #N0V
-                ldb    STATUS
-                bmi    SCT0
-                cmpa   CURPLR
-                bne    SCT0
-                ldx    #N0AV
-SCT0            pshs   A,X
+!no_sploding:
+                lda CURPLR
+SCRTR0:         ldx #N0V
+                ldb STATUS
+                bmi SCT0
+                cmpa CURPLR
+                bne SCT0
+                ldx #N0AV
+SCT0:           pshs a,x
                 deca
-                bne    SCT1
-                ldx    #P1DISP
-                ldu    #.P1SCR
-                bra    SCT2
-SCT1            ldx    #P2DISP
-                ldu    #.P2SCR
-SCT2            clr    XTEMP                ; BLANKING FLAG
-                ldb    #7
-SCTLP           lda    ,U+                  ; GET
-                ldy    1,S                  ; GET BASE OF CHARSTORAGE
-                bitb   #1                   ; PHASE
-                bne    SCT3
-                leau   -1,U
+                bne SCT1
+                ldx #P1DISP
+                ldu #.P1SCR
+                bra SCT2
+SCT1:           ldx #P2DISP
+                ldu #.P2SCR
+SCT2:           clr XTEMP                         ; Blanking flag
+                ldb #7
+SCTLP:          lda ,u+                           ; Get
+                ldy 1,s                           ; Get base of charstorage
+                bitb #1                           ; Phase
+                bne SCT3
+                leau -1,u
                 lsra
                 lsra
                 lsra
                 lsra
-SCT3            anda   #$F
-                bne    SCT3A
-                cmpb   #2                   ; LAST 2
-                bls    SCT3A
-                tst    XTEMP                ; BLANKING?
-                beq    SCT4
-SCT3A           inc    XTEMP
+SCT3:           anda #$F
+                bne SCT3A
+                cmpb #2                           ; Last 2
+                bls SCT3A
+                tst XTEMP                         ; Blanking?
+                beq SCT4
+SCT3A:          inc XTEMP
                 asla
                 asla
-                leay   A,Y
-                exg    X,D
-                jsr    CWRIT                ; ON DIGIT PICTURE
-SCT40           exg    X,D
-SCT4            leax   DIGLTH,X
+                leay a,y
+                exg x,d
+                jsr CWRIT                         ; On digit picture
+SCT40:          exg x,d
+SCT4:           leax DIGLTH,x
                 decb
-                bne    SCTLP                ; DO THE REST
-                puls   A,Y,PC
+                bne SCTLP                         ; Do the rest
+                puls a,y,pc
 
-;;; SCREEN SWITCHING
-P1SW            pshs   D,X                  ; SAVE REGISTERS
-P1SW0           ldx    #IRQ
-                ldd    #$013C
-                bra    PSW1
-P2SW            pshs   D,X                  ; SAVE REGISTERS
-                lda    PIA3                 ; COCKTAIL?
-                bpl    P1SW0                ; NO
-                ldx    #IRQB                ; SWITCH UPSIDE DOWN GUYS
-                ldd    #$0334
-PSW1            stx    IRQHK+1              ; IRQ SELECT
-                stb    PIA3+1
-                sta    RWCNTL
-                lda    #$7E
-                sta    IRQHK
-                puls   D,X,PC
+;;; Screen switching
+P1SW:           pshs d,x                          ; Save registers
+P1SW0:          ldx #IRQ
+                ldd #$013C
+                bra PSW1
+P2SW:           pshs d,x                          ; Save registers
+                lda PIA3                          ; Cocktail?
+                bpl P1SW0                         ; No
+                ldx #IRQB                         ; Switch upside down guys
+                ldd #$0334
+PSW1:           stx IRQHK+1                       ; IRQ select
+                stb PIA3+1
+                sta RWCNTL
+                lda #$7E
+                sta IRQHK
+                puls d,x,pc
 
-;;; CHECK FOR PROCESS EXISTANCE
-;;; Y=PADDR OF SUSPECT
-;;; RET EQ IF FOUND, NE IF NOT THERE
-PCHEK           pshs   X
-                ldx    ACTIVE
-                beq    PCHK2
-PCHK1           cmpy   proc.addr,X
-                beq    PCKBYE
-                ldx    ,X
-                bne    PCHK1
-PCHK2           andcc  #$FB                 ; RET NE
-PCKBYE          puls   X,PC
+;;; Check for process existance
+;;; Y=paddr of suspect
+;;; Ret eq if found, ne if not there
+PCHEK:          pshs x
+                ldx ACTIVE
+                beq PCHK2
+PCHK1:          cmpy proc.addr,x
+                beq PCKBYE
+                ldx ,x
+                bne PCHK1
+PCHK2:          andcc #$FB                        ; Ret ne
+PCKBYE:         puls x,pc
 
-BSET            jsr    SCLR1                ; CLEAR THE SCREEN FOR THE BONE
-                ldx    PLRX                 ; GET PLAYER
-                lda    PWAV,X               ; GET HIS WAVE NUMBER
-                jsr    HEXBCD               ; IN BCD PLEASE (HUMAN NUMBER??)
-                tfr    A,B                  ; PUT IN B FOR MESSAGE
-                cmpa   #5
-                bls    BSET1
-                lda    #5                   ; NO MORE THAN 500 THOUGH FOR BONUS
-BSET1           pshs   A                    ; SAVE FOR A MOMENT
-                lda    #ATTAKM              ; MAKE THE ATTACK MESSAGE
-                jsr    WRD7FV
-                puls   A,PC                 ; RESTORE A (HUNDRED VALUE) AND RETURN
+BSET:           jsr SCLR1                         ; Clear the screen for the bone
+                ldx PLRX                          ; Get player
+                lda PWAV,x                        ; Get his wave number
+                jsr HEXBCD                        ; In BCD please (human number??)
+                tfr a,b                           ; Put in B for message
+                cmpa #5
+                bls BSET1
+                lda #5                            ; No more than 500 though for bonus
+BSET1:          pshs a                            ; Save for A moment
+                lda #ATTAKM                       ; Make the attack message
+                jsr WRD7FV
+                puls a,pc                         ; Restore A (hundred value) and return
 
 
-;;; BONUS COLLECT PROCESS
-;;; A GETS NUMBER OF HUNDREDS OF BONUS MULTIPLIER (HEX)
-BONUS           clr    PCRAM
-                ldu    CRPROC
-                puls   X
-                stx    proc.data +6,U       ; SAVE RETURN
-BON1            clrb
-                tfr    D,Y                  ; SAVE FOR TEXT
-                tfr    A,B                  ; MOVE COUNT TO COUNT
-                lda    #2                   ; PUT IN POWER
-                std    proc.d4,U            ; AND SAVE FOR SCORE
-                lda    #ATWVM               ; WRITE IT OUT
-                jsr    WRD7FV
-                ldx    #$38A0               ; INITIAL ADDR
-                lda    ASTCNT
-                sta    proc.d2,U
-                beq    BC2
-BCLP            tfr    X,D
-                ldy    #ASTP3
-                jsr    CWRIT
-                leax   $400,X
-                ldd    proc.d4,U            ; GET SCORE
-                jsr    SCORE
-                stx    proc.data ,U
+;;; Bonus collect process
+;;; A gets number of hundreds of bonus multiplier (hex)
+BONUS:          clr PCRAM
+                ldu CRPROC
+                puls x
+                stx proc.data +6,u                ; Save return
+BON1:           clrb
+                tfr d,y                           ; Save for text
+                tfr a,b                           ; Move count to count
+                lda #2                            ; Put in power
+                std proc.d4,u                     ; And save for score
+                lda #ATWVM                        ; Write it out
+                jsr WRD7FV
+                ldx #$38A0                        ; Initial addr
+                lda ASTCNT
+                sta proc.d2,u
+                beq BC2
+BCLP:           tfr x,d
+                ldy #ASTP3
+                jsr CWRIT
+                leax $400,x
+                ldd proc.d4,u                     ; Get score
+                jsr SCORE
+                stx proc.data ,u
                 NAP (4,BC1)
-BC1             ldx    proc.data ,U
-                dec    proc.d2,U            ; ALL DONE?
-                bne    BCLP                 ; NO
-BC2             ldx    PLRX
-                jsr    GETWVV
-                NAP ($80,BC3)                   ; HANG OUT
-BC3             jmp    [proc.data+6,U]      ; RETURN
+BC1:            ldx proc.data ,u
+                dec proc.d2,u                     ; All done?
+                bne BCLP                          ; No
+BC2:            ldx PLRX
+                jsr GETWVV
+                NAP ($80,BC3)                     ; Hang out
+BC3:            jmp [proc.data+6,u]               ; Return
 
-;;; Firq INTERRUPT ROUTINE
-;;; dispatches to the correct routine
-;;; Firq triggers 
-IRQ             lda    #RAM>>8
-                tfr    A,DP
-                lda    #$34
-                sta    PIA1_ctrl
-                lda    PIA1
-                lda    VERTCT               ; PAST 128
-                cmpa   #128
-                blo    I0                   ; NO
+;;; Firq interrupt routine
+;;; Dispatches to the correct routine
+;;; Firq triggers
+IRQ:            lda #RAM>>8
+                tfr a,dp
+                lda #$34
+                sta PIA1_ctrl
+                lda PIA1
+                lda VERTCT                        ; Past 128
+                cmpa #128
+                blo I0                            ; No
 
-                lda    IFLG                 ; ALREADY DONE ?
-                bne    IRQX                 ; NO
-                inc    IFLG
-                jsr    SNDSEQ               ;  SOUNDS+SWITCHES
-                jsr    PLAYER
-                jsr    STOUT                ;  OUTPUT STARS
-                lda    VERTCT
-                suba   #8
-                cmpa   #$A8
-                bls    IRQ1
+                lda IFLG                          ; Already done ?
+                bne IRQX                          ; No
+                inc IFLG
+                jsr SNDSEQ                        ;  Sounds+switches
+                jsr PLAYER
+                jsr STOUT                         ;  Output stars
+                lda VERTCT
+                suba #8
+                cmpa #$A8
+                bls IRQ1
 
-                lda    #$A8
-IRQ1            sta    XXX2
-                ldd    XXX2
-                jsr    OPROC
-                ldd    XXX2
-                jsr    PRDISP
-                jsr    SHELL
-                bra    IRQX                 ; exit irq
+                lda #$A8
+IRQ1:           sta XXX2
+                ldd XXX2
+                jsr OPROC
+                ldd XXX2
+                jsr PRDISP
+                jsr SHELL
+                bra IRQX                          ; Exit irq
 
 ;;; I/o scanning
-I0              ldb    IFLG
-                beq    IRQX                 ; exit if being serviced
-                clr    IFLG
-                inc    TIMER
-                ldb    #WDATA
-                stb    WDOG
-                cmpa   #4                   ; TOO LATE?
-                bhi    I01
+I0:             ldb IFLG
+                beq IRQX                          ; Exit if being serviced
+                clr IFLG
+                inc TIMER
+                ldb #WDATA
+                stb WDOG
+                cmpa #4                           ; Too late?
+                bhi I01
 
-; COLOR MAPPING
-                ldu    #CRAM+16
-                ldd    PCRAM+10
-                ldx    PCRAM+12
-                ldy    PCRAM+14
-                pshu   D,X,Y
-                ldd    PCRAM+4
-                ldx    PCRAM+6
-                ldy    PCRAM+8
-                pshu   D,X,Y
-                ldd    PCRAM
-                ldx    PCRAM+2
-                pshu   D,X
+; Color mapping
+                ldu #CRAM+16
+                ldd PCRAM+10
+                ldx PCRAM+12
+                ldy PCRAM+14
+                pshu d,x,y
+                ldd PCRAM+4
+                ldx PCRAM+6
+                ldy PCRAM+8
+                pshu d,x,y
+                ldd PCRAM
+                ldx PCRAM+2
+                pshu d,x
 
-I01             jsr    CSCAN                ; COIN SWITCHES
-                lda    STATUS
-                bita   #$02
-                bne    IRQ2
-                jsr    BGOUT                ; Update terrain
-IRQ2            ldd    XXX1
-                jsr    PRDISP               ; Draw the player
-                ldd    XXX1
-                jsr    OPROC
-                jsr    VELO                 ; UPDATE VELOCITIES
-IRQX            orcc   #$FF
-                lda    #$35
-                sta    PIA1_ctrl
-                lda    ,S                   ; E BIT FIX
-                anda   #$6F
-                sta    ,S
-                puls   X,Y,D,U,PC,CC,DP
+I01:            jsr CSCAN                         ; Coin switches
+                lda STATUS
+                bita #$02
+                bne IRQ2
+                jsr BGOUT                         ; Update terrain
+IRQ2:           ldd XXX1
+                jsr PRDISP                        ; Draw the player
+                ldd XXX1
+                jsr OPROC
+                jsr VELO                          ; Update velocities
+IRQX:           orcc #$FF
+                lda #$35
+                sta PIA1_ctrl
+                lda ,s                            ; E bit fix
+                anda #$6F
+                sta ,s
+                puls x,y,d,u,pc,cc,dp
 
-;;; INVERTED IRQ FOR SCREEN FLIP
+;;; Inverted IRQ for screen flip
 ;;; Block copy of IRQ but handles flipped
-;;; screen for cocktail cabs
-IRQB            lda    #RAM>>8
-                tfr    A,DP
-                lda    #$34
-                sta    PIA1_ctrl
-                lda    PIA1
-                lda    VERTCT
-                cmpa   #$60                 ; CHECK A0 (COUNT RUNS BACKWARDS)
-                blo    IB0
-                ldb    IFLG
-                bne    IRQX
-                inc    IFLG
+;;; Screen for cocktail cabs
+IRQB:           lda #RAM>>8
+                tfr a,dp
+                lda #$34
+                sta PIA1_ctrl
+                lda PIA1
+                lda VERTCT
+                cmpa #$60                         ; Check A0 (count runs backwards)
+                blo IB0
+                ldb IFLG
+                bne IRQX
+                inc IFLG
                 coma
-                sta    XXX2                 ; WRITING BOUNDARY
-                jsr    CSCAN
-                lda    STATUS
-                bita   #$02
-                bne    IRQB2
-                jsr    BGOUT
-IRQB2           ldd    XXX1
-                jsr    PRDISP
-                ldd    XXX1
-                jsr    OPROC
-                bra    IRQX
-IB0             ldb    IFLG
-                beq    IRQX
-                clr    IFLG
-                inc    TIMER
-                ldb    #WDATA               ; THROW ROVER A BONE
-                stb    WDOG                 ; BONE HIM
-                cmpa   #4
-                bhi    IB01
-; COLOR MAPPING
-                ldu    #CRAM+16
-                ldd    PCRAM+10
-                ldx    PCRAM+12
-                ldy    PCRAM+14
-                pshu   D,X,Y
-                ldd    PCRAM+4
-                ldx    PCRAM+6
-                ldy    PCRAM+8
-                pshu   D,X,Y
-                ldd    PCRAM
-                ldx    PCRAM+2
-                pshu   D,X
-IB01            jsr    SNDSEQ
-                jsr    PLAYER
-                jsr    STOUT
-                ldd    XXX2
-                jsr    PRDISP
-                ldd    XXX2
-                jsr    OPROC
-                jsr    SHELL
-                jsr    VELO
-                jmp    IRQX
+                sta XXX2                          ; Writing boundary
+                jsr CSCAN
+                lda STATUS
+                bita #$02
+                bne IRQB2
+                jsr BGOUT
+IRQB2:          ldd XXX1
+                jsr PRDISP
+                ldd XXX1
+                jsr OPROC
+                bra IRQX
+IB0:            ldb IFLG
+                beq IRQX
+                clr IFLG
+                inc TIMER
+                ldb #WDATA                        ; Throw rover A bone
+                stb WDOG                          ; Bone him
+                cmpa #4
+                bhi IB01
+; Color mapping
+                ldu #CRAM+16
+                ldd PCRAM+10
+                ldx PCRAM+12
+                ldy PCRAM+14
+                pshu d,x,y
+                ldd PCRAM+4
+                ldx PCRAM+6
+                ldy PCRAM+8
+                pshu d,x,y
+                ldd PCRAM
+                ldx PCRAM+2
+                pshu d,x
+IB01:           jsr SNDSEQ
+                jsr PLAYER
+                jsr STOUT
+                ldd XXX2
+                jsr PRDISP
+                ldd XXX2
+                jsr OPROC
+                jsr SHELL
+                jsr VELO
+                jmp IRQX
 
-;;; SHELL OUTPUT
-;;; OBJCOL=OUTPUT ROUTINE
-;;; ODATA=TIMER
-;;; ODATA+1=DEAD OR NOT
-SHELL           lda    STATUS
-                bita   #$20
-                bne    SHELLX
-                ldd    BGL                  ; CLAC SCROLL
-                andb   #$E0
-                std    SHTEMP
-                ldd    BGLX
-                andb   #$E0
-                subd   SHTEMP
+;;; Shell output
+;;; Objcol=output routine
+;;; Odata=timer
+;;; Odata+1=DEAD or not
+SHELL:          lda STATUS
+                bita #$20
+                bne SHELLX
+                ldd BGL                           ; Clac scroll
+                andb #$E0
+                std SHTEMP
+                ldd BGLX
+                andb #$E0
+                subd SHTEMP
                 aslb
                 rola
                 aslb
                 rola
-                std    SHTEMP
-                ldx    #SPTR                ; PROC BUGGERS
-                bra    SHELLP
-SHELL1          ldy    OBJX,X               ; ERASE ADDR
-                ldd    OYV,X
-                addd   OY16,X
-                cmpa   #YMIN
-                bls    SHBD                 ; DEAD
-                std    OY16,X
-                ldd    OXV,X
-                addd   SHTEMP
-                addd   OX16,X
-                cmpa   #$97
-                bhs    SHBD                 ; DEAD
-                std    OX16,X
-                aslb                        ; FLAVOR
-                ldb    OY16,X
-                std    OBJX,X               ; NEW X
-                jmp    [OBJCOL,X]           ; OUTPUT
-SHELLP          ldx    ,X
-                bne    SHELL1
-SHELLX          rts
+                std SHTEMP
+                ldx #SPTR                         ; Proc buggers
+                bra SHELLP
+SHELL1:         ldy OBJX,x                        ; Erase addr
+                ldd OYV,x
+                addd OY16,x
+                cmpa #YMIN
+                bls SHBD                          ; DEAD
+                std OY16,x
+                ldd OXV,x
+                addd SHTEMP
+                addd OX16,x
+                cmpa #$97
+                bhs SHBD                          ; DEAD
+                std OX16,x
+                aslb                              ; Flavor
+                ldb OY16,x
+                std OBJX,x                        ; New X
+                jmp [OBJCOL,x]                    ; Output
+SHELLP:         ldx ,x
+                bne SHELL1
+SHELLX:         rts
 
-;;; BOMB OUTPUT
-BMBOUT          ldu    BAX
-                bcc    SHB1                 ; ODD?
-                leau   6,U
-SHB1            ldd    #0                   ; CLEAR IT
-                std    ,Y
-                sta    2,Y
-                std    $100,Y
-                sta    $102,Y
-                ldy    OBJX,X
-                ldd    ,U
-                std    ,Y
-                ldd    2,U
-                sta    2,Y
-                stb    $100,Y
-                ldd    4,U
-                std    $101,Y
-                bra    SHELLP
-SHBD
-                CLRD()                          ; KILL AND ERASE
-                sta    ODATA+1,X
-                std    ,Y
-                sta    2,Y
-                std    $100,Y
-                sta    $102,Y
-                bra    SHELLP
+;;; Bomb output
+BMBOUT:         ldu BAX
+                bcc SHB1                          ; Odd?
+                leau 6,u
+SHB1:           ldd #0                            ; Clear it
+                std ,y
+                sta 2,y
+                std $100,y
+                sta $102,y
+                ldy OBJX,x
+                ldd ,u
+                std ,y
+                ldd 2,u
+                sta 2,y
+                stb $100,y
+                ldd 4,u
+                std $101,y
+                bra SHELLP
+SHBD:
+                CLRD()                            ; Kill and erase
+                sta ODATA+1,x
+                std ,y
+                sta 2,y
+                std $100,y
+                sta $102,y
+                bra SHELLP
 
-;;; FIREBALL MINI
-FBOUT           ldd    #0
-                std    ,Y
-                sta    2,Y
-                std    $100,Y
-                sta    $102,Y
-                ldu    OBJX,X
-                ldd    #$9999
-                bcs    SHFB1                ; ODD
-                anda   #$0F
-                std    ,U
-                sta    2,U
-                andb   #$F0
-                stb    $101,U
-                bra    SHELLP
-SHFB1           anda   #$F0
-                std    $100,U
-                sta    $102,U
-                andb   #$0F
-                stb    1,U
-                bra    SHELLP
+;;; Fireball mini
+FBOUT:          ldd #0
+                std ,y
+                sta 2,y
+                std $100,y
+                sta $102,y
+                ldu OBJX,x
+                ldd #$9999
+                bcs SHFB1                         ; Odd
+                anda #$0F
+                std ,u
+                sta 2,u
+                andb #$F0
+                stb $101,u
+                bra SHELLP
+SHFB1:          anda #$F0
+                std $100,u
+                sta $102,u
+                andb #$0F
+                stb 1,u
+                bra SHELLP
 
-;;; OUTPUT YLLAB BOMB
-YLBOUT          ldu    OBJX,X
-                ldd    #$0099
-                sta    ,Y                   ; ERASE OLDIE
-                sta    $100,Y
-                sta    $200,Y
-                bcs    !skip
-                stb    ,U
-                stb    $100,U
-                jmp    SHELLP
-!skip           lda    #$09
-                sta    ,U
-                stb    $100,U
-                lda    #$90
-                sta    $200,U
-                jmp    SHELLP
+;;; Output yllab bomb
+YLBOUT:         ldu OBJX,x
+                ldd #$0099
+                sta ,y                            ; Erase oldie
+                sta $100,y
+                sta $200,y
+                bcs !skip
+                stb ,u
+                stb $100,u
+                jmp SHELLP
+!skip:          lda #$09
+                sta ,u
+                stb $100,u
+                lda #$90
+                sta $200,u
+                jmp SHELLP
 
-;;; Ylabbian GFX?
-YLBP1   FCB 2,1
-        FDB YLBD10,YLBD10,ON34,OFF34
-YLBD10  FDB $FFFF
+;;; Ylabbian gfx?
+YLBP1:          FCB 2,1
+                FDB YLBD10,YLBD10,ON34,OFF34
+YLBD10:         FDB $FFFF
 
-;;; BOMB COLLISION
-BKIL            ldd    #$25
-                jsr    SCORE
-                dec    BMBCNT
-                jsr    KILSHL
-                jsr    OFSHIT
-                ldd    OX16,X
+;;; Bomb collision
+BKIL:           ldd #$25
+                jsr SCORE
+                dec BMBCNT
+                jsr KILSHL
+                jsr OFSHIT
+                ldd OX16,x
                 lsra
                 rorb
                 lsra
                 rorb
-                addd   BGL
-                std    OX16,X
-                lda    OY16,X
-                suba   #2
-                sta    OY16,X
-                ldd    #BXPIC
-                std    OPICT,X
-                jsr    XSVCT
-                ldd    #AHSND
-                jmp    SNDLD
-;;; REVERSE
-REV             lda    REVFLG
-                bne    REVX
-                inc    REVFLG
-                ldd    PLADIR
+                addd BGL
+                std OX16,x
+                lda OY16,x
+                suba #2
+                sta OY16,x
+                ldd #BXPIC
+                std OPICT,x
+                jsr XSVCT
+                ldd #AHSND
+                jmp SNDLD
+;;; Reverse
+REV:            lda REVFLG
+                bne REVX
+                inc REVFLG
+                ldd PLADIR
                 comb
                 coma
-                addd   #1
-                std    NPLAD
-REV1
+                addd #1
+                std NPLAD
+REV1:
                 NAP (2,REV2)
-REV2            lda    PIA21
-                bita   #$40
-                bne    REV1
+REV2:           lda PIA21
+                bita #$40
+                bne REV1
                 NAP (5,REVX1)
-REVX1           clr    REVFLG
-REVX            jmp    SUCIDE
+REVX1:          clr REVFLG
+REVX:           jmp SUCIDE
 
-;;; SMART BOMB
-SBOMB           lda    SBFLG
-                bne    SBMBX2
-                ldx    PLRX
-                lda    PSBC,X
-                beq    SBMBX2
-                inc    SBFLG
-                dec    PSBC,X
-                jsr    SBDSPV
-                ldd    #SBSND
-                jsr    SNDLD
-SBMB00          ldx    OPTR
-SBMB0           beq    SBMBX
-                ldd    OX16,X
-                subd   BGL
-                cmpd   #$9C*64
-                bhs    SBMB2
-                lda    OTYP,X
-                cmpa   #$02
-                bhs    SBMB2
-; 	JSR	[OCVECT,X]
-                jmp    SBPCH                ;  *****************DONT BLOW A NULLOB **********
-                bra    SBMB00
-SBMB2           ldx    ,X
-                bra    SBMB0
-SBMBX           ldu    CRPROC
-                lda    #4                   ; SCREEN FLASHES/2
-                sta    proc.data ,U
-SBMBX0          com    PCRAM
+;;; Smart bomb
+SBOMB:          lda SBFLG
+                bne SBMBX2
+                ldx PLRX
+                lda PSBC,x
+                beq SBMBX2
+                inc SBFLG
+                dec PSBC,x
+                jsr SBDSPV
+                ldd #SBSND
+                jsr SNDLD
+SBMB00:         ldx OPTR
+SBMB0:          beq SBMBX
+                ldd OX16,x
+                subd BGL
+                cmpd #$9C*64
+                bhs SBMB2
+                lda OTYP,x
+                cmpa #$02
+                bhs SBMB2
+; 	Jsr	[ocvect,X]
+                jmp SBPCH                         ;  *****************Dont blow A nullob **********
+                bra SBMB00
+SBMB2:          ldx ,x
+                bra SBMB0
+SBMBX:          ldu CRPROC
+                lda #4                            ; Screen flashes/2
+                sta proc.data ,u
+SBMBX0:         com PCRAM
                 NAP (2,SBMBX1)
-SBMBX1          dec    proc.data ,U
-                bne    SBMBX0
-                clr    PCRAM
-SBX10
-                NAP (10,SBX1A)                  ; SWITCH DEBOUNCE
-SBX1A           lda    PIA21
-                bita   #$4
-                bne    SBX10
+SBMBX1:         dec proc.data ,u
+                bne SBMBX0
+                clr PCRAM
+SBX10:
+                NAP (10,SBX1A)                    ; Switch debounce
+SBX1A:          lda PIA21
+                bita #$4
+                bne SBX10
                 NAP (10,SBX2A)
-SBX2A           clr    SBFLG
-SBMBX2          jmp    SUCIDE
+SBX2A:          clr SBFLG
+SBMBX2:         jmp SUCIDE
 
-;;; HYPERSPACE
-HYPER           lda    STATUS
-                bita   #$FD
-                lbne   HYPX                 ; NO GO
-                anda   #2
-                sta    proc.d4,U            ; SAVE TERRAIN BIT
-                lda    #$77
-                sta    STATUS
-                jsr    SCLR1
+;;; Hyperspace
+HYPER:          lda STATUS
+                bita #$FD
+                lbne HYPX                         ; No go
+                anda #2
+                sta proc.d4,u                     ; Save terrain bit
+                lda #$77
+                sta STATUS
+                jsr SCLR1
                 NAP (15,HYP02)
-HYP02           ldx    SPTR                 ; KILL BULLETS
-                beq    KB2
-                jsr    KILSHL
-                bra    HYP02
-KB2             clr    BMBCNT
-                ldd    SEED
-                std    BGL
-                std    BGLX
-; RANDOM HYPER DIRECTION
+HYP02:          ldx SPTR                          ; Kill bullets
+                beq KB2
+                jsr KILSHL
+                bra HYP02
+KB2:            clr BMBCNT
+                ldd SEED
+                std BGL
+                std BGLX
+; Random hyper direction
                 lsrb
-                bcc    HYP0
-                ldd    #$2000
-                ldx    #$0300
-                bra    HYP00
-HYP0            ldx    #-$0300
-                ldd    #$7000
-HYP00           std    PLAX16
-                stx    NPLAD
-                ldb    HSEED
+                bcc HYP0
+                ldd #$2000
+                ldx #$0300
+                bra HYP00
+HYP0:           ldx #-$0300
+                ldd #$7000
+HYP00:          std PLAX16
+                stx NPLAD
+                ldb HSEED
                 lsrb
-                addb   #YMIN
-                stb    PLAY16
-                std    NPLAXC
+                addb #YMIN
+                stb PLAY16
+                std NPLAXC
                 CLRD()
-                sta    PLAXV+2
-                std    PLAXV
-                std    PLAYV
-                jsr    BGINIT
-; APPEAR PLAYER
-                ldb    #$50
-                bsr    STCHK0
-                OBI (PLAPIC,KILLNO,$0000)                 ; CREATE PHONY OBJECT
-                ldd    #0
-                std    OXV,X
-                std    OYV,X
-                ldd    PLAY16
-                std    OY16,X
-                ldd    PLAX16
+                sta PLAXV+2
+                std PLAXV
+                std PLAYV
+                jsr BGINIT
+; Appear player
+                ldb #$50
+                bsr STCHK0
+                OBI (PLAPIC,KILLNO,$0000)         ; Create phony object
+                ldd #0
+                std OXV,x
+                std OYV,x
+                ldd PLAY16
+                std OY16,x
+                ldd PLAX16
                 lsra
                 rorb
                 lsra
                 rorb
-                addd   BGL
-                std    OX16,X
-                lda    NPLAD
-                bpl    HYP1
-                ldu    #PLBPIC              ; REV IMAGE
-                stu    OPICT,X
-HYP1            ldu    CRPROC
-                stx    proc.data ,U
-                jsr    APVCT
+                addd BGL
+                std OX16,x
+                lda NPLAD
+                bpl HYP1
+                ldu #PLBPIC                       ; Rev image
+                stu OPICT,x
+HYP1:           ldu CRPROC
+                stx proc.data ,u
+                jsr APVCT
                 NAP ($28,HYP2)
-HYP2
-                MAKP (DPKIL)                    ; DELAYED KILL PROCESS
-                ldd    proc.data ,U
-                std    proc.data ,X
-                lda    proc.d4,U
-                sta    STATUS
-                lda    LSEED                ; DEAD?
-                cmpa   #192
-                lbhi   HYPACH               ; YAHMAHN
-HYPX            jmp    SUCIDE
+HYP2:
+                MAKP (DPKIL)                      ; Delayed kill process
+                ldd proc.data ,u
+                std proc.data ,x
+                lda proc.d4,u
+                sta STATUS
+                lda LSEED                         ; DEAD?
+                cmpa #192
+                lbhi HYPACH                       ; Yahmahn
+HYPX:           jmp SUCIDE
 ;
-; DELAYED PLAYER IMAGE KILL
+; Delayed player image kill
 ;
-DPKIL           ldx    proc.data ,U
-                jsr    KILOFF
-                jsr    GETOB
+DPKIL:          ldx proc.data ,u
+                jsr KILOFF
+                jsr GETOB
                 NAP (10,DPK1)
-DPK1            ldx    proc.data ,U
-                ldd    OFREE                ; BACK TO FREE LIST
-                std    ,X
-                stx    OFREE
-                jmp    SUCIDE
+DPK1:           ldx proc.data ,u
+                ldd OFREE                         ; Back to free LIST
+                std ,x
+                stx OFREE
+                jmp SUCIDE
 ;
-;  DUPLICATE NOKILL ROUTINE
+;  Duplicate nokill routine
 ;
-KILLNO          clra
-                puls   D,PC
+KILLNO:         clra
+                puls d,pc
 
-;;; TERRAIN STATUS UPDATE
-;;; with status defaulting to zero
-STCHK           clrb                        ; CHECK TERRAIN ACTIVE
+;;; Terrain status update
+;;; With status defaulting to zero
+STCHK:          clrb                              ; Check terrain active
 
-;;; TERRAIN STATUS UPDATE
+;;; Terrain status update
 ;;; B = base for status
-;;; Set terrain to innactive if ASTCNT == 0
-STCHK0          lda    ASTCNT
+;;; Set terrain to innactive if astcnt == 0
+STCHK0:         lda ASTCNT
 
 ;;; Store A to status
-;;; if Z flag is set then innactivate terrain drawing
-STCHKA          bne    !skip
-                orb    #2
-!skip           stb    STATUS
+;;; If z flag is set then innactivate terrain drawing
+STCHKA:         bne !skip
+                orb #2
+!skip:          stb STATUS
                 rts
 
-;;; MAKE A REG PROCESS
-;;; X RET WITH PROC PTR
-;;; [RET]=SADDR, TYPE=STYPE, RET=RET+2
-MAKEP           pshs   U,A
-                ldu    3,S                  ; GET X
-                pulu   X
-                stu    3,S                  ; NEW RETURN
-                lda    #STYPE
-                jsr    MKPROC
-                puls   U,A,PC
+;;; Make A reg process
+;;; X ret with proc ptr
+;;; [Ret]=saddr, type=stype, ret=ret+2
+MAKEP:          pshs u,a
+                ldu 3,s                           ; Get X
+                pulu x
+                stu 3,s                           ; New return
+                lda #STYPE
+                jsr MKPROC
+                puls u,a,pc
 
-;;; GATE RING OFFSET TABLE OUTER-INNER,INNER-CENT; TL-TL
-GOFFTB  FDB $0805,$0805,$0705,$0604
-        FDB $0503,$0403,$0302,$0201
-        FDB $0101,$0001,$0001,$0001
-        FDB $0001,$0001,$0001,$0001
+;;; Gate ring offset table outer-inner,inner-cent; tl-tl
+GOFFTB:         FDB $0805,$0805,$0705,$0604
+                FDB $0503,$0403,$0302,$0201
+                FDB $0101,$0001,$0001,$0001
+                FDB $0001,$0001,$0001,$0001
 
-;;; Clean SAM RAM
-SCLEAN          ldx    #RAMALS
-                stx    FREEP
-SCLEN1          leax   $40,X
-                stx    -$40,X
-                cmpx   #RAMEND-$40
-                bne    SCLEN1
+;;; Clean sam RAM
+SCLEAN:         ldx #RAMALS
+                stx FREEP
+SCLEN1:         leax $40,x
+                stx -$40,x
+                cmpx #RAMEND-$40
+                bne SCLEN1
                 clra
                 clrb
-                std    ,X
-                std    APPTR
-                std    EXPTR
-                std    TRPTR
-                sta    SAMEXC
+                std ,x
+                std APPTR
+                std EXPTR
+                std TRPTR
+                sta SAMEXC
                 rts
 
-;;; STAR GATE OUTPUT
-;;; OUTER RING
-ONSG            pshs   X,CC
-                addb   #8
-                tfr    D,U
+;;; Star gate output
+;;; Outer ring
+ONSG:           pshs x,cc
+                addb #8
+                tfr d,u
                 lsra
                 lsra
                 lsra
-                anda   #$FE                 ; CALC RING OFFSETS
-                ldx    #GOFFTB
-                ldd    A,X
-                std    GATOF1
-                puls   CC
-                ldd    GATCL1
-                bcs    ONSG1
-                anda   #$F0
-                andb   #$F0
-                bra    ONSG2
-ONSG1           anda   #$0F                 ; FLAV1
-                andb   #$0F
-ONSG2           tfr    D,X
-                leay   ,X
-                pshu   D,X,Y                ; LEFT SIDE
-                pshu   D,X,Y
-                leau   $70C,U
-                pshu   D,X,Y                ; RT. SIDE
-                pshu   D,X,Y
-                bcs    ONSG3                ; ODD GUY
-                leau   -$100,U
-ONSG3           lda    GATCL1
-                sta    ,U
-                sta    -$100,U
-                sta    -$200,U
-                sta    -$300,U
-                sta    -$400,U
-                sta    -$500,U
-                sta    -$600,U
-                sta    11,U
-                sta    -$100+11,U
-                sta    -$200+11,U
-                sta    -$300+11,U
-                sta    -$400+11,U
-                sta    -$500+11,U
-                sta    -$600+11,U
-                lda    GATOF1
-                bcc    ONSG20
-                inca                        ; ODD CASE
+                anda #$FE                         ; Calc ring offsets
+                ldx #GOFFTB
+                ldd a,x
+                std GATOF1
+                puls cc
+                ldd GATCL1
+                bcs ONSG1
+                anda #$F0
+                andb #$F0
+                bra ONSG2
+ONSG1:          anda #$0F                         ; Flav1
+                andb #$0F
+ONSG2:          tfr d,x
+                leay ,x
+                pshu d,x,y                        ; Left side
+                pshu d,x,y
+                leau $70C,u
+                pshu d,x,y                        ; Rt. side
+                pshu d,x,y
+                bcs ONSG3                         ; Odd guy
+                leau -$100,u
+ONSG3:          lda GATCL1
+                sta ,u
+                sta -$100,u
+                sta -$200,u
+                sta -$300,u
+                sta -$400,u
+                sta -$500,u
+                sta -$600,u
+                sta 11,u
+                sta -$100+11,u
+                sta -$200+11,u
+                sta -$300+11,u
+                sta -$400+11,u
+                sta -$500+11,u
+                sta -$600+11,u
+                lda GATOF1
+                bcc ONSG20
+                inca                              ; Odd case
                 lsra
-                rorb                        ; SAVE CARRY
-                adda   #-7
-                bra    ONSG22
-ONSG20          lsra
+                rorb                              ; Save carry
+                adda #-7
+                bra ONSG22
+ONSG20:         lsra
                 rorb
-                adda   #-6
-ONSG22          rolb                        ; RESTORE CARRY
-                ldb    #3                   ; VERT OFFSET
-                leau   D,U                  ; STARTING ADDR
-                ldd    GATCL2               ; NEXT COLOR
-                bcs    ONSG21               ; ODD FLAV
-                sta    ,U
-                sta    5,U
-                sta    $100,U
-                sta    $105,U
-                sta    $200,U
-                sta    $205,U
-                anda   #$F0
-                andb   #$F0
-                std    1,U
-                std    3,U
-                std    $300,U
-                std    $302,U
-                std    $304,U
-                bra    ONSG30
-; OUTPUT INNER RING ODD FLAVOR
-ONSG21          sta    $100,U
-                sta    $105,U
-                sta    $200,U
-                sta    $205,U
-                sta    $300,U
-                sta    $305,U
-                anda   #$0F
-                andb   #$0F
-                std    $301,U
-                std    $303,U
-                std    ,U
-                std    2,U
-                std    4,U
-; CENTER
-ONSG30          lda    GATOF2
-                ldb    #2                   ; VERT OFFSET
-                adca   #0
+                adda #-6
+ONSG22:         rolb                              ; Restore carry
+                ldb #3                            ; Vert offset
+                leau d,u                          ; Starting addr
+                ldd GATCL2                        ; Next color
+                bcs ONSG21                        ; Odd flav
+                sta ,u
+                sta 5,u
+                sta $100,u
+                sta $105,u
+                sta $200,u
+                sta $205,u
+                anda #$F0
+                andb #$F0
+                std 1,u
+                std 3,u
+                std $300,u
+                std $302,u
+                std $304,u
+                bra ONSG30
+; Output inner ring odd flavor
+ONSG21:         sta $100,u
+                sta $105,u
+                sta $200,u
+                sta $205,u
+                sta $300,u
+                sta $305,u
+                anda #$0F
+                andb #$0F
+                std $301,u
+                std $303,u
+                std ,u
+                std 2,u
+                std 4,u
+; Center
+ONSG30:         lda GATOF2
+                ldb #2                            ; Vert offset
+                adca #0
                 lsra
-                leau   D,U                  ; ADDR
-                ldd    GATCL3
-                bcs    ONSG31
-                anda   #$F0
-                andb   #$F0
-                std    ,U
-                puls   X,PC
-ONSG31          anda   #$0F
-                andb   #$0F
-                std    ,U
-                puls   X,PC
+                leau d,u                          ; Addr
+                ldd GATCL3
+                bcs ONSG31
+                anda #$F0
+                andb #$F0
+                std ,u
+                puls x,pc
+ONSG31:         anda #$0F
+                andb #$0F
+                std ,u
+                puls x,pc
 ;
-; ERASE STAR GATE
+; Erase star gate
 ;
-OF812           pshs   X
-                addb   #08
-                tfr    D,U
-                ldd    #0
-                ldx    #0
-                leay   ,X
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                leau   268,U
-                pshu   X,Y,D
-                pshu   X,Y,D
-                puls   X,PC
+OF812:          pshs x
+                addb #08
+                tfr d,u
+                ldd #0
+                ldx #0
+                leay ,x
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                leau 268,u
+                pshu x,y,d
+                pshu x,y,d
+                puls x,pc
 ;
-; STAR GATE PIX
+; Star gate pix
 ;
-SGPIC   FCB 8,4
-        FDB SGD10,SGD10,ONSG,OF812
-SGD10   FDB $0000,$0000,$0000,$0000
-        FDB $0000,$0000,$1111,$1111
-        FDB $1111,$1111,$0000,$0000
-        FDB $0000,$0000,$0000,$0000
+SGPIC:          FCB 8,4
+                FDB SGD10,SGD10,ONSG,OF812
+SGD10:          FDB $0000,$0000,$0000,$0000
+                FDB $0000,$0000,$1111,$1111
+                FDB $1111,$1111,$0000,$0000
+                FDB $0000,$0000,$0000,$0000
 ;
-; GET ALTITUDE
-; A=ALT,X=OBJ
+; Get altitude
+; A=alt,X=obj
 ;
-GETALT          pshs   B,X
-                ldd    OX16,X
-                lsra
-                rorb
+GETALT:         pshs b,x
+                ldd OX16,x
                 lsra
                 rorb
                 lsra
@@ -1276,1096 +1276,1129 @@ GETALT          pshs   B,X
                 rorb
                 lsra
                 rorb
-                ldx    #ALTBL
-                lda    D,X
-                puls   B,X,PC
+                lsra
+                rorb
+                ldx #ALTBL
+                lda d,x
+                puls b,x,pc
 ;
-; TIEST
-; A=# IN SQUAD 1-4
+; Tiest
+; A=# in squad 1-4
 ;
-TIEST           sta    XTEMP
-                ldb    TIEXV
-                com    TFLG                 ; ALTERNATE DIRECTIONS
-                bmi    TIEST1
+TIEST:          sta XTEMP
+                ldb TIEXV
+                com TFLG                          ; Alternate directions
+                bmi TIEST1
                 negb
-TIEST1          stb    XTEMP+1              ; X VELOCITY
-                ldx    #TIE
-                lda    #STYPE
-                jsr    MSPROC               ; MAKE A SUPER PROCESS
-                leau   ,X                   ; SAVE INDEX
-                lda    XTEMP
-                sta    proc.data +8,U
+TIEST1:         stb XTEMP+1                       ; X velocity
+                ldx #TIE
+                lda #STYPE
+                jsr MSPROC                        ; Make A super process
+                leau ,x                           ; Save index
+                lda XTEMP
+                sta proc.data +8,u
                 CLRD()
-                std    proc.data ,U
-                std    proc.d2,U
-                std    proc.d4,U
-                std    proc.d6,U
-TIEST2
+                std proc.data ,u
+                std proc.d2,u
+                std proc.d4,u
+                std proc.d6,u
+TIEST2:
                 OBI (TIEP1,TIEKIL,$8888)
-                ldb    XTEMP+1
+                ldb XTEMP+1
                 sex
-                std    OXV,X
+                std OXV,x
                 CLRD()
-                std    OYV,X
-                lda    XTEMP                ; X SPACING
+                std OYV,x
+                lda XTEMP                         ; X spacing
                 lsra
                 rorb
-                adda   XTEMP
-                addd   PLABX
-                adda   #$80
-                std    OX16,X
-                lda    #$50
-                sta    OY16,X
-                sta    proc.data +9,U       ; CRUISE ALT
-                stu    OBJID,X
-                stx    OPTR
-                lda    XTEMP
+                adda XTEMP
+                addd PLABX
+                adda #$80
+                std OX16,x
+                lda #$50
+                sta OY16,x
+                sta proc.data +9,u                ; Cruise alt
+                stu OBJID,x
+                stx OPTR
+                lda XTEMP
                 asla
-                adda   #proc.data-2
-                stx    A,U
-                dec    XTEMP
-                bne    TIEST2
-TIESX           rts
+                adda #proc.data-2
+                stx a,u
+                dec XTEMP
+                bne TIEST2
+TIESX:          rts
 ;
-; TIE PROCESS
-; PD,PD2,PD4,PD6=TIES,0000=DEAD
-; PD8=#IN SQUAD,PD+9=CRUISE ALT
+; Tie process
+; PD,PD2,pd4,pd6=ties,0000=DEAD
+; Pd8=#in squad,PD+9=cruise alt
 ;
-TIE             lda    SEED                 ; ADD RANDOM Y
-                anda   #$6
-                adda   #proc.data
-                ldx    A,U
-                lbeq   TIEX                 ; NONE THERE
-                ldb    SEED
-                lda    #OBJL
-                andb   #$3F
-                addb   #-$20
-                bmi    TIE0
+TIE:            lda SEED                          ; ADD random Y
+                anda #$6
+                adda #proc.data
+                ldx a,u
+                lbeq TIEX                         ; None there
+                ldb SEED
+                lda #OBJL
+                andb #$3F
+                addb #-$20
+                bmi TIE0
                 nega
-TIE0            ldy    OPICT,X              ; NEW IMAGE
-                leay   A,Y
-                cmpy   #TIEP1
-                bhs    TIE01
-                ldy    #TIEP1
-TIE01           cmpy   #TIEP4
-                bls    TIE02
-                ldy    #TIEP4
-TIE02           sty    OPICT,X
+TIE0:           ldy OPICT,x                       ; New image
+                leay a,y
+                cmpy #TIEP1
+                bhs TIE01
+                ldy #TIEP1
+TIE01:          cmpy #TIEP4
+                bls TIE02
+                ldy #TIEP4
+TIE02:          sty OPICT,x
                 sex
-                addd   OYV,X                ; NEW Y VEL
-                std    OYV,X
+                addd OYV,x                        ; New Y vel
+                std OYV,x
                 aslb
                 rola
                 aslb
                 rola
                 aslb
                 rola
-                tfr    A,B
+                tfr a,b
                 negb
                 sex
-                addd   OYV,X
-                std    OYV,X
-                lda    OBJY,X               ; ON SCREEN?
-                bne    TIE09                ; YES
-; OFF SCREEN CASE
-; CRUISE ALT ADJUST
-                lda    SEED
-                cmpa   #$40
-                bhi    TIE06                ; BYPASS THIS TIME
-                anda   #$3
-                adda   #-2
-                adda   proc.data+9,U
-                cmpa   #$40                 ; LIMIT CHECKING
-                bhs    TIE03
-                lda    #$40
-TIE03           cmpa   #$68
-                blo    TIE04
-                lda    #$68
-TIE04           sta    proc.data +9,U
-; Y VEL ADJUST
-TIE06           lda    proc.data +9,U
-                suba   OY16,X
-                adda   #$10
-                cmpa   #$20
-                bls    TIEX
-                suba   #$10
-                bmi    TIE07
-                ldd    #-$10
-                bra    TIE08
-TIE07           ldd    #$10
-TIE08           addd   OYV,X
-                std    OYV,X
-                bra    TIEX
-; ON SCREEN
-TIE09           suba   PLAYC                ; CLOSE TO PLAYER
-                bmi    TIE20                ; BELOW
-                cmpa   #$20
-                blo    TIE10                ; CLOSE
-                ldd    #$FFF0
-                bra    TIE30
-TIE10           cmpa   #$10
-                bhi    TIE31
-                ldd    #$0010
-                bra    TIE30
-TIE20           cmpa   #-$20
-                bgt    TIE21
-                ldd    #$0010
-                bra    TIE30
-TIE21           cmpa   #-$10
-                blt    TIE31
-                ldd    #$FFF0
-TIE30           addd   OYV,X
-                std    OYV,X
-TIE31           lda    LSEED                ; BOMB?
-                anda   #$7
-                bne    TIEX                 ; NO
-                bsr    BOMBST
-TIEX
+                addd OYV,x
+                std OYV,x
+                lda OBJY,x                        ; On screen?
+                bne TIE09                         ; Yes
+; Off screen case
+; Cruise alt adjust
+                lda SEED
+                cmpa #$40
+                bhi TIE06                         ; Bypass this time
+                anda #$3
+                adda #-2
+                adda proc.data+9,u
+                cmpa #$40                         ; Limit checking
+                bhs TIE03
+                lda #$40
+TIE03:          cmpa #$68
+                blo TIE04
+                lda #$68
+TIE04:          sta proc.data +9,u
+; Y vel adjust
+TIE06:          lda proc.data +9,u
+                suba OY16,x
+                adda #$10
+                cmpa #$20
+                bls TIEX
+                suba #$10
+                bmi TIE07
+                ldd #-$10
+                bra TIE08
+TIE07:          ldd #$10
+TIE08:          addd OYV,x
+                std OYV,x
+                bra TIEX
+; On screen
+TIE09:          suba PLAYC                        ; Close to player
+                bmi TIE20                         ; Below
+                cmpa #$20
+                blo TIE10                         ; Close
+                ldd #$FFF0
+                bra TIE30
+TIE10:          cmpa #$10
+                bhi TIE31
+                ldd #$0010
+                bra TIE30
+TIE20:          cmpa #-$20
+                bgt TIE21
+                ldd #$0010
+                bra TIE30
+TIE21:          cmpa #-$10
+                blt TIE31
+                ldd #$FFF0
+TIE30:          addd OYV,x
+                std OYV,x
+TIE31:          lda LSEED                         ; Bomb?
+                anda #$7
+                bne TIEX                          ; No
+                bsr BOMBST
+TIEX:
                 NAP (1,TIE)
 ;
-; TIE KILL
+; Tie kill
 ;
-TIEKIL
+TIEKIL:
                 KILO ($125,TIHSND)
-                dec    TIECNT
-                ldu    OBJID,X
-                leay   proc.data,U
-TIEK1           cmpx   ,Y++
-                bne    TIEK1
+                dec TIECNT
+                ldu OBJID,x
+                leay proc.data,u
+TIEK1:          cmpx ,y++
+                bne TIEK1
                 CLRD()
-                std    -2,Y
-                dec    proc.data +8,U
-                bne    TIEKX
-                leax   ,U
-                jsr    KILL
-TIEKX           rts
+                std -2,y
+                dec proc.data +8,u
+                bne TIEKX
+                leax ,u
+                jsr KILL
+TIEKX:          rts
 ;
-; START BOMB
+; Start bomb
 ;
-BOMBST          lda    BMBCNT
-                cmpa   #10
-                bhs    BMBSTX
+BOMBST:         lda BMBCNT
+                cmpa #10
+                bhs BMBSTX
                 SHL (BMBOUT,BMBP1,BKIL)
-                beq    BMBSTX
-                ldb    HSEED
+                beq BMBSTX
+                ldb HSEED
                 sex
                 aslb
                 rola
-                lda    SEED
-                anda   #$1F
+                lda SEED
+                anda #$1F
                 inca
-                sta    ODATA,X              ; LIFETIME
-BMBSTX          rts
-KILOFF          jsr    KILLOB
-                jmp    OFSHIT
+                sta ODATA,x                       ; Lifetime
+BMBSTX:         rts
+KILOFF:         jsr KILLOB
+                jmp OFSHIT
 ;
-; KILL ROUTINE
-; X=OBJECT
-; RET=SCORE MSB,LSB
-; RET+2=SOUND
+; Kill routine
+; X=object
+; Ret=score msb,lsb
+; Ret+2=sound
 ;
-KILP01          pshs   X
-                jsr    KILLOP
-                puls   X
-                bra    KILO01
-KILPOS          pshs   X
-                jsr    KILLOP
-                puls   X
-KILOS           jsr    KILLOB
-KILO01          pshs   U,D
-                ldu    4,S
-                pulu   D
-                jsr    SCORE
-                bsr    EXST
-                pulu   D
-                stu    4,S
-                jsr    SNDLD
-                puls   U,D,PC
+KILP01:         pshs x
+                jsr KILLOP
+                puls x
+                bra KILO01
+KILPOS:         pshs x
+                jsr KILLOP
+                puls x
+KILOS:          jsr KILLOB
+KILO01:         pshs u,d
+                ldu 4,s
+                pulu d
+                jsr SCORE
+                bsr EXST
+                pulu d
+                stu 4,s
+                jsr SNDLD
+                puls u,d,pc
 ;
-; EXPLODE
-; X=OBJECT TO BLOW
+; Explode
+; X=object to blow
 ;
-EXST            pshs   X,U,D,Y
-                jsr    OFSHIT
-                jsr    XSVCT
-                puls   X,U,D,Y,PC
+EXST:           pshs x,u,d,y
+                jsr OFSHIT
+                jsr XSVCT
+                puls x,u,d,y,pc
 ;
-; COLOR TIES
-; PD =TCTAB INDEX
-TIECOL          ldx    #TCTAB
-TIECL1          stx    proc.data ,U
+; Color ties
+; PD =tctab index
+TIECOL:         ldx #TCTAB
+TIECL1:         stx proc.data ,u
                 NAP (6,TIECL)
-TIECL           ldx    proc.data ,U
-                ldd    ,X++
-                std    PCRAM+$D
-                lda    ,X+
-                sta    PCRAM+$F
-                cmpx   #TCTAB+9
-                blo    TIECL1
-                bra    TIECOL
-; TIE COLOR TABLE
-TCTAB   FCB $81,$81,$2F
-        FCB $81,$2F,$07
-        FCB $2F,$81,$07
+TIECL:          ldx proc.data ,u
+                ldd ,x++
+                std PCRAM+$D
+                lda ,x+
+                sta PCRAM+$F
+                cmpx #TCTAB+9
+                blo TIECL1
+                bra TIECOL
+; Tie color table
+TCTAB:          FCB $81,$81,$2F
+                FCB $81,$2F,$07
+                FCB $2F,$81,$07
 ;
-; COLOR BOMBS
+; Color bombs
 ;
-CBOMB           lda    #$FF
-                sta    PCRAM+$A
-                clr    PCRAM+$C
+CBOMB:          lda #$FF
+                sta PCRAM+$A
+                clr PCRAM+$C
                 NAP (3,CBMB1)
-CBMB1           lda    SEED
-                anda   #$1F
-                ldx    #COLTAB
-                lda    A,X
-                sta    PCRAM+$A
-                sta    PCRAM+$C
-                ldx    #BMBD10
-                cmpx   BAX
-                bne    CBMB2
-                ldx    #BMBD20
-CBMB2           stx    BAX
+CBMB1:          lda SEED
+                anda #$1F
+                ldx #COLTAB
+                lda a,x
+                sta PCRAM+$A
+                sta PCRAM+$C
+                ldx #BMBD10
+                cmpx BAX
+                bne CBMB2
+                ldx #BMBD20
+CBMB2:          stx BAX
                 NAP (6,CBOMB)
 ;
-ON75            pshs   X                    ; SAVE X
-                sts    TEMP48
-                bcc    ON751
-                leay   2,Y
-ON751           lds    OBJP0,Y              ; SET POINTER TO BEGINNING OF OBJECT
-                addb   #5
-                tfr    D,U
-                bra    ON750
+ON75:           pshs x                            ; Save X
+                sts TEMP48
+                bcc ON751
+                leay 2,y
+ON751:          lds OBJP0,y                       ; Set pointer to beginning of object
+                addb #5
+                tfr d,u
+                bra ON750
 
-ON65            pshs   X                    ; SAVE X
-                sts    TEMP48
-                bcc    ON651
-                leay   2,Y
-ON651           lds    OBJP0,Y              ; SET POINTER TO BEGINNING OF OBJECT
-                addb   #5
-                tfr    D,U
-                bra    ON650
+ON65:           pshs x                            ; Save X
+                sts TEMP48
+                bcc ON651
+                leay 2,y
+ON651:          lds OBJP0,y                       ; Set pointer to beginning of object
+                addb #5
+                tfr d,u
+                bra ON650
 
-ON85            pshs   X                    ; SAVE X
-                sts    TEMP48
-                bcc    ON851
-                leay   2,Y
-ON851           lds    OBJP0,Y              ; SET POINTER TO BEGINNING OF OBJECT
-                addb   #5
-                tfr    D,U
-                puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-ON750           puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-ON650           puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-                puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-                puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-ON350           puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-                puls   X,Y,A
-                pshu   X,Y,A
-                leau   261,U
-                puls   X,Y,A
-                pshu   X,Y,A
-                lds    TEMP48               ; RESTORE	STACK
-                puls   X,PC                 ; AND RETURN
+ON85:           pshs x                            ; Save X
+                sts TEMP48
+                bcc ON851
+                leay 2,y
+ON851:          lds OBJP0,y                       ; Set pointer to beginning of object
+                addb #5
+                tfr d,u
+                puls x,y,a
+                pshu x,y,a
+                leau 261,u
+ON750:          puls x,y,a
+                pshu x,y,a
+                leau 261,u
+ON650:          puls x,y,a
+                pshu x,y,a
+                leau 261,u
+                puls x,y,a
+                pshu x,y,a
+                leau 261,u
+                puls x,y,a
+                pshu x,y,a
+                leau 261,u
+ON350:          puls x,y,a
+                pshu x,y,a
+                leau 261,u
+                puls x,y,a
+                pshu x,y,a
+                leau 261,u
+                puls x,y,a
+                pshu x,y,a
+                lds TEMP48                        ; Restore	stack
+                puls x,pc                         ; And return
 ;
-; ON 3X5 IMAGE
+; On 3X5 image
 ;
-ON35            pshs   X
-                sts    TEMP48
-                bcc    ON351
-                leay   2,Y
-ON351           lds    OBJP0,Y
-                addb   #5
-                tfr    D,U
-                bra    ON350
-; OFF 3X5
-OFF35           pshs   X
-                addb   #5
-                tfr    D,U
+ON35:           pshs x
+                sts TEMP48
+                bcc ON351
+                leay 2,y
+ON351:          lds OBJP0,y
+                addb #5
+                tfr d,u
+                bra ON350
+; Off 3X5
+OFF35:          pshs x
+                addb #5
+                tfr d,u
                 clra
-                ldx    #0
-                leay   ,X
-                bra    OFF350
+                ldx #0
+                leay ,x
+                bra OFF350
 
-OFF75           pshs   X
-                addb   #5
-                tfr    D,U
+OFF75:          pshs x
+                addb #5
+                tfr d,u
                 clra
-                ldx    #0
-                leay   ,X
-                bra    OFF750
+                ldx #0
+                leay ,x
+                bra OFF750
 
-OFF65           pshs   X
-                addb   #5
-                tfr    D,U
+OFF65:          pshs x
+                addb #5
+                tfr d,u
                 clra
-                ldx    #0
-                leay   ,X
-                bra    OFF650
+                ldx #0
+                leay ,x
+                bra OFF650
 
-OFF85           pshs   X
-                addb   #5
-                tfr    D,U
+OFF85:          pshs x
+                addb #5
+                tfr d,u
                 clra
-                ldx    #0
-                leay   ,X
-                pshu   X,Y,A
-                leau   261,U
-OFF750          pshu   X,Y,A
-                leau   261,U
-OFF650          pshu   X,Y,A
-                leau   261,U
-                pshu   X,Y,A
-                leau   261,U
-OFF450          pshu   X,Y,A
-                leau   261,U
-OFF350          pshu   X,Y,A
-                leau   261,U
-                pshu   X,Y,A
-                leau   261,U
-                pshu   X,Y,A
-                puls   X,PC                 ; GET OUT OF HERE
+                ldx #0
+                leay ,x
+                pshu x,y,a
+                leau 261,u
+OFF750:         pshu x,y,a
+                leau 261,u
+OFF650:         pshu x,y,a
+                leau 261,u
+                pshu x,y,a
+                leau 261,u
+OFF450:         pshu x,y,a
+                leau 261,u
+OFF350:         pshu x,y,a
+                leau 261,u
+                pshu x,y,a
+                leau 261,u
+                pshu x,y,a
+                puls x,pc                         ; Get out of here
 
-OFF45           pshs   X
-                addb   #5
-                tfr    D,U
-                ldx    #0
-                leay   ,X
+OFF45:          pshs x
+                addb #5
+                tfr d,u
+                ldx #0
+                leay ,x
                 clra
-                bra    OFF450
+                bra OFF450
 ;
-; DISPLAY YOUR INVISO
-IVDISP          pshs   D,X,Y,U
-                lda    SAMEXC
-                bne    IVDX
-                ldx    #P1IVD
-                lda    .P1INV
-                bsr    IVDSP
-                lda    PLRCNT
+; Display your inviso
+IVDISP:         pshs d,x,y,u
+                lda SAMEXC
+                bne IVDX
+                ldx #P1IVD
+                lda .P1INV
+                bsr IVDSP
+                lda PLRCNT
                 deca
-                beq    IVDX
-                ldx    #P2IVD
-                lda    .P2INV
-                bsr    IVDSP
-IVDX            puls   D,X,Y,U,PC
-IVDSP           pshs   A
-                ldd    #$2402
-                jsr    BLKCLR
-                lda    ,S+
-                beq    IVDSPX
-                cmpa   #180
-                bls    IVDSP1
-                lda    #180
-IVDSP1          ldb    #$FF
-                stb    ,X
-                stb    1,X
-                leax   $100,X
-                suba   #5
-                bhi    IVDSP1
-IVDSPX          rts
+                beq IVDX
+                ldx #P2IVD
+                lda .P2INV
+                bsr IVDSP
+IVDX:           puls d,x,y,u,pc
+IVDSP:          pshs a
+                ldd #$2402
+                jsr BLKCLR
+                lda ,s+
+                beq IVDSPX
+                cmpa #180
+                bls IVDSP1
+                lda #180
+IVDSP1:         ldb #$FF
+                stb ,x
+                stb 1,x
+                leax $100,x
+                suba #5
+                bhi IVDSP1
+IVDSPX:         rts
 
-;;; DISPLAY LASERS
-LDISP           pshs   D,X,Y,U              ; PLAYER 1
-                lda    SAMEXC
-                bne    !exit
-                ldx    #P1LAS
-                lda    .P1LAS
-                bsr    LDSP
-                lda    PLRCNT
+;;; Display lasers
+LDISP:          pshs d,x,y,u                      ; Player 1
+                lda SAMEXC
+                bne !exit
+                ldx #P1LAS
+                lda .P1LAS
+                bsr LDSP
+                lda PLRCNT
                 deca
-                beq    !exit
-                ldx    #P2LAS
-                lda    .P2LAS
-                bsr    LDSP
-!exit           puls   D,X,Y,U,PC
+                beq !exit
+                ldx #P2LAS
+                lda .P2LAS
+                bsr LDSP
+!exit:          puls d,x,y,u,pc
 
 
 ;;; Display a laser
-;;; A = 
-;;; X -> 
-LDSP            pshs   A
-                ldd    #$2406
-                jsr    BLKCLR
-                lda    ,S
-                cmpa   #17
-                bls    LDSP1
-                lda    #17                  ; MAXED
-LDSP1           cmpa   #10
-                blo    LDSP2                ; >10
-                suba   #10
-                sta    ,S                   ; SAVE 1S
-                ldy    #PLAPIC
-                tfr    X,D
-                jsr    CWRIT
-                ldy    #PL10P               ; 10
-                addd   #$0002
-                jsr    CWRIT
-                leax   $0803,X
-LDSP2           lda    ,S
-                beq    LDSPX                ; NOBODY LEFT
-                tfr    X,D
-                ldy    #PL1P
-LDSP3           jsr    CWRIT                ; WRITE OUT YOUR SHIPS
-                adda   #4
-                dec    ,S
-                bne    LDSP3
-LDSPX           puls   A,PC
+;;; A =
+;;; X ->
+LDSP:           pshs a
+                ldd #$2406
+                jsr BLKCLR
+                lda ,s
+                cmpa #17
+                bls LDSP1
+                lda #17                           ; Maxed
+LDSP1:          cmpa #10
+                blo LDSP2                         ; >10
+                suba #10
+                sta ,s                            ; Save 1S
+                ldy #PLAPIC
+                tfr x,d
+                jsr CWRIT
+                ldy #PL10P                        ; 10
+                addd #$0002
+                jsr CWRIT
+                leax $0803,x
+LDSP2:          lda ,s
+                beq LDSPX                         ; Nobody left
+                tfr x,d
+                ldy #PL1P
+LDSP3:          jsr CWRIT                         ; Write out your ships
+                adda #4
+                dec ,s
+                bne LDSP3
+LDSPX:          puls a,pc
 
-;;; DISPLAY TOP OF SCREEN
-TDISP           pshs   D,X,Y,U
-                ldd    #$4020
-                ldx    #SCANER
-                jsr    BLKCLR
-                ldx    #$0008               ; PLAYER 1 UPPER RIGHT CORNER (NOTE...NO EQUATE)
-                ldd    #$2F28               ; PLAYER 1 REGION SIZE
-                jsr    BLKCLR
-                ldx    #$7108               ; PLAYER 2 UPPER RIGHT
-                ldd    #$2B28               ; REGION SIZE
-                jsr    BLKCLR
-                jsr    BORDER
-                jsr    LDISP
-                bsr    SBDISP
-                jsr    IVDISP
-                lda    PLRCNT
-!TD1            jsr    SCRTR0
+;;; Display top of screen
+TDISP:          pshs d,x,y,u
+                ldd #$4020
+                ldx #SCANER
+                jsr BLKCLR
+                ldx #$0008                        ; Player 1 upper right corner (note...no equate)
+                ldd #$2F28                        ; Player 1 region size
+                jsr BLKCLR
+                ldx #$7108                        ; Player 2 upper right
+                ldd #$2B28                        ; Region size
+                jsr BLKCLR
+                jsr BORDER
+                jsr LDISP
+                bsr SBDISP
+                jsr IVDISP
+                lda PLRCNT
+!TD1:           jsr SCRTR0
                 deca
-                bne    !TD1
-                jsr    MESINV               ; INITIALIZE MESSAGE REGION
-                puls   D,X,Y,U,PC
+                bne !TD1
+                jsr MESINV                        ; Initialize message region
+                puls d,x,y,u,pc
 
-;;; SMART BOMB DISPLAY
-SBDISP          pshs   X,Y,D,U
-                lda    SAMEXC               ; CHECK IF OK TO WRITE
-                bne    SBDX
-                ldx    #P1SBD
-                lda    .P1SBC
-                bsr    SBDSP
-                lda    PLRCNT
+;;; Smart bomb display
+SBDISP:         pshs x,y,d,u
+                lda SAMEXC                        ; Check if ok to write
+                bne SBDX
+                ldx #P1SBD
+                lda .P1SBC
+                bsr SBDSP
+                lda PLRCNT
                 deca
-                beq    SBDX
-                ldx    #P2SBD
-                lda    .P2SBC
-                bsr    SBDSP
-SBDX            puls   X,Y,D,U,PC
-SBDSP           pshs   A
-                ldd    #$2405
-                jsr    BLKCLR
-                lda    ,S
-                cmpa   #17
-                bls    SBDSP1
-                lda    #17
-SBDSP1          cmpa   #10
-                blo    SBDSP2
-                suba   #10
-                sta    ,S
-                ldy    #SB10P
-                tfr    X,D
-                jsr    CWRIT
-                leax   $0802,X
-SBDSP2          lda    ,S
-                beq    SBDSPX
-                ldy    #SBPIC
-                tfr    X,D
-SBDSP3          jsr    CWRIT
-                adda   #4
-                dec    ,S
-                bne    SBDSP3
-SBDSPX          puls   A,PC
+                beq SBDX
+                ldx #P2SBD
+                lda .P2SBC
+                bsr SBDSP
+SBDX:           puls x,y,d,u,pc
+SBDSP:          pshs a
+                ldd #$2405
+                jsr BLKCLR
+                lda ,s
+                cmpa #17
+                bls SBDSP1
+                lda #17
+SBDSP1:         cmpa #10
+                blo SBDSP2
+                suba #10
+                sta ,s
+                ldy #SB10P
+                tfr x,d
+                jsr CWRIT
+                leax $0802,x
+SBDSP2:         lda ,s
+                beq SBDSPX
+                ldy #SBPIC
+                tfr x,d
+SBDSP3:         jsr CWRIT
+                adda #4
+                dec ,s
+                bne SBDSP3
+SBDSPX:         puls a,pc
 
-;;; PLAYER SHIP 10DISPLAY
-PL10P   FCB 4,3
-        FDB PL10D
-PL10D   FCB $BB,$0B,$BB
-        FCB $9B,$9B,$96
-        FCB $99,$90,$99
-        FCB $9B,$96,$96
+;;; Player ship 10DISPLAY
+PL10P:          FCB 4,3
+                FDB PL10D
+PL10D:          FCB $BB,$0B,$BB
+                FCB $9B,$9B,$96
+                FCB $99,$90,$99
+                FCB $9B,$96,$96
 
-;;; PLAYER SHIP DISPLAY ONES UNITS
-PL1P    FCB 4,3
-        FDB PL1D00
-PL1D00  FCB $BB,$BB,$B6
-        FCB $00,$BE,$66
-        FCB $00,$F0,$6F
-        FCB $00,$00,$F0
-;;; SMART BOMB #10# DISP
-SB10P   FCB 7,5
-        FDB SB10D
-SB10D   FCB $99,$00,$00,$00,$99
-        FCB $00,$90,$99,$90,$00
-        FCB $09,$92,$92,$92,$09
-        FCB $99,$92,$92,$92,$99
-        FCB $99,$22,$92,$22,$99
-        FCB $90,$9C,$9C,$9C,$90
-        FCB $00,$00,$C0,$00,$00
+;;; Player ship display ones units
+PL1P:           FCB 4,3
+                FDB PL1D00
+PL1D00:         FCB $BB,$BB,$B6
+                FCB $00,$BE,$66
+                FCB $00,$F0,$6F
+                FCB $00,$00,$F0
+;;; Smart bomb #10# disp
+SB10P:          FCB 7,5
+                FDB SB10D
+SB10D:          FCB $99,$00,$00,$00,$99
+                FCB $00,$90,$99,$90,$00
+                FCB $09,$92,$92,$92,$09
+                FCB $99,$92,$92,$92,$99
+                FCB $99,$22,$92,$22,$99
+                FCB $90,$9C,$9C,$9C,$90
+                FCB $00,$00,$C0,$00,$00
 ;
-; DRAW BORDER
+; Draw border
 ;
-BORDER          lda    SCNCOL
-                ldb    SCNCOL
-                ldx    #PLIN
-BORD0           sta    ,X
-                leax   $100,X
-                cmpx   #SCANER
-                blo    BORD0
-                ldx    #P2ORG+PLIN-$100     ; PLAYER 2 LINE
-BORD00          sta    ,X
-                leax   $100,X
-                cmpx   #$9C00
-                blo    BORD00
-                sta    SCANER-1             ; SCANNER CORNERS
-                sta    SCANER+$FF
-                sta    SCANER+28
-                sta    SCANER+$100+28
-                anda   #$0F
-                ldx    #SCANER-$100-1
-BORD01          sta    ,X+
-                cmpx   #SCANER-$100+35
-                bne    BORD01
-                lda    SCNCOL               ; RIGHT CORNERS
-                ldb    SCNCOL
-                sta    SCANER+$3F00-1
-                sta    SCANER+$3E00-1
-                sta    SCANER+$3E00+28
-                sta    SCANER+$3F00+28
-                anda   #$F0
-                ldx    #SCANER+$4000-1
-BORD02          sta    ,X+
-                cmpx   #SCANER+$4009+26
-                bne    BORD02
-                ldd    #$9999
-                ldx    #SCANER+$1C00-2
-BORD3           std    ,X
-                std    30,X
-                leax   $100,X
-                cmpx   #SCANER+$2400-2
-                bne    BORD3
+BORDER:         lda SCNCOL
+                ldb SCNCOL
+                ldx #PLIN
+BORD0:          sta ,x
+                leax $100,x
+                cmpx #SCANER
+                blo BORD0
+                ldx #P2ORG+PLIN-$100              ; Player 2 line
+BORD00:         sta ,x
+                leax $100,x
+                cmpx #$9C00
+                blo BORD00
+                sta SCANER-1                      ; Scanner corners
+                sta SCANER+$FF
+                sta SCANER+28
+                sta SCANER+$100+28
+                anda #$0F
+                ldx #SCANER-$100-1
+BORD01:         sta ,x+
+                cmpx #SCANER-$100+35
+                bne BORD01
+                lda SCNCOL                        ; Right corners
+                ldb SCNCOL
+                sta SCANER+$3F00-1
+                sta SCANER+$3E00-1
+                sta SCANER+$3E00+28
+                sta SCANER+$3F00+28
+                anda #$F0
+                ldx #SCANER+$4000-1
+BORD02:         sta ,x+
+                cmpx #SCANER+$4009+26
+                bne BORD02
+                ldd #$9999
+                ldx #SCANER+$1C00-2
+BORD3:          std ,x
+                std 30,x
+                leax $100,x
+                cmpx #SCANER+$2400-2
+                bne BORD3
                 rts
 ;
 ;
 ;
-; START DATA TABLES
+; Start data tables
 ;
-; SWITCH TABLE
+; Switch table
 
 ;
-; COLOR RAM TABLE
+; Color RAM table
 ;
-CRTAB   FCB 0                           ;  0 SPACED OUT
-        FCB $F9                         ;  1 LASER (SPECIAL)
-        FCB $07                         ;  2 RED
-        FCB $28                         ;  3 GREEN
-        FCB $2F                         ;  4 YELLOW
-        FCB $00                         ;  5 MESSAGES
-        FCB $A4                         ;  6 GRAY
-        FCB $15                         ;  7 TERRAIN
-        FCB $C7                         ;  8 PURPLE
-        FCB $FF                         ;  9 WHITE
-        FCB $38                         ;  A BOMB CYCLER
-        FCB $17                         ;  B ORANGE
-        FCB $CC                         ;  C CYCLER
-        FCB $81                         ;  D TIE1
-        FCB $81                         ;  E TIE2
-        FCB $2F                         ;  F TIE3,MONO
+CRTAB:          FCB 0                             ;  0 Spaced out
+                FCB $F9                           ;  1 Laser (special)
+                FCB $07                           ;  2 Red
+                FCB $28                           ;  3 Green
+                FCB $2F                           ;  4 Yellow
+                FCB $00                           ;  5 Messages
+                FCB $A4                           ;  6 Gray
+                FCB $15                           ;  7 Terrain
+                FCB $C7                           ;  8 Purple
+                FCB $FF                           ;  9 White
+                FCB $38                           ;  A bomb cycler
+                FCB $17                           ;  B orange
+                FCB $CC                           ;  C cycler
+                FCB $81                           ;  D tie1
+                FCB $81                           ;  E tie2
+                FCB $2F                           ;  F tie3,mono
 
-PACTAB  FDB $0205,C5P1                  ; 500 POINTS, 500 PICTURE
-        FDB $0210,C10P1                 ; 1000
-        FDB $0215,C15P1                 ; 1500
-        FDB $0220,C20P1
+PACTAB:         FDB $0205,C5P1                    ; 500 Points, 500 picture
+                FDB $0210,C10P1                   ; 1000
+                FDB $0215,C15P1                   ; 1500
+                FDB $0220,C20P1
 
 ; *****************************
-; G R A P H I C S
+; G r A p h i c S
 ; *****************************
-; SCHITZO
-SCZP1   FCB 5,8
-        FDB SCZD10,SCZD11,ON58,OFF58
-; ASTRO EXPLODE
-ASXP1   FCB 4,8
-        FDB ASXD10,ASXD10,ON48,OFF48
-; SWARM EXPLODE
-SWXP1   FCB 4,8
-        FDB SWXD10,SWXD10,ON48,OFF48
-; NULL OBJECT
-NULOB   FCB 1,1
-        FDB NULD10,NULD10,DRTS,DRTS
-NULD10  FCB 0
-; PROBE
-PRBP1   FCB 4,8
-        FDB PRBD10,PRBD11,ON48,OFF48
-; ASTRONAUTS
-; FACING LEFT
-ASTP1   FCB 2,8
-        FDB ASTD10,ASTD11,ON28,OFF28
-ASTP2   FCB 2,8
-        FDB ASTD20,ASTD21,ON28,OFF28
-; FACING RT.
-ASTP3   FCB 2,8
-        FDB ASTD30,ASTD31,ON28,OFF28
-ASTP4   FCB 2,8
-        FDB ASTD40,ASTD41,ON28,OFF28
-; TIE PICTS
-TIEP1   FCB 4,8
-        FDB TIED10,TIED11,ON48,OFF48
-TIEP2   FCB 4,8
-        FDB TIED20,TIED21,ON48,OFF48
-TIEP3   FCB 4,8
-        FDB TIED30,TIED31,ON48,OFF48
-TIEP4   FCB 4,8
-        FDB TIED40,TIED41,ON48,OFF48
-; BOMB EXPLOSION PICT
-BXPIC   FCB 4,8
-        FDB BXD10,BXD10,ON48,OFF48
-; BOMB PICT
-BMBP1   FCB 2,3
-        FDB BMBD10,BMBD11,ON23,OFF23
-BMBP2   FCB 2,3
-        FDB BMBD20,BMBD21,ON23,OFF23
-; LASER PICT
-LASP1   FCB 8,1
-        FDB LASD10
-LASD10  FDB $FFFF,$FFFF,$FFFF,$FFFF
-; SWARM PICTS
-SWPIC1  FCB 3,4
-        FDB SWMD10,SWMD11,ON34,OFF34
-; PLAYER PICTURE
-PLAPIC  FCB 8,6
-        FDB PLD10,PLD11,ON86,OFF86
-PLBPIC  FCB 8,6
-        FDB PLD20,PLD21,ON86,OFF86
-; SMART BOMB
-SBPIC   FCB 3,3
-        FDB SBD10
-;  DANCING 2
-; 250 SCORE
-C25P1   FCB 6,5
-        FDB C25D10,C25D11,ON65,OFF65
+; Schitzo
+SCZP1:          FCB 5,8
+                FDB SCZD10,SCZD11,ON58,OFF58
+; Astro explode
+ASXP1:          FCB 4,8
+                FDB ASXD10,ASXD10,ON48,OFF48
+; Swarm explode
+SWXP1:          FCB 4,8
+                FDB SWXD10,SWXD10,ON48,OFF48
+; Null object
+NULOB:          FCB 1,1
+                FDB NULD10,NULD10,DRTS,DRTS
+NULD10:         FCB 0
+; Probe
+PRBP1:          FCB 4,8
+                FDB PRBD10,PRBD11,ON48,OFF48
+; Astronauts
+; Facing left
+ASTP1:          FCB 2,8
+                FDB ASTD10,ASTD11,ON28,OFF28
+ASTP2:          FCB 2,8
+                FDB ASTD20,ASTD21,ON28,OFF28
+; Facing rt.
+ASTP3:          FCB 2,8
+                FDB ASTD30,ASTD31,ON28,OFF28
+ASTP4:          FCB 2,8
+                FDB ASTD40,ASTD41,ON28,OFF28
+; Tie picts
+TIEP1:          FCB 4,8
+                FDB TIED10,TIED11,ON48,OFF48
+TIEP2:          FCB 4,8
+                FDB TIED20,TIED21,ON48,OFF48
+TIEP3:          FCB 4,8
+                FDB TIED30,TIED31,ON48,OFF48
+TIEP4:          FCB 4,8
+                FDB TIED40,TIED41,ON48,OFF48
+; Bomb explosion pict
+BXPIC:          FCB 4,8
+                FDB BXD10,BXD10,ON48,OFF48
+; Bomb pict
+BMBP1:          FCB 2,3
+                FDB BMBD10,BMBD11,ON23,OFF23
+BMBP2:          FCB 2,3
+                FDB BMBD20,BMBD21,ON23,OFF23
+; Laser pict
+LASP1:          FCB 8,1
+                FDB LASD10
+LASD10:         FDB $FFFF,$FFFF,$FFFF,$FFFF
+; Swarm picts
+SWPIC1:         FCB 3,4
+                FDB SWMD10,SWMD11,ON34,OFF34
+; Player picture
+PLAPIC:         EQU $20A9
+PLAPIC_HEADER:  FCB 8,6
+                FDB PLD10,PLD11,ON86,OFF86
+PLBPIC:         EQU $20B3
+PLBPIC_HEADER:  FCB 8,6
+                FDB PLD20,PLD21,ON86,OFF86
+; Smart bomb
+SBPIC:          FCB 3,3
+                FDB SBD10
+;  Dancing 2
+; 250 Score
+C25P1:          FCB 6,5
+                FDB C25D10,C25D11,ON65,OFF65
 
-; 500 SCORE
+; 500 Score
 
-C5P1    FCB 6,5
-        FDB C5D10,C5D11,ON65,OFF65
-C10P1   FCB 7,5
-        FDB C10EVN,C10ODD
-        FDB ON75,OFF75
+C5P1:           FCB 6,5
+                FDB C5D10,C5D11,ON65,OFF65
+C10P1:          FCB 7,5
+                FDB C10EVN,C10ODD
+                FDB ON75,OFF75
 
-C15P1   FCB 7,5
-        FDB C15EVN,C15ODD
-        FDB ON75,OFF75
+C15P1:          FCB 7,5
+                FDB C15EVN,C15ODD
+                FDB ON75,OFF75
 
-C20P1   FCB 8,5
-        FDB C20EVN,C20ODD
-        FDB ON85,OFF85
+C20P1:          FCB 8,5
+                FDB C20EVN,C20ODD
+                FDB ON85,OFF85
 
-; 250 SCORE
-C25D10  FCB $11,$00,$11,$10,$11
-        FCB $10,$10,$10,$00,$10
-        FCB $11,$10,$11,$00,$11
-        FCB $10,$00,$10,$10,$10
-        FCB $11,$10,$10,$10,$11
-        FCB $10,$10,$10,$10,$10
-C25D11  FCB $01,$00,$01,$01,$01
-        FCB $11,$01,$11,$00,$11
-        FCB $01,$01,$01,$00,$01
-        FCB $11,$00,$11,$01,$11
-        FCB $01,$01,$01,$01,$01
-        FCB $11,$01,$01,$01,$11
-; 500 SCORE
-C5D10
-        FCB $FF,$F0,$FF,$00,$FF
-        FCB $F0,$00,$F0,$F0,$F0
-        FCB $EE,$E0,$E0,$E0,$EE
-        FCB $E0,$E0,$E0,$E0,$E0
-        FCB $DD,$D0,$D0,$D0,$DD
-        FCB $D0,$D0,$D0,$D0,$D0
-C5D11
-        FCB $0F,$0F,$0F,$00,$0F
-        FCB $FF,$00,$FF,$0F,$FF
-        FCB $0E,$0E,$0E,$0E,$0E
-        FCB $EE,$0E,$0E,$0E,$EE
-        FCB $0D,$0D,$0D,$0D,$0D
-        FCB $DD,$0D,$0D,$0D,$DD
+; 250 Score
+C25D10:         FCB $11,$00,$11,$10,$11
+                FCB $10,$10,$10,$00,$10
+                FCB $11,$10,$11,$00,$11
+                FCB $10,$00,$10,$10,$10
+                FCB $11,$10,$10,$10,$11
+                FCB $10,$10,$10,$10,$10
+C25D11:         FCB $01,$00,$01,$01,$01
+                FCB $11,$01,$11,$00,$11
+                FCB $01,$01,$01,$00,$01
+                FCB $11,$00,$11,$01,$11
+                FCB $01,$01,$01,$01,$01
+                FCB $11,$01,$01,$01,$11
+; 500 Score
+C5D10:
+                FCB $FF,$F0,$FF,$00,$FF
+                FCB $F0,$00,$F0,$F0,$F0
+                FCB $EE,$E0,$E0,$E0,$EE
+                FCB $E0,$E0,$E0,$E0,$E0
+                FCB $DD,$D0,$D0,$D0,$DD
+                FCB $D0,$D0,$D0,$D0,$D0
+C5D11:
+                FCB $0F,$0F,$0F,$00,$0F
+                FCB $FF,$00,$FF,$0F,$FF
+                FCB $0E,$0E,$0E,$0E,$0E
+                FCB $EE,$0E,$0E,$0E,$EE
+                FCB $0D,$0D,$0D,$0D,$0D
+                FCB $DD,$0D,$0D,$0D,$DD
 
-C10EVN  FCB $10,$10,$10,$10,$10
-        FCB $11,$10,$10,$10,$11
-        FCB $10,$10,$10,$10,$10
-        FCB $11,$10,$10,$10,$11
-        FCB $10,$10,$10,$10,$10
-        FCB $11,$10,$10,$10,$11
-        FCB $10,$10,$10,$10,$10
+C10EVN:         FCB $10,$10,$10,$10,$10
+                FCB $11,$10,$10,$10,$11
+                FCB $10,$10,$10,$10,$10
+                FCB $11,$10,$10,$10,$11
+                FCB $10,$10,$10,$10,$10
+                FCB $11,$10,$10,$10,$11
+                FCB $10,$10,$10,$10,$10
 
-C10ODD  FCB $01,$01,$01,$01,$01
-        FCB $01,$01,$01,$01,$01
-        FCB $11,$01,$01,$01,$11
-        FCB $01,$01,$01,$01,$01
-        FCB $11,$01,$01,$01,$11
-        FCB $01,$01,$01,$01,$01
-        FCB $11,$01,$01,$01,$11
+C10ODD:         FCB $01,$01,$01,$01,$01
+                FCB $01,$01,$01,$01,$01
+                FCB $11,$01,$01,$01,$11
+                FCB $01,$01,$01,$01,$01
+                FCB $11,$01,$01,$01,$11
+                FCB $01,$01,$01,$01,$01
+                FCB $11,$01,$01,$01,$11
 
-C15EVN  FCB $C0,$C0,$C0,$C0,$C0
-        FCB $CC,$C0,$CC,$00,$CC
-        FCB $C0,$00,$C0,$C0,$C0
-        FCB $CC,$C0,$C0,$C0,$CC
-        FCB $C0,$C0,$C0,$C0,$C0
-        FCB $CC,$C0,$C0,$C0,$CC
-        FCB $C0,$C0,$C0,$C0,$C0
+C15EVN:         FCB $C0,$C0,$C0,$C0,$C0
+                FCB $CC,$C0,$CC,$00,$CC
+                FCB $C0,$00,$C0,$C0,$C0
+                FCB $CC,$C0,$C0,$C0,$CC
+                FCB $C0,$C0,$C0,$C0,$C0
+                FCB $CC,$C0,$C0,$C0,$CC
+                FCB $C0,$C0,$C0,$C0,$C0
 
-C15ODD  FCB $0C,$0C,$0C,$0C,$0C
-        FCB $0C,$0C,$0C,$00,$0C
-        FCB $CC,$00,$CC,$0C,$CC
-        FCB $0C,$0C,$0C,$0C,$0C
-        FCB $CC,$0C,$0C,$0C,$CC
-        FCB $0C,$0C,$0C,$0C,$0C
-        FCB $CC,$0C,$0C,$0C,$CC
+C15ODD:         FCB $0C,$0C,$0C,$0C,$0C
+                FCB $0C,$0C,$0C,$00,$0C
+                FCB $CC,$00,$CC,$0C,$CC
+                FCB $0C,$0C,$0C,$0C,$0C
+                FCB $CC,$0C,$0C,$0C,$CC
+                FCB $0C,$0C,$0C,$0C,$0C
+                FCB $CC,$0C,$0C,$0C,$CC
 
-C20EVN  FCB $FF,$00,$FF,$F0,$FF
-        FCB $F0,$F0,$F0,$00,$F0
-        FCB $FF,$F1,$F1,$F1,$FF
-        FCB $F0,$F0,$F0,$F0,$F0
-        FCB $FF,$F1,$F1,$F1,$FF
-        FCB $F0,$F0,$F0,$F0,$F0
-        FCB $FF,$F1,$F1,$F1,$FF
-        FCB $F0,$F0,$F0,$F0,$F0
+C20EVN:         FCB $FF,$00,$FF,$F0,$FF
+                FCB $F0,$F0,$F0,$00,$F0
+                FCB $FF,$F1,$F1,$F1,$FF
+                FCB $F0,$F0,$F0,$F0,$F0
+                FCB $FF,$F1,$F1,$F1,$FF
+                FCB $F0,$F0,$F0,$F0,$F0
+                FCB $FF,$F1,$F1,$F1,$FF
+                FCB $F0,$F0,$F0,$F0,$F0
 
-C20ODD  FCB $0F,$00,$0F,$0F,$0F
-        FCB $FF,$0F,$FF,$00,$FF
-        FCB $0F,$0F,$0F,$0F,$0F
-        FCB $FF,$1F,$1F,$1F,$FF
-        FCB $0F,$0F,$0F,$0F,$0F
-        FCB $FF,$1F,$1F,$1F,$FF
-        FCB $0F,$0F,$0F,$0F,$0F
-        FCB $FF,$1F,$1F,$1F,$FF
+C20ODD:         FCB $0F,$00,$0F,$0F,$0F
+                FCB $FF,$0F,$FF,$00,$FF
+                FCB $0F,$0F,$0F,$0F,$0F
+                FCB $FF,$1F,$1F,$1F,$FF
+                FCB $0F,$0F,$0F,$0F,$0F
+                FCB $FF,$1F,$1F,$1F,$FF
+                FCB $0F,$0F,$0F,$0F,$0F
+                FCB $FF,$1F,$1F,$1F,$FF
 ;
-; SCHITZO
+; Schitzo
 ;
-SCZD10  FCB $00,$03,$F0,$F0,$F3,$00,$01,$10
-        FCB $0C,$0C,$04,$08,$38,$10,$00,$00
-        FCB $C0,$C0,$38,$78,$78,$A0,$A0,$A0
-        FCB $00,$33,$03,$03,$33,$10,$01,$00
-        FCB $00,$00,$F0,$F0,$F0,$00,$00,$10
-SCZD11  FCB $00,$00,$0F,$0F,$0F,$00,$00,$01
-        FCB $00,$30,$00,$00,$33,$01,$10,$00
-        FCB $CC,$CC,$43,$87,$87,$0A,$0A,$0A
-        FCB $00,$03,$80,$80,$83,$01,$00,$00
-        FCB $00,$30,$3F,$3F,$3F,$00,$10,$01
-; ASTRO EXPLODE
-ASXD10  FDB $0000,$0D6C,$6C0D,$0000
-        FDB $06E6,$C883,$82C8,$EC06
-        FDB $606D,$8C28,$288C,$6D60
-        FDB $0000,$E0C6,$C6E0,$0000
-; SWARM EXPLODE
-SWXD10  FDB $0000,$0222,$2402,$0000
-        FDB $0222,$4444,$2442,$2200
-        FDB $2022,$4444,$2442,$2200
-        FDB $0000,$2022,$2220,$0000
-; PROBE
-PRBD10  FDB $000E,$00D8,$000E,$0000                ; 1
-        FDB $0F08,$8CC8,$8C08,$0F00                ; 2
-        FDB $000E,$80C8,$800E,$0000                ; 3
-        FDB $0000,$00D0,$0000,$0000                ; 4
-PRBD11  FDB $0000,$000D,$0000,$0000                ; 1
-        FDB $00E0,$088C,$08E0,$0000                ; 2
-        FDB $F080,$C88C,$C880,$F000                ; 3
-        FDB $00E0,$008D,$00E0,$0000                ; 4
-; ASTRONAUTS
-ASTD10  FDB $3343,$4387,$8707,$0707                ; 1
-        FDB $0000,$8080,$8000,$0000
-ASTD11  FDB $0304,$0408,$0800,$0000                ; 1
-        FDB $3030,$3878,$7870,$7070                ; 2
-ASTD20  FDB $3343,$4387,$8777,$7777                ; 1
-        FDB $0000,$8080,$8000,$0000
-ASTD21  FDB $0304,$0408,$0807,$0707
-        FDB $3030,$3878,$7870,$7070
-ASTD30  FDB $0303,$8387,$8707,$0707
-        FDB $3040,$4080,$8000,$0000
-ASTD31  FDB $0000,$0808,$0800,$0000
-        FDB $3334,$3478,$7870,$7070
-ASTD40  FDB $0303,$8387,$8707,$0707
-        FDB $3040,$4080,$8070,$7070
-ASTD41  FDB $0000,$0808,$0800,$0000
-        FDB $3334,$3478,$7877,$7777
+SCZD10:         FCB $00,$03,$F0,$F0,$F3,$00,$01,$10
+                FCB $0C,$0C,$04,$08,$38,$10,$00,$00
+                FCB $C0,$C0,$38,$78,$78,$A0,$A0,$A0
+                FCB $00,$33,$03,$03,$33,$10,$01,$00
+                FCB $00,$00,$F0,$F0,$F0,$00,$00,$10
+SCZD11:         FCB $00,$00,$0F,$0F,$0F,$00,$00,$01
+                FCB $00,$30,$00,$00,$33,$01,$10,$00
+                FCB $CC,$CC,$43,$87,$87,$0A,$0A,$0A
+                FCB $00,$03,$80,$80,$83,$01,$00,$00
+                FCB $00,$30,$3F,$3F,$3F,$00,$10,$01
+; Astro explode
+ASXD10:         FDB $0000,$0D6C,$6C0D,$0000
+                FDB $06E6,$C883,$82C8,$EC06
+                FDB $606D,$8C28,$288C,$6D60
+                FDB $0000,$E0C6,$C6E0,$0000
+; Swarm explode
+SWXD10:         FDB $0000,$0222,$2402,$0000
+                FDB $0222,$4444,$2442,$2200
+                FDB $2022,$4444,$2442,$2200
+                FDB $0000,$2022,$2220,$0000
+; Probe
+PRBD10:         FDB $000E,$00D8,$000E,$0000       ; 1
+                FDB $0F08,$8CC8,$8C08,$0F00       ; 2
+                FDB $000E,$80C8,$800E,$0000       ; 3
+                FDB $0000,$00D0,$0000,$0000       ; 4
+PRBD11:         FDB $0000,$000D,$0000,$0000       ; 1
+                FDB $00E0,$088C,$08E0,$0000       ; 2
+                FDB $F080,$C88C,$C880,$F000       ; 3
+                FDB $00E0,$008D,$00E0,$0000       ; 4
+; Astronauts
+ASTD10:         FDB $3343,$4387,$8707,$0707       ; 1
+                FDB $0000,$8080,$8000,$0000
+ASTD11:         FDB $0304,$0408,$0800,$0000       ; 1
+                FDB $3030,$3878,$7870,$7070       ; 2
+ASTD20:         FDB $3343,$4387,$8777,$7777       ; 1
+                FDB $0000,$8080,$8000,$0000
+ASTD21:         FDB $0304,$0408,$0807,$0707
+                FDB $3030,$3878,$7870,$7070
+ASTD30:         FDB $0303,$8387,$8707,$0707
+                FDB $3040,$4080,$8000,$0000
+ASTD31:         FDB $0000,$0808,$0800,$0000
+                FDB $3334,$3478,$7870,$7070
+ASTD40:         FDB $0303,$8387,$8707,$0707
+                FDB $3040,$4080,$8070,$7070
+ASTD41:         FDB $0000,$0808,$0800,$0000
+                FDB $3334,$3478,$7877,$7777
 ;
-; TIE PICTS
+; Tie picts
 ;
-TIED10  FDB $0808,$DDDE,$DEDE,$DD00                ; 1
-        FDB $8888,$DDEE,$FEEE,$DD00                ; 2
-        FDB $8888,$D8D8,$D8D0,$D000                ; 3
-        FDB 0,0,0,0                     ; 4
-TIED11  FDB $0000,$0D0D,$0D0D,$0D00                ; 1
-        FDB $8888,$DDEE,$EFEE,$DD00                ; 2
-        FDB $8888,$DDED,$EDED,$DD00                ; 3
-        FDB $8080,$8080,$8000,$0000                ; 4
-TIED20  FDB $0008,$DDDE,$DEDE,$DD00                ; 1
-        FDB $0088,$DDEE,$FEEE,$DD00                ; 2
-        FDB $0088,$D8D8,$D8D8,$D000                ; 3
-        FDB 0,0,0,0                     ; 4
-TIED21  FDB $0000,$0D0D,$0D0D,$0D00                ; 1
-        FDB $0088,$DDEE,$EFEE,$DD00                ; 2
-        FDB $0088,$DDED,$EDED,$DD00                ; 3
-        FDB $0080,$8080,$8080,$0000                ; 4
-TIED30  FDB $0000,$DDDE,$DEDE,$DD00                ; 1
-        FDB $0000,$DDEE,$FEEE,$DD00                ; 2
-        FDB $0000,$D8D8,$D8D8,$D800                ; 3
-        FDB 0,0,0,0                     ; 4
-TIED31  FDB $0000,$0D0D,$0D0D,$0D00                ; 1
-        FDB $0000,$DDEE,$EFEE,$DD00                ; 2
-        FDB $0000,$DDED,$EDED,$DD00                ; 3
-        FDB $0000,$8080,$8080,$8000                ; 4
-TIED40  FDB $0000,$DDDE,$DEDE,$DD00                ; 1
-        FDB $0000,$DDEE,$FEEE,$DD88                ; 2
-        FDB $0000,$D0D8,$D8D8,$D888                ; 3
-        FDB 0,0,0,0
-TIED41  FDB $0000,$0D0D,$0D0D,$0D00                ; 1
-        FDB $0000,$DDEE,$EFEE,$DD88                ; 2
-        FDB $0000,$DDED,$EDED,$DD88                ; 3
-        FDB $0000,$0080,$8080,$8080                ; 4
-; BOMB EXPLOSION PICT
-BXD10   FDB $000C,$CCCC,$CCCC,$0C00
-        FDB $CCCC,$CCCC,$CCCC,$CCCC
-        FDB $CCCC,$CCCC,$CCCC,$CCCC
-        FDB $00C0,$CCCC,$CCCC,$C000
+TIED10:         FDB $0808,$DDDE,$DEDE,$DD00       ; 1
+                FDB $8888,$DDEE,$FEEE,$DD00       ; 2
+                FDB $8888,$D8D8,$D8D0,$D000       ; 3
+                FDB 0,0,0,0                       ; 4
+TIED11:         FDB $0000,$0D0D,$0D0D,$0D00       ; 1
+                FDB $8888,$DDEE,$EFEE,$DD00       ; 2
+                FDB $8888,$DDED,$EDED,$DD00       ; 3
+                FDB $8080,$8080,$8000,$0000       ; 4
+TIED20:         FDB $0008,$DDDE,$DEDE,$DD00       ; 1
+                FDB $0088,$DDEE,$FEEE,$DD00       ; 2
+                FDB $0088,$D8D8,$D8D8,$D000       ; 3
+                FDB 0,0,0,0                       ; 4
+TIED21:         FDB $0000,$0D0D,$0D0D,$0D00       ; 1
+                FDB $0088,$DDEE,$EFEE,$DD00       ; 2
+                FDB $0088,$DDED,$EDED,$DD00       ; 3
+                FDB $0080,$8080,$8080,$0000       ; 4
+TIED30:         FDB $0000,$DDDE,$DEDE,$DD00       ; 1
+                FDB $0000,$DDEE,$FEEE,$DD00       ; 2
+                FDB $0000,$D8D8,$D8D8,$D800       ; 3
+                FDB 0,0,0,0                       ; 4
+TIED31:         FDB $0000,$0D0D,$0D0D,$0D00       ; 1
+                FDB $0000,$DDEE,$EFEE,$DD00       ; 2
+                FDB $0000,$DDED,$EDED,$DD00       ; 3
+                FDB $0000,$8080,$8080,$8000       ; 4
+TIED40:         FDB $0000,$DDDE,$DEDE,$DD00       ; 1
+                FDB $0000,$DDEE,$FEEE,$DD88       ; 2
+                FDB $0000,$D0D8,$D8D8,$D888       ; 3
+                FDB 0,0,0,0
+TIED41:         FDB $0000,$0D0D,$0D0D,$0D00       ; 1
+                FDB $0000,$DDEE,$EFEE,$DD88       ; 2
+                FDB $0000,$DDED,$EDED,$DD88       ; 3
+                FDB $0000,$0080,$8080,$8080       ; 4
+; Bomb explosion pict
+BXD10:          FDB $000C,$CCCC,$CCCC,$0C00
+                FDB $CCCC,$CCCC,$CCCC,$CCCC
+                FDB $CCCC,$CCCC,$CCCC,$CCCC
+                FDB $00C0,$CCCC,$CCCC,$C000
 ;
-; BOMB PICT
+; Bomb pict
 ;
-BMBD10  FDB $A00A,$A0A0,$00A0
-BMBD11  FDB $0A00,$0A0A,$A00A
-BMBD20  FDB $0AAA,$0A00,$A000
-BMBD21  FDB $000A,$00A0,$AAA0
-; SWARM PICTS
-SWMD10  FDB $0002,$2302
-        FDB $2022,$2322
-        FDB $0000,$2000
-SWMD11  FDB $0000,$0200
-        FDB $0222,$3222
-        FDB $0020,$3220
+BMBD10:         FDB $A00A,$A0A0,$00A0
+BMBD11:         FDB $0A00,$0A0A,$A00A
+BMBD20:         FDB $0AAA,$0A00,$A000
+BMBD21:         FDB $000A,$00A0,$AAA0
+; Swarm picts
+SWMD10:         FDB $0002,$2302
+                FDB $2022,$2322
+                FDB $0000,$2000
+SWMD11:         FDB $0000,$0200
+                FDB $0222,$3222
+                FDB $0020,$3220
 ;
-; PLAYER PICTURE
+; Player picture
 ;
-PLD10   FCB $FB,$0B,$BB,$0B,$BB,$06
-        FCB $00,$B0,$BB,$B6,$66,$66
-        FCB $00,$00,$BB,$66,$66,$FF
-        FCB $00,$00,$BB,$66,$66,$F0
-        FCB $00,$00,$B0,$6D,$66,$00
-        FCB $00,$00,$00,$EF,$66,$00
-        FCB $00,$00,$00,$00,$FF,$00
-        FCB $00,$00,$00,$00,$F0,$00
-PLD11   FCB $0F,$00,$0B,$00,$0B,$00
-        FCB $B0,$BB,$BB,$BB,$B6,$66
-        FCB $00,$00,$BB,$66,$66,$6F
-        FCB $00,$00,$BB,$66,$66,$FF
-        FCB $00,$00,$BB,$66,$66,$00
-        FCB $00,$00,$00,$DE,$66,$00
-        FCB $00,$00,$00,$F0,$6F,$00
-        FCB $00,$00,$00,$00,$FF,$00
-PLD20   FCB $00,$00,$00,$00,$FF,$00
-        FCB $00,$00,$00,$0F,$F6,$00
-        FCB $00,$00,$00,$ED,$66,$00
-        FCB $00,$00,$BB,$66,$66,$00
-        FCB $00,$00,$BB,$66,$66,$FF
-        FCB $00,$00,$BB,$66,$66,$F6
-        FCB $0B,$BB,$BB,$BB,$6B,$66
-        FCB $F0,$00,$B0,$00,$B0,$00
-PLD21   FCB $00,$00,$00,$00,$0F,$00
-        FCB $00,$00,$00,$00,$FF,$00
-        FCB $00,$00,$00,$FE,$66,$00
-        FCB $00,$00,$0B,$D6,$66,$00
-        FCB $00,$00,$BB,$66,$66,$0F
-        FCB $00,$00,$BB,$66,$66,$FF
-        FCB $00,$0B,$BB,$6B,$66,$66
-        FCB $BF,$B0,$BB,$B0,$BB,$60
-; SMART BOMB
-SBD10   FCB $90,$09,$90
-        FCB $99,$99,$99
-        FCB $90,$CC,$90
-; ************SCANNER BLIP FIX
-PACH1           ldu    CRPROC
-                lda    proc.data ,U
+PLD10:          FCB $FB,$0B,$BB,$0B,$BB,$06
+                FCB $00,$B0,$BB,$B6,$66,$66
+                FCB $00,$00,$BB,$66,$66,$FF
+                FCB $00,$00,$BB,$66,$66,$F0
+                FCB $00,$00,$B0,$6D,$66,$00
+                FCB $00,$00,$00,$EF,$66,$00
+                FCB $00,$00,$00,$00,$FF,$00
+                FCB $00,$00,$00,$00,$F0,$00
+PLD11:          FCB $0F,$00,$0B,$00,$0B,$00
+                FCB $B0,$BB,$BB,$BB,$B6,$66
+                FCB $00,$00,$BB,$66,$66,$6F
+                FCB $00,$00,$BB,$66,$66,$FF
+                FCB $00,$00,$BB,$66,$66,$00
+                FCB $00,$00,$00,$DE,$66,$00
+                FCB $00,$00,$00,$F0,$6F,$00
+                FCB $00,$00,$00,$00,$FF,$00
+PLD20:          FCB $00,$00,$00,$00,$FF,$00
+                FCB $00,$00,$00,$0F,$F6,$00
+                FCB $00,$00,$00,$ED,$66,$00
+                FCB $00,$00,$BB,$66,$66,$00
+                FCB $00,$00,$BB,$66,$66,$FF
+                FCB $00,$00,$BB,$66,$66,$F6
+                FCB $0B,$BB,$BB,$BB,$6B,$66
+                FCB $F0,$00,$B0,$00,$B0,$00
+PLD21:          FCB $00,$00,$00,$00,$0F,$00
+                FCB $00,$00,$00,$00,$FF,$00
+                FCB $00,$00,$00,$FE,$66,$00
+                FCB $00,$00,$0B,$D6,$66,$00
+                FCB $00,$00,$BB,$66,$66,$0F
+                FCB $00,$00,$BB,$66,$66,$FF
+                FCB $00,$0B,$BB,$6B,$66,$66
+                FCB $BF,$B0,$BB,$B0,$BB,$60
+; Smart bomb
+SBD10:          FCB $90,$09,$90
+                FCB $99,$99,$99
+                FCB $90,$CC,$90
+
+
+
+; ************Scanner blip fix
+PACH1:          ldu CRPROC
+                lda proc.data ,u
                 inca
-                cmpa   #4
-                bls    PACH10
+                cmpa #4
+                bls PACH10
                 clra
-PACH10          sta    proc.data ,U
-                bne    PACH1X
-                jsr    WVCHKV
-                cmpa   #5
-                bhi    PACH1X               ; TOO MANY GUYS
-                ldx    #OPTR
-                ldu    #SETAB
-                bsr    PCH13
-                ldx    #IPTR
-                bsr    PCH13
-                jmp    BOZ2                 ; EXIT BACK
-PACH1X          ldx    #OPTR
-                jmp    BOZ1
+PACH10:         sta proc.data ,u
+                bne PACH1X
+                jsr WVCHKV
+                cmpa #5
+                bhi PACH1X                        ; Too many guys
+                ldx #OPTR
+                ldu #SETAB
+                bsr scan_next_object
+                ldx #IPTR
+                bsr scan_next_object
+                jmp BOZ2                          ; Exit back
+PACH1X:         ldx #OPTR
+                jmp BOZ1
 
-; BLIP SCAN SUBROUTINE
-PCH110          ldd    OX16,X               ; FIND OFFSET
-                subd   XTEMP                ; SUBTRACT SCANNER LEFT
-                lsra                        ; SHIFT	DOWN TO 6 BITS
+;;; Render one object into the scanner blip table.
+;;;
+;;; Entered from scan_next_object with:
+;;;   X = current object
+;;;   U = next scanner-table location to write
+;;;   XTEMP = scanner's left-edge coordinate
+;;;
+;;; Object coordinates are scaled to scanner resolution. Most objects produce
+;;; a single colour entry; objects that are not shown on the scanner are
+;;; skipped, and the star gate is expanded into a four-cell pattern.
+;;;
+;;; This is the body of the scan_next_object loop. It advances U and branches
+;;; back to scan_next_object rather than returning directly to its caller.
+scan_blip:      ldd OX16,x                        ; Find offset
+                subd XTEMP                        ; Subtract scanner left
+                lsra                              ; Shift	down to 6 bits
                 lsra
-                ldb    OY16,X
+                ldb OY16,x
                 lsrb
                 lsrb
                 lsrb
-                addd   #SCANER-5
-                std    ,U
-                ldd    OBJCOL,X             ; STORE BLIP
-                beq    BLPX
-                cmpd   #$9000
-                beq    BLPX                 ; HUM
-                cmpd   #$4000
-                beq    BLPX                 ; FIREBALL
-                cmpa   #$33                 ; BAITER
-                beq    BLPX
-                cmpd   #$6666
-                beq    BLPX                 ; HUMANOIDS
-                cmpd   #$4433
-                beq    BLPX                 ; LANDERS
-                cmpa   #$1F                 ; STAR GATE?
-                bne    PCH120               ; NO
-                ldd    ,U
-                cmpa   #( SCANER>>8 )+$3F   ; CLIP GATE AT LIMIT
-                bne    PCH12A
+                addd #SCANER-5
+                std ,u
+                ldd OBJCOL,x                      ; Store blip
+                beq !BLPX
+                cmpd #$9000
+                beq !BLPX                         ; Hum
+                cmpd #$4000
+                beq !BLPX                         ; Fireball
+                cmpa #$33                         ; Baiter
+                beq !BLPX
+                cmpd #$6666
+                beq !BLPX                         ; Humanoids
+                cmpd #$4433
+                beq !BLPX                         ; Landers
+                cmpa #$1F                         ; Star gate?
+                bne !PCH120                       ; No
+                ldd ,u
+                cmpa #( SCANER>>8 )+$3F           ; Clip gate at limit
+                bne !PCH12A
                 deca
-                sta    ,U
-PCH12A          ldy    #$FFF0
-                sty    [,U++]
+                sta ,u
+!PCH12A:        ldy #$FFF0
+                sty [,u++]
                 incb
-                std    ,U
-                ldy    #$F0FF
-                sty    [,U++]
+                std ,u
+                ldy #$F0FF
+                sty [,u++]
                 inca
-                std    ,U
-                ldy    #$F0F0
-                sty    [,U++]
+                std ,u
+                ldy #$F0F0
+                sty [,u++]
                 decb
-                std    ,U
-                sty    [,U++]
-                bra    PCH13
-PCH120          ldd    #$9999
-BLPX            std    [,U++]
-PCH13           ldx    ,X                   ; DO THE REST
-                bne    PCH110
+                std ,u
+                sty [,u++]
+                bra scan_next_object
+!PCH120:        ldd #$9999
+!BLPX:          std [,u++]
+
+
+;;; Continue building the scanner blip table from an object list.
+;;;
+;;; Entry:
+;;;   X = address of an object-list link (OPTR or IPTR)
+;;;   U = next scanner-table location to write
+;;;
+;;; scan_next_object advances to the next object and dispatches to scan_blip.
+;;; scan_blip writes that object's scanner representation, then returns here.
+;;;
+;;; Exit:
+;;;   X = zero when the list is exhausted
+;;;   U = advanced past the scanner entries written
+;;;   A, B, D, X and condition codes are clobbered
+scan_next_object:
+                ldx ,x
+                bne scan_blip
                 rts
 
-;;; NO LOW PRIORITY SOUNDS IN ATTR
-; play sound fx in D
-SNDPCH          pshs   X,D,CC
-                clr    THFLG
-                tfr    D,X
-                lda    ,X
-                tst    STATUS
-                lbpl   $705                 ; NOT ATTR
-SNDPCX          cmpa   #$F0
-                lbhs   $705
-                puls   X,D,CC,PC            ; NOGO
+;;; No low priority sounds in attr
+; Play sound fx in D
+SNDPCH:         pshs x,d,cc
+                clr THFLG
+                tfr d,x
+                lda ,x
+                tst STATUS
+                lbpl $705                         ; Not attr
+SNDPCX:         cmpa #$F0
+                lbhs $705
+                puls x,d,cc,pc                    ; Nogo
 
-;;; ATTR SWITCH SCAN PATCH
-SWPCH           ldb    STATUS
-                bpl    SWPCHX
+;;; Attr switch scan patch
+SWPCH:          ldb STATUS
+                bpl SWPCHX
                 lsrb
-                bcs    SWPCHX
-                ldb    PIA2
-                andb   #$7D
-                orb    ATRSW2               ; THRUST+ UP
-                stb    PIA21
-                ldb    PIA3
-                andb   #$FE
-                orb    ATRSW3
+                bcs SWPCHX
+                ldb PIA2
+                andb #$7D
+                orb ATRSW2                        ; Thrust+ up
+                stb PIA21
+                ldb PIA3
+                andb #$FE
+                orb ATRSW3
                 jmp ::core::PATCH2
-SWPCHX          ldb    PIA2
+SWPCHX:         ldb PIA2
                 jmp ::core::PATCH1
 
-;;; NO SCORE IN ATTR PATCH
-SCRPCH          pshs   A,B,X,U,Y
-                tst    STATUS
-                bmi    SCRPCX               ; ATTR NO SCORE
-                orcc   #1
-                jmp    SCORE2
-SCRPCX          puls   A,B,X,U,Y,PC
+;;; No score in attr patch
+SCRPCH:         pshs a,b,x,u,y
+                tst STATUS
+                bmi SCRPCX                        ; Attr no score
+                orcc #1
+                jmp SCORE2
+SCRPCX:         puls a,b,x,u,y,pc
 
-;;; SMART BOMB DONT KILL NULLOBS PATCH
-SBPCH           ldd    OPICT,X
-                cmpd   #NULOB
-                lbeq   SBMB2
-                jsr    [OCVECT,X]
-SBRET           jmp    SBMB00
-LASPAT          lda    SAMEXC               ; NO LASER DURING BAD TERRAIN
-                bne    NOLAS
-                lda    LFLG                 ; HOW MANY
-                cmpa   #4
-                bhs    NOLAS
+;;; Smart bomb dont kill nullobs patch
+SBPCH:          ldd OPICT,x
+                cmpd #NULOB
+                lbeq SBMB2
+                jsr [OCVECT,x]
+SBRET:          jmp SBMB00
+LASPAT:         lda SAMEXC                        ; No laser during BAD terrain
+                bne NOLAS
+                lda LFLG                          ; How many
+                cmpa #4
+                bhs NOLAS
                 rts
-NOLAS           jmp    SUCIDE
+NOLAS:          jmp SUCIDE
 
-            org 0x2b70
-SWPACH          beq    SWP_
-                jsr    INVSTV
-SWP_            lda    INDIAG               ; NO SWITCH PROC IF IN DIAGS
-                bne    SWP3_                ; NO SWITCH PROCESSING
-                ldx    SWPROC               ; CHECK FIRST GUY
-                bne    SWP1_                ; DO HIS WORK
-                ldx    SWPROC+4             ; CHECK SECOND GUY
-                beq    SWP2_                ; EMPTY....CHECK THIRD
-                ldd    SWPROC+6
-                clr    SWPROC+4
-                clr    SWPROC+5
-                jmp    SWP3                 ; AND GO BACK AND DO REST
-SWP1_           ldd    SWPROC+2
-                clr    SWPROC
-                clr    SWPROC+1
-                jmp    SWP3                 ; JUMP BACK AND DO IT
-SWP2_           ldx    SWPR3_               ; CHECK THIRD SWITCH COUNTER
-                beq    SWP4_                ; NOTHING THERE...DONE.
-                ldd    SWPR3_+2
-                clr    SWPR3_
-                clr    SWPR3_+1
-                jmp    SWP3
-SWP4_           ldx    SWPR4_
-                lbeq   SWPX
-                ldd    SWPR4_+2
-                clr    SWPR4_
-                clr    SWPR4_+1
-                jmp    SWP3
+                org 0x2b70
+SWPACH:         beq SWP_
+                jsr INVSTV
+SWP_:           lda INDIAG                        ; No switch proc if in diags
+                bne SWP3_                         ; No switch processing
+                ldx SWPROC                        ; Check first guy
+                bne SWP1_                         ; Do his work
+                ldx SWPROC+4                      ; Check second guy
+                beq SWP2_                         ; Empty....check third
+                ldd SWPROC+6
+                clr SWPROC+4
+                clr SWPROC+5
+                jmp SWP3                          ; And go back and do rest
+SWP1_:          ldd SWPROC+2
+                clr SWPROC
+                clr SWPROC+1
+                jmp SWP3                          ; Jump back and do it
+SWP2_:          ldx SWPR3_                        ; Check third switch counter
+                beq SWP4_                         ; Nothing there...done.
+                ldd SWPR3_+2
+                clr SWPR3_
+                clr SWPR3_+1
+                jmp SWP3
+SWP4_:          ldx SWPR4_
+                lbeq SWPX
+                ldd SWPR4_+2
+                clr SWPR4_
+                clr SWPR4_+1
+                jmp SWP3
 ;
-SWP3_           jmp    SWPX                 ; JUMP PAST SWITCH PROCESSING
+SWP3_:          jmp SWPX                          ; Jump past switch processing
 
-; IRQ SWITCH PATCH
-SWWPC9          bne    SWWPC0               ;  NO ROOM IN FIRST COUNTER
-                std    SWPROC
-                stx    SWPROC+2
-                bra    SWWPC4
-SWWPC0          ldu    SWPROC+4
-                bne    SWWPC2
-                std    SWPROC+4
-                stx    SWPROC+6
-                bra    SWWPC4
-SWWPC2          ldu    SWPR3_
-                bne    SWWPC3
-                std    SWPR3_
-                stx    SWPR3_+2
-                bra    SWWPC4
-SWWPC3          std    SWPR4_
-                stx    SWPR4_+2
-SWWPC4          puls   U,D                  ; GET BASE, SHIFTERS BACK
+; IRQ switch patch
+SWWPC9:         bne SWWPC0                        ;  No room in first counter
+                std SWPROC
+                stx SWPROC+2
+                bra SWWPC4
+SWWPC0:         ldu SWPROC+4
+                bne SWWPC2
+                std SWPROC+4
+                stx SWPROC+6
+                bra SWWPC4
+SWWPC2:         ldu SWPR3_
+                bne SWWPC3
+                std SWPR3_
+                stx SWPR3_+2
+                bra SWWPC4
+SWWPC3:         std SWPR4_
+                stx SWPR4_+2
+SWWPC4:         puls u,d                          ; Get base, shifters back
                 tsta
-                lbne   SW0                  ; BIT STILL IN A NEED PROCESSING
-                rts                         ; ELSE RETURN TO INTERRUPT PROCESSOR
-HYPACH          lda    SCRFLG               ; ANY SCORE OR IS IT SAFE TO KILL HIM?
-                bne    HYPC1                ; YEP...KILL HIM
-                jmp    SUCIDE               ; NOPE..DIE
-HYPC1           jmp    PLNDV1
+                lbne SW0                          ; Bit still in A need processing
+                rts                               ; Else return to interrupt processor
+HYPACH:         lda SCRFLG                        ; Any score or is it safe to kill him?
+                bne HYPC1                         ; Yep...kill him
+                jmp SUCIDE                        ; Nope..die
+HYPC1:          jmp PLNDV1
 
-VOLPAC          clr    lava.time,X
-                clr    lava.x8,X
-                jmp    VOLCLX
-
-
+VOLPAC:         clr lava.time,x
+                clr lava.x8,x
+                jmp VOLCLX

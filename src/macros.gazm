@@ -1,77 +1,77 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Game macros
-macro poke(addr,val) {
-    org 0
-    put addr
-    fcb val
-}
+                macro poke(addr,val) {
+                org 0
+                put addr
+                fcb val
+                }
 
-macro section(addr) {
-    org 0
-    put addr
-}
+                macro section(addr) {
+                org 0
+                put addr
+                }
 
 
 ;;; Create a process with a run address of addr
-macro MAKP(addr) {
-    jsr	MAKEP
-    fdb addr
-}
+                macro MAKP(addr) {
+                jsr MAKEP
+                fdb addr
+                }
 
 ;;; Sleep for time frames and then run from wakeup
-macro NAP(time,wakeup) {
-    lda    #time                ;TIME
-    ldx    #wakeup              ;WAKEUP ADDR
-    jmp    SLEEP
-}
+                macro NAP(time,wakeup) {
+                lda #time                         ;Time
+                ldx #wakeup                       ;Wakeup addr
+                jmp SLEEP
+                }
 ;;; Sleep for time frames and continue
-;;; after sleep
-macro SLEEP(time) {
-    lda    #time            ; A = time
-    ldx    #*+6             ; Return address after sleep
-    jmp    SLEEP
-}
+;;; After sleep
+                macro SLEEP(time) {
+                lda #time                         ; A = time
+                ldx #*+6                          ; Return address after sleep
+                jmp SLEEP
+                }
 
-macro SHL(x0,x1,x2) {
-    jsr    GETSHL
-    FDB    x0, x1, x2
-}
+                macro SHL(x0,x1,x2) {
+                jsr GETSHL
+                FDB x0, x1, x2
+                }
 
-macro KILP (v0,v1) {
-    jsr    KILPOS
-    FDB    v0
-    FDB    v1
-}
+                macro KILP (v0,v1) {
+                jsr KILPOS
+                FDB v0
+                FDB v1
+                }
 
-macro KILO(v0,v1) {
-    jsr    KILOS
-    FDB  v0, v1
-}
+                macro KILO(v0,v1) {
+                jsr KILOS
+                FDB v0, v1
+                }
 
-macro OBI(va,vb,vc) {
-    jsr    OBINIT
-    FDB    va,vb,vc
-}
+                macro OBI(va,vb,vc) {
+                jsr OBINIT
+                FDB va,vb,vc
+                }
 
-macro CLRD() {
-    clra 
-    clrb 
-}
+                macro CLRD() {
+                clra
+                clrb
+                }
 
-macro 	DIE()  {
-    jmp    SUCIDE
-}
+                macro DIE()  {
+                jmp SUCIDE
+                }
 
 
-macro NEWP(addr, type) {
-    ldx    #addr
-    lda    #type
-    jsr    MKPROC
-}
+                macro NEWP(addr, type) {
+                ldx #addr
+                lda #type
+                jsr MKPROC
+                }
 
-macro MKPROB(process,object_pic,collion_vec,blip) {
-    jsr    MPROB
-    fdb    process,object_pic,collion_vec,blip
-}
+                macro MKPROB(process,object_pic,collion_vec,blip) {
+                jsr MPROB
+                fdb process,object_pic,collion_vec,blip
+                }
 
 

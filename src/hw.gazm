@@ -25,125 +25,125 @@
 //     C900 rom_enable_scr_ctrl  Switch between video ram and rom at 0000-97FF
 
 ; Stargate Hardware Registers
-CRAM      EQU    $C000      ;;; HW Reg: Colour RAM
-WDOG      EQU    $CBFF      ;;; HW Reg: Watch dog address
-WDATA     EQU    $39        ;;; HW Reg: Watch value
-CMOS      EQU    $CC00      ;;; HW Reg: CMOS Address
-VERTCT    EQU    $CB00      ;;; HW Reg: 6-bit vertical beam addr
+CRAM:           EQU $C000                         ;;; Hw Reg: Colour RAM
+WDOG:           EQU $CBFF                         ;;; Hw Reg: Watch dog address
+WDATA:          EQU $39                           ;;; Hw Reg: Watch value
+CMOS:           EQU $CC00                         ;;; Hw Reg: cmos Address
+VERTCT:         EQU $CB00                         ;;; Hw Reg: 6-bit vertical beam addr
 
-;;; HW register that controls whether reads to the screen
-;;; returns screen data or ROM and if the screen is
-;;; displayed inverted
-;;; * 0x01 : b0 : ROM read (0 for RAM read)
-;;; * 0x02 : b1 : invert screen, used for cocktail version
-RWCNTL    EQU    $C900
+;;; Hw register that controls whether reads to the screen
+;;; Returns screen data or ROM and if the screen is
+;;; Displayed inverted
+;;; * 0X01 : b0 : ROM read (0 for RAM read)
+;;; * 0X02 : b1 : invert screen, used for cocktail version
+RWCNTL:         EQU $C900
 
 ////////////////////////////////////////////////////////////////////////////////
 // PIA Stuff
 // Stagate has two 6821 PIAS https://sowerbutts.com/replica1-serial/6821.pdf
 // 6821 have two bidirectional data ports that can generate interupts
-struct Pia {
-    data_a : byte,
-    ctrl_a : byte,
-    data_b : byte,
-    ctrl_b : byte,
-}
+                struct Pia {
+                data_a : byte,
+                ctrl_a : byte,
+                data_b : byte,
+                ctrl_b : byte,
+                }
 
-ROM_PIA     equ $c80c           ;;; ROM PIA base address
-WIDGET_PIA  equ $c804           ;;; Widget PIA base address
+ROM_PIA:        equ $c80c                         ;;; ROM PIA base address
+WIDGET_PIA:     equ $c804                         ;;; Widget PIA base address
 
 ;;; ROM PIA Port A Data
 ;;;
-;;; * 0x01 : B0 : Auto up
-;;; * 0x02 : B1 : Advance
-;;; * 0x04 : B2 : RCOIN
-;;; * 0x08 : B3 : HSRESET
-;;; * 0x10 : B4 : Left coin
-;;; * 0x20 : B5 : Center Coin
-;;; * 0x40 : B6 : Slam door tilt
-;;; * 0x80 : B7 : Sound board handshake
-PIA0        EQU    ROM_PIA + Pia.data_a
+;;; * 0X01 : B0 : Auto up
+;;; * 0X02 : B1 : Advance
+;;; * 0X04 : B2 : rcoin
+;;; * 0X08 : B3 : hsreset
+;;; * 0X10 : B4 : Left coin
+;;; * 0X20 : B5 : Center Coin
+;;; * 0X40 : B6 : Slam door tilt
+;;; * 0X80 : B7 : Sound board handshake
+PIA0:           EQU ROM_PIA + Pia.data_a
 
 ;;; ROM PIA Port A Ctrl
 ;;;
-;;; * 0x01 : B0 : CA1 - IRQ 240 (16ms) (Line 240)
-;;; * 0x02 : B1 : CA1
-;;; * 0x04 : B2 : Data Direction
-;;; * 0x08 : B3 : CA2 - LEDS
-;;; * 0x10 : B4 : CA2
-;;; * 0x20 : B5 : CA2
-;;; * 0x40 : B6 : IRQ A
-;;; * 0x80 : B7 : IRQ B
-PIA0_ctrl   equ    ROM_PIA + Pia.ctrl_a
+;;; * 0X01 : B0 : CA1 - IRQ 240 (16ms) (Line 240)
+;;; * 0X02 : B1 : CA1
+;;; * 0X04 : B2 : Data Direction
+;;; * 0X08 : B3 : CA2 - leds
+;;; * 0X10 : B4 : CA2
+;;; * 0X20 : B5 : CA2
+;;; * 0X40 : B6 : IRQ A
+;;; * 0X80 : B7 : IRQ B
+PIA0_ctrl:      equ ROM_PIA + Pia.ctrl_a
 
 ;;; ROM PIA Port B Data
 ;;;
-;;; * 0x01 : B0 : Sound
-;;; * 0x02 : B1 : Sound
-;;; * 0x04 : B2 : Sound
-;;; * 0x08 : B3 : Sound
-;;; * 0x10 : B4 : Sound
-;;; * 0x20 : B5 : Sound
-;;; * 0x40 : B6 : LED
-;;; * 0x80 : B7 : LED
-PIA1        equ    ROM_PIA + Pia.data_b
+;;; * 0X01 : B0 : Sound
+;;; * 0X02 : B1 : Sound
+;;; * 0X04 : B2 : Sound
+;;; * 0X08 : B3 : Sound
+;;; * 0X10 : B4 : Sound
+;;; * 0X20 : B5 : Sound
+;;; * 0X40 : B6 : led
+;;; * 0X80 : B7 : led
+PIA1:           equ ROM_PIA + Pia.data_b
 
 ;;; Alias for ROM PIA data port B
-SOUND       equ    PIA1
+SOUND:          equ PIA1
 
 ;;; ROM PIA Port B Ctrl
 ;;;
-;;; * 0x01 : B0 : CB1 - IRQ 4 MS (0,$40,$80,$C0)
-;;; * 0x02 : B1 : CB1
-;;; * 0x04 : B2 : Data Direction
-;;; * 0x08 : B3 : CB2 - LEDS2
-;;; * 0x10 : B4 : CB2
-;;; * 0x20 : B5 : CB2
-;;; * 0x40 : B6 : IRQ A
-;;; * 0x80 : B7 : IRQ B
-PIA1_ctrl   equ    ROM_PIA + Pia.ctrl_b
+;;; * 0X01 : B0 : CB1 - IRQ 4 ms (0,$40,$80,$C0)
+;;; * 0X02 : B1 : CB1
+;;; * 0X04 : B2 : Data Direction
+;;; * 0X08 : B3 : CB2 - leds2
+;;; * 0X10 : B4 : CB2
+;;; * 0X20 : B5 : CB2
+;;; * 0X40 : B6 : IRQ A
+;;; * 0X80 : B7 : IRQ B
+PIA1_ctrl:      equ ROM_PIA + Pia.ctrl_b
 
 ;;; Widget PIA Port A Data
 ;;;
-;;; * 0x01 : B0 : Fire
-;;; * 0x02 : B1 : Thrust
-;;; * 0x04 : B2 : Smart Bomb
-;;; * 0x08 : B3 : Hyperspace
-;;; * 0x10 : B4 : 2 players start
-;;; * 0x20 : B5 : 1 player start
-;;; * 0x40 : B6 : Reverse
-;;; * 0x80 : B7 : Down
-PIA2        EQU    WIDGET_PIA + Pia.data_a
+;;; * 0X01 : B0 : Fire
+;;; * 0X02 : B1 : Thrust
+;;; * 0X04 : B2 : Smart Bomb
+;;; * 0X08 : B3 : Hyperspace
+;;; * 0X10 : B4 : 2 players start
+;;; * 0X20 : B5 : 1 player start
+;;; * 0X40 : B6 : Reverse
+;;; * 0X80 : B7 : Down
+PIA2:           EQU WIDGET_PIA + Pia.data_a
 
 ;;; Widget PIA Port A Ctrl
 ;;;
-PIA2_ctrl   equ    WIDGET_PIA + Pia.ctrl_a
+PIA2_ctrl:      equ WIDGET_PIA + Pia.ctrl_a
 
-sw_fire         equ 1 << 0
-sw_thrust       equ 1 << 1
-sw_smart_bomb   equ 1 << 2
-sw_hyperspace   equ 1 << 3
-sw_start2       equ 1 << 4
-sw_start1       equ 1 << 5
-sw_reverse      equ 1 << 6
-sw_down         equ 1 << 7
+sw_fire:        equ 1 << 0
+sw_thrust:      equ 1 << 1
+sw_smart_bomb:  equ 1 << 2
+sw_hyperspace:  equ 1 << 3
+sw_start2:      equ 1 << 4
+sw_start1:      equ 1 << 5
+sw_reverse:     equ 1 << 6
+sw_down:        equ 1 << 7
 
 ;;; Widget PIA Port B
 ;;;
 ;;; * B0 Up
 ;;; * B1 hyperdrive (anti-matter)  ....does it matter?
 ;;; * B7 Input 1=cocktail
-PIA3        equ    WIDGET_PIA + Pia.data_b
+PIA3:           equ WIDGET_PIA + Pia.data_b
 
 ;;; Widget PIA Port B ctrl
 ;;;
-;;; * 0x01 : B0 : CB1_0
-;;; * 0x02 : B1 : CB1_1
-;;; * 0x04 : B2 : Data Direction
-;;; * 0x08 : B3 : CB2_0 : %111 = Player 1
-;;; * 0x10 : B4 : CB2_1 : %110 = Player 2
-;;; * 0x20 : B5 : CB2_2 :
-;;; * 0x40 : B6 : IRQ A
-;;; * 0x80 : B7 : IRQ B
-PIA3_ctrl   equ    WIDGET_PIA + Pia.ctrl_b
+;;; * 0X01 : B0 : cb1_0
+;;; * 0X02 : B1 : cb1_1
+;;; * 0X04 : B2 : Data Direction
+;;; * 0X08 : B3 : cb2_0 : %111 = Player 1
+;;; * 0X10 : B4 : cb2_1 : %110 = Player 2
+;;; * 0X20 : B5 : cb2_2 :
+;;; * 0X40 : B6 : IRQ A
+;;; * 0X80 : B7 : IRQ B
+PIA3_ctrl:      equ WIDGET_PIA + Pia.ctrl_b
 

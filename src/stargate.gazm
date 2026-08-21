@@ -1,54 +1,54 @@
 
-    include "imports.gazm"
-	include "macros.gazm"
-	include "memory.gazm"
-    include "hw.gazm"
-	include "SPHR56.gazm"
+                include "imports.gazm"
+                include "macros.gazm"
+                include "memory.gazm"
+                include "hw.gazm"
+                include "SPHR56.gazm"
 
-	scope core
-        ;; Orgs at zero
-        ;; then at 0x7ad
-		include "RA37.gazm"
-        ;; carries on from RA37 to 0x26a7
-        ;; then orgs at 0x2b70
-		include "RB37.gazm"
+                scope core
+;; Orgs at zero
+;; Then at 0x7ad
+                include "RA37.gazm"
+;; Carries on from ra37 to 0x26a7
+;; Then orgs at 0x2b70
+                include "RB37.gazm"
 
-    scope trek5
-        include "TREK5.gazm"
+                scope trek5
+                include "TREK5.gazm"
 
-    scope trekc5
-        include "TREKC5.gazm"
+                scope trekc5
+                include "TREKC5.gazm"
 
-	scope lorom
-        include "YF14.gazm"
-        include "ET13.gazm"
-        include "MESS2.gazm"
-        include "BPS15.gazm"
-        include "LMA12.gazm"
-        include "SD51.gazm"
-        include "TEXT31.gazm"
-        include "SAM16.gazm"
-        include "DN11.gazm"
-		include "ATTR9.gazm"
-		include "LOG11.gazm"
-		include "TESTB12.gazm"
-		include "TESTC8.gazm"
-		include "TEST12.gazm"
+                scope lorom
+                include "YF14.gazm"
+                include "ET13.gazm"
+                include "MESS2.gazm"
+                include "BPS15.gazm"
+                include "LMA12.gazm"
+                include "SD51.gazm"
+                include "TEXT31.gazm"
+                include "SAM16.gazm"
+                include "DN11.gazm"
+                include "ATTR9.gazm"
+                include "LOG11.gazm"
+                include "TESTB12.gazm"
+                include "TESTC8.gazm"
+                include "TEST12.gazm"
 
-    scope fixups
-        include "fixups.gazm"
+                scope fixups
+                include "fixups.gazm"
 
-	;; Write the roms
-	writebin "$(OUT_DIR)/01",stargate_rom_1, $1000
-	writebin "$(OUT_DIR)/02",stargate_rom_2, $1000
-	writebin "$(OUT_DIR)/03",stargate_rom_3, $1000
-	writebin "$(OUT_DIR)/04",stargate_rom_4, $1000
-	writebin "$(OUT_DIR)/05",stargate_rom_5, $1000
-	writebin "$(OUT_DIR)/06",stargate_rom_6, $1000
-	writebin "$(OUT_DIR)/07",stargate_rom_7, $1000
-	writebin "$(OUT_DIR)/08",stargate_rom_8, $1000
-	writebin "$(OUT_DIR)/09",stargate_rom_9, $1000
-	writebin "$(OUT_DIR)/10",stargate_rom_10, $1000
-	writebin "$(OUT_DIR)/11",stargate_rom_11, $1000
-	writebin "$(OUT_DIR)/12",stargate_rom_12, $1000
+;; Write the roms
+                writebin "$(OUT_DIR)/01",stargate_rom_1, $1000
+                writebin "$(OUT_DIR)/02",stargate_rom_2, $1000
+                writebin "$(OUT_DIR)/03",stargate_rom_3, $1000
+                writebin "$(OUT_DIR)/04",stargate_rom_4, $1000
+                writebin "$(OUT_DIR)/05",stargate_rom_5, $1000
+                writebin "$(OUT_DIR)/06",stargate_rom_6, $1000
+                writebin "$(OUT_DIR)/07",stargate_rom_7, $1000
+                writebin "$(OUT_DIR)/08",stargate_rom_8, $1000
+                writebin "$(OUT_DIR)/09",stargate_rom_9, $1000
+                writebin "$(OUT_DIR)/10",stargate_rom_10, $1000
+                writebin "$(OUT_DIR)/11",stargate_rom_11, $1000
+                writebin "$(OUT_DIR)/12",stargate_rom_12, $1000
 

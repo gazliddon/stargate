@@ -1,179 +1,179 @@
 ; NLIST
 ; LIST
-; TTL <<<<<  S T A R G A T E  >>>>>
+; TTL <<<<<  Stargate  >>>>>
 
-            ORG LMAORG
+                ORG LMAORG
 
-LANDST          jmp    LNDST_
-SCZST           jmp    SCZST_
-ASTST           jmp    ASTST_
-LEDTRG          jmp    LEDTR_
-SHOOTV          jmp    SHOOT
-SHT00V          jmp    SHT00
-NITRV           jmp    NITRUS
-BOZOV           jmp    BOZOV_
-ASTPT       FDB ASTRO              ; FIXED STORED ADDRESSES
-AFALLP      FDB AFALL
-ASKILP      FDB ASTKIL
-LNDPV       FDB LNDP1
-PHSTV           jmp    PHST                    ; PHONY LANDER START
+LANDST:         jmp LNDST_
+SCZST:          jmp SCZST_
+ASTST:          jmp ASTST_
+LEDTRG:         jmp LEDTR_
+SHOOTV:         jmp SHOOT
+SHT00V:         jmp SHT00
+NITRV:          jmp NITRUS
+BOZOV:          jmp BOZOV_
+ASTPT:          FDB ASTRO                         ; Fixed stored addresses
+AFALLP:         FDB AFALL
+ASKILP:         FDB ASTKIL
+LNDPV:          FDB LNDP1
+PHSTV:          jmp PHST                          ; Phony lander start
 
-;;; START ASTROS
+;;; Start astros
 ;;; A=#
-;;; B=BIT 6,7 OF XADDR
-ASTST_          pshs   D
-                sta    XTEMP+1
-ASTST1 
+;;; B=bit 6,7 of xaddr
+ASTST_:         pshs d
+                sta XTEMP+1
+ASTST1:
                 OBI (ASTP1,ASTKIL,$6666)
-                jsr    RAND
-                ldd    HSEED
-                anda   #$1F
-                adda   1,S
-                std    OX16,X
+                jsr RAND
+                ldd HSEED
+                anda #$1F
+                adda 1,s
+                std OX16,x
                 lsrb
-                bcc    ASTS2
-                ldd    #ASTP3                  ; OPPOSITE DIRECTION
-                std    OPICT,X
-ASTS2           lda    #$E0
-                sta    OY16,X
-                lda    #$10
-                sta    OTYP,X                  ; NON COLLIDE
+                bcc ASTS2
+                ldd #ASTP3                        ; Opposite direction
+                std OPICT,x
+ASTS2:          lda #$E0
+                sta OY16,x
+                lda #$10
+                sta OTYP,x                        ; Non collide
                 CLRD()
-                std    OYV,X
-                std    OXV,X
-                std    OBJID,X
-                stx    OPTR
-                stx    ,Y++
-                dec    XTEMP+1
-                bne    ASTST1
-                puls   D,PC
+                std OYV,x
+                std OXV,x
+                std OBJID,x
+                stx OPTR
+                stx ,y++
+                dec XTEMP+1
+                bne ASTST1
+                puls d,pc
 
 ;;; __Kill Astronaut__
 ;;;  * _X_ -> Astronaut `obj` record to kill
-ASTKIL          lda    PCFLG                   ; PLAYER?
-                bne    NOKILL
-ASTK1           bsr    ASTCLR
-                jsr    KILOFF
-                ldd    #ASXP1
-                std    OPICT,X
-                ldd    OX16,X
-                subd   #$40
-                std    OX16,X
-                jsr    XSVCT
-                ldd    #AHSND
-                jmp    SNDLD
+ASTKIL:         lda PCFLG                         ; Player?
+                bne NOKILL
+ASTK1:          bsr ASTCLR
+                jsr KILOFF
+                ldd #ASXP1
+                std OPICT,x
+                ldd OX16,x
+                subd #$40
+                std OX16,x
+                jsr XSVCT
+                ldd #AHSND
+                jmp SNDLD
 
-;;; __Proc:__ AKIL1
+;;; __Proc:__ akil1
 ;;;  * _X_ -> Astronaut `obj` record to kill
-AKIL1           ldu    OBJID,X
-                beq    ASTKIL                  ; NOT FALLING
-                ldd    proc.addr,U             ; 1ST TIME
-                cmpd   #AFALL2
-                beq    NOKILL
-                lda    PCFLG
-                beq    AKIL10                  ; SHOT
-                ldd    #ACSND
-                jsr    SNDLD
-                pshs   X
-                MAKP (PPAC)                 ; DO THE INCREASING CATCH STUFF.
-                leay   ,X
-                puls   X
-                stx    proc.data,Y             ; ASTRO OBJ-500 ROUTINE
-AKIL2           ldd    #AFALL2
-                std    proc.addr,U
+AKIL1:          ldu OBJID,x
+                beq ASTKIL                        ; Not falling
+                ldd proc.addr,u                   ; 1ST time
+                cmpd #AFALL2
+                beq NOKILL
+                lda PCFLG
+                beq AKIL10                        ; Shot
+                ldd #ACSND
+                jsr SNDLD
+                pshs x
+                MAKP (PPAC)                       ; Do the increasing catch stuff.
+                leay ,x
+                puls x
+                stx proc.data,y                   ; Astro obj-500 routine
+AKIL2:          ldd #AFALL2
+                std proc.addr,u
 
-NOKILL          clra
-                puls   D,PC
+NOKILL:         clra
+                puls d,pc
 
-AKIL10          bsr    ASTK1
-                jmp    KILLOP
+AKIL10:         bsr ASTK1
+                jmp KILLOP
 
 
-;;; CLEAR ASTRO FROM LIST
-ASTCLR          leay   ,X                     ; TXY
-                pshs   X,U,A
-                tst    STATUS
+;;; Clear astro from LIST
+ASTCLR:         leay ,x                           ; Txy
+                pshs x,u,a
+                tst STATUS
 // Exit if game over flag set
-                bmi    !exit
+                bmi !exit
 
 // Search through the astronaut table for ME
-                ldu    #TLIST
-                lda    #(TLEND-TLIST)/2
-!loop           cmpy   ,U++
-                beq    !found
+                ldu #TLIST
+                lda #(TLEND-TLIST)/2
+!loop:          cmpy ,u++
+                beq !found
                 deca
-                bne    !loop
+                bne !loop
 // I can't find me! Error
-                jsr    ERROR
+                jsr ERROR
 
-!found      
+!found:
                 CLRD()
-                std    -2,U
-                dec    ASTCNT
-                bne    !no_splode
-                MAKP(TERBLO)                    ; BLOW UP TERRAIN
-                puls   X,U,PC,A               ; Return
+                std -2,u
+                dec ASTCNT
+                bne !no_splode
+                MAKP(TERBLO)                      ; Blow up terrain
+                puls x,u,pc,a                     ; Return
 
-!no_splode      ldb    ASTCNT                  ; LOOK AT COUNT
-                cmpb   #3                     ; FEW??
-                bhi    !exit                   ; NOPE..BYE
-                ldx    #ASFMES                 ; FEW AST MESSAGE
-                jsr    MESLDV                  ; TRY AND SEND IT.
-!exit           puls   X,U,PC,A
+!no_splode:     ldb ASTCNT                        ; Look at count
+                cmpb #3                           ; Few??
+                bhi !exit                         ; Nope..bye
+                ldx #ASFMES                       ; Few ast message
+                jsr MESLDV                        ; Try and send it.
+!exit:          puls x,u,pc,a
 
-ASFMES   FCB $E0,CLEAR,$C0,FEWM
+ASFMES:         FCB $E0,CLEAR,$C0,FEWM
 
-;;; TERRAIN BLOW PROCESS
-TERGL1          ldb    STATUS
-                bitb   #$74
-                beq    TERGL2
-TERGL3 
+;;; Terrain blow process
+TERGL1:         ldb STATUS
+                bitb #$74
+                beq TERGL2
+TERGL3:
                 NAP ($4,TERGL1)
-TERGL2 
+TERGL2:
                 NAP ($4,TERBLO)
 
-TERBLO          ldb    STATUS
-                bitb   #$74                   ; HYPER OR STAR GATE OR SOMETHING
-                bne    TERGL3                  ; YEP...STOP RIGHT THERE...
-                orb    #$06                    ; LET SAM CLEAN UP OR GET OUT OR WHATEVER.
-                stb    STATUS
-TBL2
-                ldx    SPTR                    ; TRASH BULLETS.
-                beq    TBL3
-                jsr    KILSHL
-                bra    TBL2
-TBL3
-                ldb    #$C0                    ; TIME TO SLEEP
-                bsr    NITRUS                  ; PUT THE BOYS TO SLEEP NOW
-                NAP (1,TBL4)                       ; LET THE SAM ROUTINE CLEANUP
-TBL4
-                ldx    #IPTR                   ; FIND END OF ILIST
-            TBBL3 ldy  ,X                    ; GET NEXT.
-                beq    TBBL4                   ; FOUND IT
-                leax   ,Y                     ; MOVE BACK TO X
-                bra    TBBL3
-TBBL4
-                ldy    OPTR                    ; GET ON SCREEN LIST
-                sty    ,X                      ; APPEND TWO LISTS.
-                ldd    #0
-                std    OPTR                    ; AND CLEAR THE ACTIVE ONE.
-                jsr    SCRCLR                  ; CLEAR THE ENTIRE SCREEN
-                inc    SAMEXC                  ; NOW LOCK HIM OUT
-                jsr    BLOWV                   ; DO THE EFFECT PLEASE
-                jsr    SCLEAN                  ; CLEAN UP SAMRAM
-                jsr    SCRCLR                  ; CLEAR THE STUFF AWAY.
-                jsr    TDISPV                  ; PUT THE TOP STUFF BACK
-                clr    proc.data,U             ; PARAMETER TO INDICATE WHICH LIST
-                ldx    #IPTR                   ; MAKE SURE INACTIVE GUYS FAR AWAY
-                bsr    HYPEM
-                inc    proc.data,U
-                ldx    #OPTR
-                bsr    HYPEM
-                jsr    OSCAN                   ; REFORM LIST
-                lda    STATUS
-                anda   #$FB
-                sta    STATUS                  ; REMOVE SAM INHIBITION
-                jmp    SUCIDE
+TERBLO:         ldb STATUS
+                bitb #$74                         ; Hyper or star gate or something
+                bne TERGL3                        ; Yep...stop right there...
+                orb #$06                          ; Let sam clean up or get out or whatever.
+                stb STATUS
+TBL2:
+                ldx SPTR                          ; Trash bullets.
+                beq TBL3
+                jsr KILSHL
+                bra TBL2
+TBL3:
+                ldb #$C0                          ; Time to sleep
+                bsr NITRUS                        ; Put the boys to sleep now
+                NAP (1,TBL4)                      ; Let the sam routine cleanup
+TBL4:
+                ldx #IPTR                         ; Find end of ilist
+TBBL3:          ldy ,x                            ; Get next.
+                beq TBBL4                         ; Found it
+                leax ,y                           ; Move back to X
+                bra TBBL3
+TBBL4:
+                ldy OPTR                          ; Get on screen LIST
+                sty ,x                            ; Append two lists.
+                ldd #0
+                std OPTR                          ; And clear the active one.
+                jsr SCRCLR                        ; Clear the entire screen
+                inc SAMEXC                        ; Now lock him out
+                jsr BLOWV                         ; Do the effect please
+                jsr SCLEAN                        ; Clean up samram
+                jsr SCRCLR                        ; Clear the stuff away.
+                jsr TDISPV                        ; Put the top stuff back
+                clr proc.data,u                   ; Parameter to indicate which LIST
+                ldx #IPTR                         ; Make sure inactive guys far away
+                bsr HYPEM
+                inc proc.data,u
+                ldx #OPTR
+                bsr HYPEM
+                jsr OSCAN                         ; Reform LIST
+                lda STATUS
+                anda #$FB
+                sta STATUS                        ; Remove sam inhibition
+                jmp SUCIDE
 
 ;;; __Params__: B = number of frames to sleep
 ;;;
@@ -182,943 +182,942 @@ TBBL4
 ;;; * Player death
 ;;; * Laser
 ;;; * Smartbomb
-NITRUS          ldx    ACTIVE              ; X -> active procs
-!loop           lda    proc.type,X         ; GET TYPE
-                cmpa   #CTYPE              ; COIN??
-                beq    !nosleep
-                cmpa   #DTYPE              ; DEATH??
-                beq    !nosleep            ; THEN NO DELAY
-                cmpa   #LTYPE              ; LASER??
-                beq    !nosleep
-                cmpa   #SBTYPE
-                beq    !nosleep
-                stb    proc.time,X         ; MAKE MAX TIME FOR NON COINS
-!nosleep
-                ldx    ,X                  ; x -> next proc
-                bne    !loop
+NITRUS:         ldx ACTIVE                        ; X -> active procs
+!loop:          lda proc.type,x                   ; Get type
+                cmpa #CTYPE                       ; Coin??
+                beq !nosleep
+                cmpa #DTYPE                       ; Death??
+                beq !nosleep                      ; Then no delay
+                cmpa #LTYPE                       ; Laser??
+                beq !nosleep
+                cmpa #SBTYPE
+                beq !nosleep
+                stb proc.time,x                   ; Make max time for non coins
+!nosleep:
+                ldx ,x                            ; X -> next proc
+                bne !loop
                 rts
 
 
 ;;; __Params__: X -> list
 ;;; Hyperspace the objects in this list to far away if they're
-;;; on screen
+;;; On screen
 ;;;
 ;;; Used to load balance  shit
-HYPEM           ldx    ,X                  ; GET THE NEXT MAN.
-                beq    !exit               ; BYE
-        ; Check to see if this object is
-        ; already far away
-                ldd    OX16,X              ; CHECK POSITION
-                subd   BGL                 ; ON SCREEN???
-                addd   #100*32             ; OR EVEN NEARBY??
-                cmpd   #500*32
-                bhs    HYPEM               ; Far away, DO NOTHING!
+HYPEM:          ldx ,x                            ; Get the next man.
+                beq !exit                         ; Bye
+; Check to see if this object is
+; Already far away
+                ldd OX16,x                        ; Check position
+                subd BGL                          ; On screen???
+                addd #100*32                      ; Or even nearby??
+                cmpd #500*32
+                bhs HYPEM                         ; Far away, do nothing!
 
-        ; Steady on Tex, dot hyperspace the
-        ; Stargates!
-                ldd    OPICT,X             ; DON HYPER STARGATES.
-                cmpd   #SGPIC
-                beq    HYPEM               ; GOOD BOY ROVER
+; Steady on Tex, dot hyperspace the
+; Stargates!
+                ldd OPICT,x                       ; Don hyper stargates.
+                cmpd #SGPIC
+                beq HYPEM                         ; Good boy rover
 
-        ; Move to other side of the world
-                ldd    OX16,X
-                addd   #$8000              ; TRIP TO THE SPACE WARS
-                std    OX16,X
+; Move to other side of the world
+                ldd OX16,x
+                addd #$8000                       ; Trip to the space wars
+                std OX16,x
 
-        ; 
-                tst    proc.data,U         ; WHICH LIST??
-                beq    HYPEM               ; INACTIVE.....LEAVE ALONE..
+;
+                tst proc.data,u                   ; Which LIST??
+                beq HYPEM                         ; Inactive.....leave alone..
 
-                ldd    OBJX,X              ; GET COORDINATE
-                beq    HYPEM               ; NOT THERE
-                ldy    OPICT,X             ; GET PICTURE
-                jsr    [OBJDEL,Y]          ; AND CAN IT.
-                bra    HYPEM               ; AND LOOP
+                ldd OBJX,x                        ; Get coordinate
+                beq HYPEM                         ; Not there
+                ldy OPICT,x                       ; Get picture
+                jsr [OBJDEL,y]                    ; And can it.
+                bra HYPEM                         ; And loop
 
-!exit           rts
+!exit:          rts
 
-;;; ASTRONAUT PROCESS
-;;; WALK ON TERRAIN
-;;; proc.data =CURRENT INDEX TO TLIST
-;;; updates 1 astronaut every 2 frames
-;;; 10 astronaust 
-ASTRO           ldx    proc.data,U             ; X -> last astronaut processed
-                leax   2,X                    ; skip to next astro
-                cmpx   #TLEND                 ; have we over stepped the end of the astro table?
-                blo    !not_end
-                ldx    #TLIST                  ; yes, point X at the start of the table
-!not_end
-                stx    proc.data,U             ; save ptr to process data
+;;; Astronaut process
+;;; Walk on terrain
+;;; Proc.data =current index to tlist
+;;; Updates 1 astronaut every 2 frames
+;;; 10 Astronaust
+ASTRO:          ldx proc.data,u                   ; X -> last astronaut processed
+                leax 2,x                          ; Skip to next astro
+                cmpx #TLEND                       ; Have we over stepped the end of the astro table?
+                blo !not_end
+                ldx #TLIST                        ; Yes, point X at the start of the table
+!not_end:
+                stx proc.data,u                   ; Save ptr to process data
 
-                ldx    ,X                      ; x ->  obj record
-                beq    ASTX                    ; No object! exit
-                ldd    OBJX,X                  ; D = obj screen rel XY
-                beq    ASTX                    ; 0 meabs offscreen so exit
-                ldd    OCVECT,X                 
-                cmpd   #ASTKIL
-                bne    ASTX                    ; CAPTURED
-                ldd    OPICT,X
-                cmpd   #ASTP2
-                bhi    ASTR                    ; WALKING TO RIGHT
+                ldx ,x                            ; X ->  obj record
+                beq ASTX                          ; No object! exit
+                ldd OBJX,x                        ; D = obj screen rel xy
+                beq ASTX                          ; 0 Meabs offscreen so exit
+                ldd OCVECT,x
+                cmpd #ASTKIL
+                bne ASTX                          ; Captured
+                ldd OPICT,x
+                cmpd #ASTP2
+                bhi ASTR                          ; Walking to right
 
-; WALKING TO LEFT
-                lda    SEED
-                cmpa   #8
-                bls    ASTRX1                  ; TURN AROUND
-                jsr    GETALT
-                adda   #4
-                cmpa   #$E8
-                bls    ASTL1
-                lda    #$E8
-ASTL1           ldb    #1
-                cmpa   OY16,X
-                beq    ASTL3
-                bhi    ASTL2
+; Walking to left
+                lda SEED
+                cmpa #8
+                bls ASTRX1                        ; Turn around
+                jsr GETALT
+                adda #4
+                cmpa #$E8
+                bls ASTL1
+                lda #$E8
+ASTL1:          ldb #1
+                cmpa OY16,x
+                beq ASTL3
+                bhi ASTL2
                 negb
-ASTL2           addb   OY16,X
-                stb    OY16,X                  ; UP/DOWN
-ASTL3           ldu    OPICT,X                 ; TOGGLE IMAGE
-                leau   OBJL,U
-                cmpu   #ASTP2
-                bls    ASTLX2
-ASTLX1          ldu    #ASTP1
-ASTLX2          ldb    #-$20                   ; MOVE LEFT
-                bra    ASTX1
+ASTL2:          addb OY16,x
+                stb OY16,x                        ; Up/down
+ASTL3:          ldu OPICT,x                       ; Toggle image
+                leau OBJL,u
+                cmpu #ASTP2
+                bls ASTLX2
+ASTLX1:         ldu #ASTP1
+ASTLX2:         ldb #-$20                         ; Move left
+                bra ASTX1
 
-; WALKING TO RIGHT
-ASTR            lda    SEED
-                cmpa   #$8
-                bls    ASTLX1                  ; TURN AROUND
-                jsr    GETALT
-                adda   #15
-                cmpa   #$E8
-                bls    ASTR1
-                lda    #$E8
-ASTR1           ldb    #1
-                cmpa   OY16,X
-                beq    ASTR3
-                bhi    ASTR2
+; Walking to right
+ASTR:           lda SEED
+                cmpa #$8
+                bls ASTLX1                        ; Turn around
+                jsr GETALT
+                adda #15
+                cmpa #$E8
+                bls ASTR1
+                lda #$E8
+ASTR1:          ldb #1
+                cmpa OY16,x
+                beq ASTR3
+                bhi ASTR2
                 negb
-ASTR2           addb   OY16,X
-                stb    OY16,X
-ASTR3           ldu    OPICT,X                 ; IMAGING
-                leau   OBJL,U
-                cmpu   #ASTP4
-                bls    ASTRX2
-ASTRX1          ldu    #ASTP3
-ASTRX2          ldb    #$20
-ASTX1           stu    OPICT,X
+ASTR2:          addb OY16,x
+                stb OY16,x
+ASTR3:          ldu OPICT,x                       ; Imaging
+                leau OBJL,u
+                cmpu #ASTP4
+                bls ASTRX2
+ASTRX1:         ldu #ASTP3
+ASTRX2:         ldb #$20
+ASTX1:          stu OPICT,x
                 sex
-                addd   OX16,X
-                std    OX16,X
-ASTX 
-        // Sleep for two frame
+                addd OX16,x
+                std OX16,x
+ASTX:
+// Sleep for two frame
                 NAP (2,ASTRO)
 
-;;; 250 POINT PROCESS
-;;; PD=ASTRO PROCESS
-P250            ldd    #$0125
-                jsr    SCORE                   ; SCORE IT
-                lda    OFREE                   ; ANY OBJECTS??
-                beq    SUCVV                   ; NOPE...JUST DROP DEAD
+;;; 250 Point process
+;;; PD=astro process
+P250:           ldd #$0125
+                jsr SCORE                         ; Score it
+                lda OFREE                         ; Any objects??
+                beq SUCVV                         ; Nope...just drop DEAD
                 OBI (C25P1,NOKILL,$0000)
-                ldy    proc.data,U             ; GET THE MAN OBJECT
-                ldd    OBJX,Y                  ; IS HE ON SCREEN??
-                lbne   P5001                  ; YEP....HANDLE LIKE A SET DOWN
-                ldd    OX16,Y                  ; GET THE MANS WORLD X
-                subd   PLABX                  ; COMPARE TO US
-                bmi    P2501                   ; HE OFF TO THE LEFT (HE SMALLER THAN US)
-                ldd    BGL                     ; HE TO THE RIGHT MAKE HIM GO NEGATIVE
-                addd   #312*32                ; PUT HIM JUST RIGHT OF THE SCREEN
-                std    OX16,X                  ; GOOD POSITION
-                ldd    PLAXV                   ; GET THE PLAYERS VELOCITY
-                subd   #2*32                  ; TWO PIXELS PER..LESS THAN PLAYER
-                bra    P2502
-P2501           ldd    BGL
-                std    OX16,X
-                ldd    PLAXV
-                addd   #2*32                  ; TWO PIXELS FASTER THAN THE PLAYER.
-P2502           std    OXV,X                   ; STORE THE VELOCITY
-                jmp    P2503                   ; JUMP INTO THE 500 ROUTINE TO PUT THE Y
+                ldy proc.data,u                   ; Get the man object
+                ldd OBJX,y                        ; Is he on screen??
+                lbne P5001                        ; Yep....handle like A set down
+                ldd OX16,y                        ; Get the mans world X
+                subd PLABX                        ; Compare to us
+                bmi P2501                         ; He off to the left (he smaller than us)
+                ldd BGL                           ; He to the right make him go negative
+                addd #312*32                      ; Put him just right of the screen
+                std OX16,x                        ; Good position
+                ldd PLAXV                         ; Get the players velocity
+                subd #2*32                        ; Two pixels per..less than player
+                bra P2502
+P2501:          ldd BGL
+                std OX16,x
+                ldd PLAXV
+                addd #2*32                        ; Two pixels faster than the player.
+P2502:          std OXV,x                         ; Store the velocity
+                jmp P2503                         ; Jump into the 500 routine to put the Y
 
-; AND OTHER STUFF IN
+; And other stuff in
 
-PPAC            lda    MANCTR                  ; GET THE COUNTER
-                asla                        ; X 4
+PPAC:           lda MANCTR                        ; Get the counter
+                asla                              ; X 4
                 asla
-                cmpa   #12                    ; MORE THAN 3 MEN?
-                bls    PPAC1                   ; NOPE
-                lda    #12                     ; 3 MEN +1 IS MAX BONUS
-PPAC1           ldy    #PACTAB
-                leay   A,Y                    ; POINTER OBTAINED
-                inc    MANCTR                  ; ADD THE NEW FELLOW ON THE BANDWAGON.
-                tst    OFREE                   ; ANY OBJECTS??
-                beq    SUCVV
-                jsr    GETOB                   ; WE NEED AN OBJECT FOR THE NUMBER
-                ldd    2,Y                     ; GET THE PICTURE FROM THE TABLE
-                std    OPICT,X
-                stu    OBJID,X
-                ldd    #NOKILL
-                std    OCVECT,X
-                ldd    #0
-                std    OBJCOL,X                ; NO BLIP
-                ldd    ,Y                      ; GET SCORE
-                bra    P5000
+                cmpa #12                          ; More than 3 men?
+                bls PPAC1                         ; Nope
+                lda #12                           ; 3 Men +1 is max bonus
+PPAC1:          ldy #PACTAB
+                leay a,y                          ; Pointer obtained
+                inc MANCTR                        ; ADD the new fellow on the bandwagon.
+                tst OFREE                         ; Any objects??
+                beq SUCVV
+                jsr GETOB                         ; We need an object for the number
+                ldd 2,y                           ; Get the picture from the table
+                std OPICT,x
+                stu OBJID,x
+                ldd #NOKILL
+                std OCVECT,x
+                ldd #0
+                std OBJCOL,x                      ; No blip
+                ldd ,y                            ; Get score
+                bra P5000
 
-                                        
-; 500 POINT PROCESS
-; X=EARTHLING OBJECT
 
-P500            jsr    WVCHKV                  ; CHECK FOR PRO-CATCH-END OF WAVE??
-                bne    P5103                   ; NOPE.
-                ldy    AFALLP                  ; CHECK FOR FALLING MEN PROCESSES
-                jsr    PCHEK
-                bne    PROCAT                  ; NONE IN THE AIR...GOLLY..IT MUST BE A PRO CATCH
-P5103           lda    OFREE                   ; OBJECTS??
-SUCVV           beq    SUCV
+; 500 Point process
+; X=earthling object
+
+P500:           jsr WVCHKV                        ; Check for pro-catch-end of wave??
+                bne P5103                         ; Nope.
+                ldy AFALLP                        ; Check for falling men processes
+                jsr PCHEK
+                bne PROCAT                        ; None in the air...golly..it must BE A pro catch
+P5103:          lda OFREE                         ; Objects??
+SUCVV:          beq SUCV
                 OBI (C5P1,NOKILL,$0000)
-P5100           ldd    #$0150
-P5000           jsr    SCORE
-                ldy    proc.data,U
-P5001           jsr    RAND                    ; CYCLE THE GENERATOR IN CASE OF MANY AT ONCE
-                ldb    SEED
-                asrb                        ; MUCH SMALLER
+P5100:          ldd #$0150
+P5000:          jsr SCORE
+                ldy proc.data,u
+P5001:          jsr RAND                          ; Cycle the generator in case of many at once
+                ldb SEED
+                asrb                              ; Much smaller
                 asrb
                 asrb
-                sex                         ; BIG NUMBER
-                addd   PLAXV                  ; ADD SKEW TO VELOCITY
-                std    OXV,X
-                ldd    OX16,Y
-                std    OX16,X
-P2503           ldb    HSEED                   ; Y SKEW......MAKE IT UPWARD
-                lda    #$FF
-                std    OYV,X
-                lda    #$11
-                sta    OTYP,X
-                ldd    OY16,Y
-                bmi    P501
-                addd   #$1800
-                bra    P502
-P501            subd   #$2000
-P502            std    OY16,X
-                stx    OPTR
-                stx    proc.data,U             ; OBJECT INDEX
+                sex                               ; Big number
+                addd PLAXV                        ; ADD skew to velocity
+                std OXV,x
+                ldd OX16,y
+                std OX16,x
+P2503:          ldb HSEED                         ; Y skew......make it upward
+                lda #$FF
+                std OYV,x
+                lda #$11
+                sta OTYP,x
+                ldd OY16,y
+                bmi P501
+                addd #$1800
+                bra P502
+P501:           subd #$2000
+P502:           std OY16,x
+                stx OPTR
+                stx proc.data,u                   ; Object index
                 NAP (100,P503)
-P503            ldx    proc.data,U
-                jsr    KILOFF
-SUCV            jmp    SUCIDE
+P503:           ldx proc.data,u
+                jsr KILOFF
+SUCV:           jmp SUCIDE
 
 ;
-; PRO CATCH
+; Pro catch
 ;
 
-PROCAT          jsr    GNCIDE                  ; MAMA...OOOO....I DONT WANT TO DIE
-                ldd    #$0220                  ; 2000 POINTS
-                jsr    SCORE                   ; AND SCORE IT
-                clr    PCRAM+5                 ; MAKE SURE IT IS BLACK
-                lda    #$76
-                sta    STATUS
+PROCAT:         jsr GNCIDE                        ; Mama...oooo....i dont want to die
+                ldd #$0220                        ; 2000 Points
+                jsr SCORE                         ; And score it
+                clr PCRAM+5                       ; Make sure it is black
+                lda #$76
+                sta STATUS
                 NAP (1,PROCT0)
-PROCT0          ldy    proc.data,U
-                ldd    OBJX,Y                  ; GET COORD OF MAN.
-                bne    PROCT1                  ; OK
-                ldd    #$50B0                  ; USE DEFAULT
-PROCT1          subb   #$15                   ; RAISE Y
-                suba   #$8                    ; CENTER
-                tfr    D,X                     ; MAKE IT THE CURSOR
-                jsr    PRINV                   ; INITIALIZE STUFF
-                lda    #PROM                   ; PRO MESSAGE
-                jsr    WRD7V                   ; AND PRINT THE MESSAGE
+PROCT0:         ldy proc.data,u
+                ldd OBJX,y                        ; Get coord of man.
+                bne PROCT1                        ; Ok
+                ldd #$50b0                        ; Use default
+PROCT1:         subb #$15                         ; Raise Y
+                suba #$8                          ; Center
+                tfr d,x                           ; Make it the cursor
+                jsr PRINV                         ; Initialize stuff
+                lda #PROM                         ; Pro message
+                jsr WRD7V                         ; And print the message
 
-                ldd    #PROSND
-                jsr    SNDLD                   ; DO THE SOUND
+                ldd #PROSND
+                jsr SNDLD                         ; Do the sound
 
-                lda    #$18
-                sta    proc.data,U
-                ldd    #$800                   ; FIRST DELAY
-                std    proc.data+1,U
-PROCT3          jsr    RAND
-                anda   #$1F
-                ldx    #COLTAB
-                lda    A,X
-                sta    PCRAM
+                lda #$18
+                sta proc.data,u
+                ldd #$800                         ; First delay
+                std proc.data+1,u
+PROCT3:         jsr RAND
+                anda #$1F
+                ldx #COLTAB
+                lda a,x
+                sta PCRAM
                 NAP (2,PROCT4)
-PROCT4          clr    PCRAM
-                dec    proc.data,U             ; DONE??
-                lbeq   ENDWVV                 ; YEP...BACK INTO GAME EXEC.
-                ldd    proc.data+1,U
-                cmpd   #$160
-                bhi    PROCT6
-                ldd    #$160
-PROCT6          subd   #$60
-                std    proc.data+1,U
-                ldx    #PROCT3
-                jmp    SLEEP
+PROCT4:         clr PCRAM
+                dec proc.data,u                   ; Done??
+                lbeq ENDWVV                       ; Yep...back into game exec.
+                ldd proc.data+1,u
+                cmpd #$160
+                bhi PROCT6
+                ldd #$160
+PROCT6:         subd #$60
+                std proc.data+1,u
+                ldx #PROCT3
+                jmp SLEEP
 
 
-PROSND FCB $FF,1,$30,$D,0
+PROSND:         FCB $FF,1,$30,$d,0
 
-; SHOOT AT PLAYER
-; X=OBJECT FIRING
+; Shoot at player
+; X=object firing
 
-SHOOT           pshs   X
+SHOOT:          pshs x
                 SHL (FBOUT,BMBP1,BKIL)
-SHT00           beq    SHOOTX                  ; NONE LEFT
-                ldb    SEED
-                andb   #$1F
-                addb   #-$10
-                addb   PLAXC
-                subb   OBJX,X
+SHT00:          beq SHOOTX                        ; None left
+                ldb SEED
+                andb #$1F
+                addb #-$10
+                addb PLAXC
+                subb OBJX,x
                 sex
                 aslb
                 rola
                 aslb
                 rola
-                std    OXV,X
-                ldb    SEED                    ; REL?
-                cmpb   #120
-                bls    SHOOT0                  ; NO
-                ldd    PLAXV
+                std OXV,x
+                ldb SEED                          ; Rel?
+                cmpb #120
+                bls SHOOT0                        ; No
+                ldd PLAXV
                 aslb
                 rola
                 aslb
                 rola
-                addd   OXV,X
-                std    OXV,X
-SHOOT0          ldb    LSEED
-                andb   #$1F
-                addb   #-$10
-                addb   PLAYC
-                subb   OBJY,X
+                addd OXV,x
+                std OXV,x
+SHOOT0:         ldb LSEED
+                andb #$1F
+                addb #-$10
+                addb PLAYC
+                subb OBJY,x
                 sex
                 aslb
                 rola
                 aslb
                 rola
-                std    OYV,X
-                lda    #1                      ; RETURN NE
-SHOOTX          puls   X,PC
+                std OYV,x
+                lda #1                            ; Return ne
+SHOOTX:         puls x,pc
 
 
-; LANDER SHOOT
+; Lander shoot
 
-LSHOT           dec    proc.d6,U
-                bne    LSHTX
-                lda    LDSTIM
-                jsr    RMAX
-                sta    proc.d6,U
-                bsr    SHOOT
-                beq    LSHTX
-                ldd    #LSHSND
-                jsr    SNDLD
-LSHTX           rts
+LSHOT:          dec proc.d6,u
+                bne LSHTX
+                lda LDSTIM
+                jsr RMAX
+                sta proc.d6,u
+                bsr SHOOT
+                beq LSHTX
+                ldd #LSHSND
+                jsr SNDLD
+LSHTX:          rts
 
 ;
-; START SCHITZOS
-; A=NUMBER
+; Start schitzos
+; A=number
 ; PD=X
-; PD2=SHOT TIMER
+; PD2=shot timer
 ;
 
-SCZST_          pshs   A
-                sta    XTEMP
-SCZS0 
-                MKPROB (SCZ0,SCZP1,SCZKIL,$CC33)
-                beq    SCZSX                   ; NOBODY LEFT
-                jsr    RAND
-                ldd    BGL
-                subd   #300*32
-                std    XTEMP2
-                ldd    HSEED
-                subd   XTEMP2
-                cmpd   #600*32
-                bhs    SCZS1
-                addd   #$8000
-SCZS1           addd   XTEMP2                 ; AVOID PLAYER
-                std    OX16,X
-                lda    SEED
+SCZST_:         pshs a
+                sta XTEMP
+SCZS0:
+                MKPROB (SCZ0,SCZP1,SCZKIL,$cc33)
+                beq SCZSX                         ; Nobody left
+                jsr RAND
+                ldd BGL
+                subd #300*32
+                std XTEMP2
+                ldd HSEED
+                subd XTEMP2
+                cmpd #600*32
+                bhs SCZS1
+                addd #$8000
+SCZS1:          addd XTEMP2                       ; Avoid player
+                std OX16,x
+                lda SEED
                 lsra
-                adda   #YMIN
-                sta    OY16,X
-                jsr    APVCT
-                inc    SCZCNT
-                dec    XTEMP
-                bne    SCZS0
-SCZSX           puls   A,PC
-; KILL SHITZO
-SCZKIL          dec    SCZCNT
+                adda #YMIN
+                sta OY16,x
+                jsr APVCT
+                inc SCZCNT
+                dec XTEMP
+                bne SCZS0
+SCZSX:          puls a,pc
+; Kill shitzo
+SCZKIL:         dec SCZCNT
                 KILP ($115,SCHSND)
                 rts
 ;
-; GET TARGET FROM LIST
-; RET EQ IF NONE,D=TRG OBJECT
-; U=PROCESS
+; Get target from LIST
+; Ret eq if none,D=trg object
+; U=process
 
-GTARG           pshs   X
-                lda    ASTCNT
-                beq    GTX                     ; NOBODY LEFT
-                ldx    TPTR
-GT1             leax   2,X
-                cmpx   #TLEND
-                blo    GT2
-                ldx    #TLIST
-GT2             ldd    ,X
-                bne    GT3
-                cmpx   TPTR                   ; AROUND ONCE?
-                bne    GT1
-                puls   X,PC
-GT3             stx    TPTR                    ; FOUND ONE
-                std    proc.d2,U
-                stx    proc.d4,U
-GTX             puls   X,PC
+GTARG:          pshs x
+                lda ASTCNT
+                beq GTX                           ; Nobody left
+                ldx TPTR
+GT1:            leax 2,x
+                cmpx #TLEND
+                blo GT2
+                ldx #TLIST
+GT2:            ldd ,x
+                bne GT3
+                cmpx TPTR                         ; Around once?
+                bne GT1
+                puls x,pc
+GT3:            stx TPTR                          ; Found one
+                std proc.d2,u
+                stx proc.d4,u
+GTX:            puls x,pc
 
-                                            ;
-                                            ; START LANDERS
-                                            ; A=NUMBER
-                                            ;
+;
+; Start landers
+; A=number
+;
 
-LNDST_          pshs   A
-                sta    XTEMP
-LNDST0          tst    ASTCNT                  ; NO MORE TARGETS
-                bne    LNDST1
-                jmp    SCZS0
-LNDST1 
+LNDST_:         pshs a
+                sta XTEMP
+LNDST0:         tst ASTCNT                        ; No more targets
+                bne LNDST1
+                jmp SCZS0
+LNDST1:
                 MKPROB (LANDS0,LNDP1,LKILL,$4433)
-                beq    LNDSTX                  ; NO MO
-                jsr    RAND
-                ldd    HSEED
-                std    OX16,X
-                lda    #YMIN+2
-                sta    OY16,X
-                ldd    LNDYV
-                std    OYV,X
-                lda    LDSTIM                  ; SHOOTING TIME
-                jsr    RMAX
-                sta    proc.d6,U
-                lda    LNDXV
-                jsr    RMAX
-                tfr    A,B
+                beq LNDSTX                        ; No mo
+                jsr RAND
+                ldd HSEED
+                std OX16,x
+                lda #YMIN+2
+                sta OY16,x
+                ldd LNDYV
+                std OYV,x
+                lda LDSTIM                        ; Shooting time
+                jsr RMAX
+                sta proc.d6,u
+                lda LNDXV
+                jsr RMAX
+                tfr a,b
                 clra
-                bitb   #1
-                beq    LNS2
+                bitb #1
+                beq LNS2
                 comb
                 coma
-LNS2            std    OXV,X
-                jsr    APVCT
-                bsr    GTARG
-                inc    LNDCNT
-                dec    XTEMP
-                bne    LNDST0
-LNDSTX          puls   A,PC
+LNS2:           std OXV,x
+                jsr APVCT
+                bsr GTARG
+                inc LNDCNT
+                dec XTEMP
+                bne LNDST0
+LNDSTX:         puls a,pc
 
-;UPDATE LANDERS OUT OF BOZO MODE
+;Update landers out of bozo mode
 
-BOZOV_          pshs   X,U,Y,D
-                ldu    #ACTIVE
-                bra    BOZVLP
-BOZOV0          ldy    proc.addr,U
-                cmpy   #LANDS0
-                blo    BOZVLP                  ; NOT A LANDER
-                bne    BOZV2                   ; NO VELOCITY
-                ldx    proc.data,U
-                lda    LNDXV
-                jsr    RMAX
-                tfr    A,B
+BOZOV_:         pshs x,u,y,d
+                ldu #ACTIVE
+                bra BOZVLP
+BOZOV0:         ldy proc.addr,u
+                cmpy #LANDS0
+                blo BOZVLP                        ; Not A lander
+                bne BOZV2                         ; No velocity
+                ldx proc.data,u
+                lda LNDXV
+                jsr RMAX
+                tfr a,b
                 clra
-                tst    OXV,X
-                bpl    BOZV1
+                tst OXV,x
+                bpl BOZV1
                 coma
-                comb                        ; PRESERVE SIGN
-BOZV1           std    OXV,X
-BOZV2           cmpy   #LANDFX                ; NOT A LANDER
-                bhi    BOZVLP
-                lda    LDSTIM                  ; GET SHOT TIMER
-                jsr    RMAX
-                sta    proc.d6,U
-BOZVLP          ldu    ,U
-                bne    BOZOV0
-                puls   X,Y,U,D,PC
+                comb                              ; Preserve sign
+BOZV1:          std OXV,x
+BOZV2:          cmpy #LANDFX                      ; Not A lander
+                bhi BOZVLP
+                lda LDSTIM                        ; Get shot timer
+                jsr RMAX
+                sta proc.d6,u
+BOZVLP:         ldu ,u
+                bne BOZOV0
+                puls x,y,u,d,pc
 
 
-; LANDER KIDNAP
-; PD=OBJECT,PD2=TARGET,PD4=TLIST INDEX
-; PD6=SHOT TIMER,PD7=ROTATION DIVIDER
+; Lander kidnap
+; PD=object,PD2=target,pd4=tlist index
+; Pd6=shot timer,pd7=rotation divider
 
-LANDS0          ldx    proc.data,U
-                ldy    proc.d2,U
-                ldd    [proc.d4,U]             ; TARGET ALIVE?
-                beq    LNDSAA
-                lda    OCVECT+1,Y
-                cmpa   #ASTKIL&$FF
-                bne    LNDSAA                  ; ORBIT
-                lda    OX16,X
-                anda   #$FC
-                sta    XTEMP
-                lda    OX16,Y
-                anda   #$FC
-                cmpa   XTEMP                  ; CLOSE?
-                beq    LANDG0                  ; GET IM
-                bra    LANDSA
-LNDSAA          lda    OTYP,X                  ; HYPERABLE
-                anda   #$FE
-                sta    OTYP,X
-                jsr    GTARG                   ; RE:TARGET
-                lbeq   SCZ00                  ; NO, FREAK
-LANDSA          jsr    GETALT
-                suba   #50
-                suba   OY16,X
-                bhi    LANDS1
-                cmpa   #-20
-                blt    LNDS1
+LANDS0:         ldx proc.data,u
+                ldy proc.d2,u
+                ldd [proc.d4,u]                   ; Target alive?
+                beq LNDSAA
+                lda OCVECT+1,y
+                cmpa #ASTKIL&$FF
+                bne LNDSAA                        ; Orbit
+                lda OX16,x
+                anda #$FC
+                sta XTEMP
+                lda OX16,y
+                anda #$FC
+                cmpa XTEMP                        ; Close?
+                beq LANDG0                        ; Get im
+                bra LANDSA
+LNDSAA:         lda OTYP,x                        ; Hyperable
+                anda #$FE
+                sta OTYP,x
+                jsr GTARG                         ; Re:target
+                lbeq SCZ00                        ; No, freak
+LANDSA:         jsr GETALT
+                suba #50
+                suba OY16,x
+                bhi LANDS1
+                cmpa #-20
+                blt LNDS1
                 clra
                 clrb
-                bra    LANDS2
-LNDS1           ldd    LNDYV
+                bra LANDS2
+LNDS1:          ldd LNDYV
                 coma
                 comb
-                bra    LANDS2
-LANDS1          ldd    LNDYV
-LANDS2          std    OYV,X                   ; NEW Y VEL
-                ldd    OPICT,X                 ; APPEARING?
-                cmpd   #NULOB
-                beq    LANDS4
-                lda    OBJY,X
-                beq    LANDS4                  ; DONT DO NOTHIN OF LOST.
-                jsr    LSHOT
-                bsr    LPSUB                   ; CYCLE IMAGE
+                bra LANDS2
+LANDS1:         ldd LNDYV
+LANDS2:         std OYV,x                         ; New Y vel
+                ldd OPICT,x                       ; Appearing?
+                cmpd #NULOB
+                beq LANDS4
+                lda OBJY,x
+                beq LANDS4                        ; Dont do nothin of lost.
+                jsr LSHOT
+                bsr LPSUB                         ; Cycle image
                 NAP (3,LNDSP1)
-LNDSP1          ldx    proc.data,U             ; GET PICTURE BACK
-                bsr    LPSUB                   ; DO THE PICTURE AGAIN
+LNDSP1:         ldx proc.data,u                   ; Get picture back
+                bsr LPSUB                         ; Do the picture again
                 NAP (3,LANDS0)
 
-LANDS4 
+LANDS4:
                 NAP (6,LANDS0)
 
-LPSUB           ldu    OPICT,X                 ; NEW PICT
-                leau   OBJL,U
-                cmpu   #LNDP4
-                bls    LANDS3
-                ldu    #LNDP1
-LANDS3          stu    OPICT,X
+LPSUB:          ldu OPICT,x                       ; New pict
+                leau OBJL,u
+                cmpu #LNDP4
+                bls LANDS3
+                ldu #LNDP1
+LANDS3:         stu OPICT,x
                 rts
 ;
-; LETS GET HIM
+; Lets get him
 ;
 
-LANDG0 
+LANDG0:
                 CLRD()
-                inc    OTYP,X                  ; DONT HYPER ME
-                std    OXV,X
-                std    OYV,X
-LANDG           ldx    proc.data,U
-                ldy    proc.d2,U
-                ldd    [proc.d4,U]
-                lbeq   LNDSAA                 ; DEAD
-                lda    OCVECT+1,Y
-                cmpa   #ASTKIL&$FF
-                lbne   LNDSAA                 ; TAKEN
-                ldd    OX16,Y
-                andb   #$E0
-                std    XTEMP2
-                ldd    OX16,X
-                andb   #$E0
-                cmpd   XTEMP2
-                beq    LNDG2
-                blt    LNDG1
-                ldb    #-$20
-                bra    LANDG1
-LNDG1           ldb    #$20
-LANDG1          sex
-                addd   OX16,X
-                std    OX16,X
-LNDG2           lda    OY16,Y
-                suba   #12
-                cmpa   OY16,X
-                beq    LANDG3
-                ldd    LNDYV
-                bhs    LANDG2
+                inc OTYP,x                        ; Dont hyper me
+                std OXV,x
+                std OYV,x
+LANDG:          ldx proc.data,u
+                ldy proc.d2,u
+                ldd [proc.d4,u]
+                lbeq LNDSAA                       ; DEAD
+                lda OCVECT+1,y
+                cmpa #ASTKIL&$FF
+                lbne LNDSAA                       ; Taken
+                ldd OX16,y
+                andb #$E0
+                std XTEMP2
+                ldd OX16,x
+                andb #$E0
+                cmpd XTEMP2
+                beq LNDG2
+                blt LNDG1
+                ldb #-$20
+                bra LANDG1
+LNDG1:          ldb #$20
+LANDG1:         sex
+                addd OX16,x
+                std OX16,x
+LNDG2:          lda OY16,y
+                suba #12
+                cmpa OY16,x
+                beq LANDG3
+                ldd LNDYV
+                bhs LANDG2
                 coma
                 comb
-LANDG2          addd   OY16,X
-                std    OY16,X
-LNDG20          jsr    LSHOT
+LANDG2:         addd OY16,x
+                std OY16,x
+LNDG20:         jsr LSHOT
                 NAP (1,LANDG)
 
-                                            ; ARE WE ON HIM?
-LANDG3          ldd    OX16,X
-                addd   #$0040
-                subd   OX16,Y
-                cmpd   #$80
-                bhi    LNDG20                  ; NOPE
-                ldd    #LKIL1                  ; CHANGE KILL VECTOR
-                std    OCVECT,X
-                ldd    LNDYV
+; Are we on him?
+LANDG3:         ldd OX16,x
+                addd #$0040
+                subd OX16,y
+                cmpd #$80
+                bhi LNDG20                        ; Nope
+                ldd #LKIL1                        ; Change kill vector
+                std OCVECT,x
+                ldd LNDYV
                 comb
                 coma
-                std    OYV,X                   ; SPLIT
-                std    OYV,Y
-                ldd    #LPKSND
-                jsr    SNDLD
-                ldd    #AKIL1
-                std    OCVECT,Y
+                std OYV,x                         ; Split
+                std OYV,y
+                ldd #LPKSND
+                jsr SNDLD
+                ldd #AKIL1
+                std OCVECT,y
 
-; FLEE
+; Flee
 
-LANDF           ldu    CRPROC
-                ldx    proc.data,U
-                lda    OY16,X
-                cmpa   #YMIN+8
-                bls    LANDFX                  ; ALL DONE
-                lda    OBJY,X
-                beq    LANDFO
-                jsr    LSHOT
-                jsr    LPSUB                   ; LOOK PRETTY WHILE YOUR RIPPING OFF THAT GUY
-LANDFO 
+LANDF:          ldu CRPROC
+                ldx proc.data,u
+                lda OY16,x
+                cmpa #YMIN+8
+                bls LANDFX                        ; All done
+                lda OBJY,x
+                beq LANDFO
+                jsr LSHOT
+                jsr LPSUB                         ; Look pretty while your ripping off that guy
+LANDFO:
                 NAP (3,LANDF)
 
-; PULL HIM INSIDE
+; Pull him inside
 
-LANDFX          ldd    #LSKSND
-                jsr    SNDLD
-LNDFXA          ldx    proc.data,U
-                ldy    proc.d2,U
-                ldd    [proc.d4,U]
-                bne    LNDFX0
-                jsr    KILOFF                  ; GIVE UP
-                dec    LNDCNT
-                inc    LNDRES
-                jmp    SUCIDE
-LNDFX0 
+LANDFX:         ldd #LSKSND
+                jsr SNDLD
+LNDFXA:         ldx proc.data,u
+                ldy proc.d2,u
+                ldd [proc.d4,u]
+                bne LNDFX0
+                jsr KILOFF                        ; Give up
+                dec LNDCNT
+                inc LNDRES
+                jmp SUCIDE
+LNDFX0:
                 CLRD()
-                std    OYV,X
-                std    OYV,Y
-                lda    OY16,Y
-                cmpa   OY16,X
-                bls    LNDFX1
-                dec    OY16,Y
-                lda    #$12
-                jsr    SNDOUT
+                std OYV,x
+                std OYV,y
+                lda OY16,y
+                cmpa OY16,x
+                bls LNDFX1
+                dec OY16,y
+                lda #$12
+                jsr SNDOUT
                 NAP (1,LNDFXA)
-LNDFX1          leax   ,Y                     ; KILL ASTRO
-                ldd    OBJX,Y                  ; CENTER EARTHLING BLOW
-                adda   #1
-                std    CENTMP
-                jsr    ASTK1
-SCZ00           dec    LNDCNT
-                bne    SCZ00_
-                lda    LNDRES                  ; CHECK RESERVE
-                bne    SCZ00_                  ; NUTS...
-                lda    STATUS
-                bita   #$2                    ; THE MEN ARE GONE, SO WHO CARES??
-                bne    SCZ00_
-                ldd    #$8FF                   ; FAST WHITE
-                std    MESSBL
-                ldx    #ALLLND                 ; ALL LANDER MESSAGE
-                jsr    MESLDV                  ; AND SEND IT.
-SCZ00_          inc    SCZCNT
-                ldx    proc.data,U
-                clr    OTYP,X                  ; OK TO HYPER
-                ldd    #SCZP1
-                std    OPICT,X
-                ldd    #$CC33
-                std    OBJCOL,X
-                ldd    #SCZKIL
-                std    OCVECT,X
-                lda    SZSTIM
-                sta    proc.d2,U
+LNDFX1:         leax ,y                           ; Kill astro
+                ldd OBJX,y                        ; Center earthling blow
+                adda #1
+                std CENTMP
+                jsr ASTK1
+SCZ00:          dec LNDCNT
+                bne SCZ00_
+                lda LNDRES                        ; Check reserve
+                bne SCZ00_                        ; Nuts...
+                lda STATUS
+                bita #$2                          ; The men are gone, so who cares??
+                bne SCZ00_
+                ldd #$8FF                         ; Fast white
+                std MESSBL
+                ldx #ALLLND                       ; All lander message
+                jsr MESLDV                        ; And send it.
+SCZ00_:         inc SCZCNT
+                ldx proc.data,u
+                clr OTYP,x                        ; Ok to hyper
+                ldd #SCZP1
+                std OPICT,x
+                ldd #$cc33
+                std OBJCOL,x
+                ldd #SCZKIL
+                std OCVECT,x
+                lda SZSTIM
+                sta proc.d2,u
 
-;;; I AM SCHITZO I,M FEELING FINE
-;;; PD=OBJECT,PD2=SHOT TIME
-SCZ0            ldx    proc.data,U
-                ldb    SZXV
-                ldy    PLABX
-                cmpy   OX16,X
-                bge    !skip
+;;; I am schitzo i,m feeling fine
+;;; PD=object,PD2=shot time
+SCZ0:           ldx proc.data,u
+                ldb SZXV
+                ldy PLABX
+                cmpy OX16,x
+                bge !skip
                 negb
-!skip           sex
-                std    OXV,X               ; SEEK X
-                ldd    PLABX               ; X CLOSE?
-                subd   OX16,X
-                addd   #380
-                cmpd   #$700
-                bls    SCZ6                ; SEEK Y
-                lda    PLAYC               ; AVOID Y
-                suba   OY16,X
-                bls    !skip2
-                cmpa   #8
-                bhi    SCZ3
-                ldd    SZYV
+!skip:          sex
+                std OXV,x                         ; Seek X
+                ldd PLABX                         ; X close?
+                subd OX16,x
+                addd #380
+                cmpd #$700
+                bls SCZ6                          ; Seek Y
+                lda PLAYC                         ; Avoid Y
+                suba OY16,x
+                bls !skip2
+                cmpa #8
+                bhi SCZ3
+                ldd SZYV
                 coma
                 comb
-                bra    SCZ5
-!skip2          cmpa   #-8
-                bgt    SCZ4
+                bra SCZ5
+!skip2:         cmpa #-8
+                bgt SCZ4
 
-SCZ3 
+SCZ3:
                 CLRD()
-                bra    SCZ5
+                bra SCZ5
 
-SCZ4            ldd    SZYV
-SCZ5            std    OYV,X
-                bra    SCZ10
-SCZ6            lda    PLAYC                   ; SEEK Y
-                cmpa   OY16,X
-                ldd    SZYV
-                bhs    SCZ7
+SCZ4:           ldd SZYV
+SCZ5:           std OYV,x
+                bra SCZ10
+SCZ6:           lda PLAYC                         ; Seek Y
+                cmpa OY16,x
+                ldd SZYV
+                bhs SCZ7
                 coma
                 comb
-SCZ7            std    OYV,X
-                ldd    OBJX,X
-                beq    SCZ12                   ; NOT ON SCREEN
+SCZ7:           std OYV,x
+                ldd OBJX,x
+                beq SCZ12                         ; Not on screen
 
-; RANDOM Y HOP
+; Random Y hop
 
-SCZ10           ldb    SZRY
-                lda    SEED
-                bmi    SCZ11
+SCZ10:          ldb SZRY
+                lda SEED
+                bmi SCZ11
                 negb
-SCZ11           addb   OY16,X
-                cmpb   #YMIN
-                bhs    SCZ110
-                ldb    #YMAX
-SCZ110          stb    OY16,X
-                dec    proc.d2,U               ; SHOT TIME
-                bne    SCZ12
-                lda    SZSTIM
-                jsr    RMAX
-                sta    proc.d2,U
-                jsr    SHOOT
-                beq    SCZ12
-                ldd    #SSHSND
-                jsr    SNDLD
-SCZ12 
+SCZ11:          addb OY16,x
+                cmpb #YMIN
+                bhs SCZ110
+                ldb #YMAX
+SCZ110:         stb OY16,x
+                dec proc.d2,u                     ; Shot time
+                bne SCZ12
+                lda SZSTIM
+                jsr RMAX
+                sta proc.d2,u
+                jsr SHOOT
+                beq SCZ12
+                ldd #SSHSND
+                jsr SNDLD
+SCZ12:
                 NAP (3,SCZ0)
 
-;;; KILL KIDNAPPING LANDER
-LKIL1           ldu    OBJID,X                 ; GOT A PASSENGER?
-                ldd    [proc.d4,U]
-                beq    LKILL
-LKIL2           ldu    OBJID,X
-                pshs   X
-                MAKP (AFALL)                         ; START HIM FALLING
-                ldu    proc.d2,U
-                stu    proc.data,X
-                ldd    #ASCSND
-                jsr    SNDLD                   ; SCREAM.....
-                ldd    #0
-                std    OYV,U
-                stx    OBJID,U
-                puls   X
+;;; Kill kidnapping lander
+LKIL1:          ldu OBJID,x                       ; Got A passenger?
+                ldd [proc.d4,u]
+                beq LKILL
+LKIL2:          ldu OBJID,x
+                pshs x
+                MAKP (AFALL)                      ; Start him falling
+                ldu proc.d2,u
+                stu proc.data,x
+                ldd #ASCSND
+                jsr SNDLD                         ; Scream.....
+                ldd #0
+                std OYV,u
+                stx OBJID,u
+                puls x
 
-; KILL LANDR
+; Kill landr
 
-LKILL           dec    LNDCNT
-                bne    LKILL_
-                lda    LNDRES                  ; CHECK RESERVES
-                bne    LKILL_                  ; NUTS
-                lda    STATUS
-                bita   #$2
-                bne    LKILL_                  ; MEN ALL DEAD..SO NO NEED.
-                ldd    #$8FF                   ; FAST WHITE
-                std    MESSBL
-                pshs   X
-                ldx    #ALLLND                 ; ALL LANDER MESSAGE
-                jsr    MESLDV                  ; AND SEND IT.
-                puls   X
-LKILL_ 
+LKILL:          dec LNDCNT
+                bne LKILL_
+                lda LNDRES                        ; Check reserves
+                bne LKILL_                        ; Nuts
+                lda STATUS
+                bita #$2
+                bne LKILL_                        ; Men all dead..so no need.
+                ldd #$8FF                         ; Fast white
+                std MESSBL
+                pshs x
+                ldx #ALLLND                       ; All lander message
+                jsr MESLDV                        ; And send it.
+                puls x
+LKILL_:
                 KILP ($115,LHSND)
                 rts
 
-ALLLND FCB $20,CLEAR + BLINK,$80,LNDKLM
+ALLLND:         FCB $20,CLEAR + BLINK,$80,LNDKLM
 
-; ASTRONAUT FALL
+; Astronaut fall
 
-AFALL           ldx    proc.data,U
-                ldd    #8                      ; ACCEL DOWNWARD
-                addd   OYV,X
-                cmpd   #$300
-                bhs    AFALL0
-                std    OYV,X
-AFALL0          jsr    GETALT
-                cmpa   OY16,X                 ; HIT GROUND?
-                bhi    AFALL1                  ; NO
-                ldd    OYV,X
-                cmpd   #$E0                   ; FATAL?
-                bls    ALAND                   ; NO
-                ldd    OBJX,X
-                addd   #$0107
-                std    CENTMP                  ; CENTER OF EXPLOSION
-                jsr    ASTK1
-                jmp    SUCIDE
-AFALL1 
+AFALL:          ldx proc.data,u
+                ldd #8                            ; Accel downward
+                addd OYV,x
+                cmpd #$300
+                bhs AFALL0
+                std OYV,x
+AFALL0:         jsr GETALT
+                cmpa OY16,x                       ; Hit ground?
+                bhi AFALL1                        ; No
+                ldd OYV,x
+                cmpd #$E0                         ; Fatal?
+                bls ALAND                         ; No
+                ldd OBJX,x
+                addd #$0107
+                std CENTMP                        ; Center of explosion
+                jsr ASTK1
+                jmp SUCIDE
+AFALL1:
                 NAP (4,AFALL)
-AFALL2          ldx    proc.data,U
-                ldd    #0
-                std    OYV,X
-                lda    PLAY16
-                adda   #10
-                sta    OY16,X
-                ldd    PLABX
-                addd   #$0080
-                std    OX16,X
-                jsr    GETALT
-                cmpa   OY16,X
-                blo    ALAND0                  ; WERE ON THE GROUND
+AFALL2:         ldx proc.data,u
+                ldd #0
+                std OYV,x
+                lda PLAY16
+                adda #10
+                sta OY16,x
+                ldd PLABX
+                addd #$0080
+                std OX16,x
+                jsr GETALT
+                cmpa OY16,x
+                blo ALAND0                        ; Were on the ground
                 NAP (1,AFALL2)
-ALAND           pshs   X
-                ldx    #P250
-                bra    ALND00
-ALAND0          pshs   X
-                dec    MANCTR                  ; ONE SMALL STEP FOR MAN...
-                ldx    #P500
-ALND00          lda    #STYPE
-                jsr    MKPROC
-                leay   ,X
-                puls   X
-                stx    proc.data,Y             ; ASTRO OBJECT TO 500 PROC
-                ldd    #0
-                std    OBJID,X
-                std    OYV,X
-                ldd    #ASTKIL
-                std    OCVECT,X
-                ldd    #ALSND
-                jsr    SNDLD
-                jmp    SUCIDE
+ALAND:          pshs x
+                ldx #P250
+                bra ALND00
+ALAND0:         pshs x
+                dec MANCTR                        ; One small step for man...
+                ldx #P500
+ALND00:         lda #STYPE
+                jsr MKPROC
+                leay ,x
+                puls x
+                stx proc.data,y                   ; Astro object to 500 proc
+                ldd #0
+                std OBJID,x
+                std OYV,x
+                ldd #ASTKIL
+                std OCVECT,x
+                ldd #ALSND
+                jsr SNDLD
+                jmp SUCIDE
 
-; SEE IF ANY MEN ON PLANET
-; BNE FOR NO MEN ON SURFACE
+; See if any men on planet
+; Bne for no men on surface
 
-LEDTR_          ldx    #TLIST
-LEDTG0          ldy    ,X++
-                beq    LEDTG1
-                ldd    OCVECT,Y                ; GET THE MANS COLLISION VECTOR
-                cmpd   #ASTKIL
-                beq    LEDTG2                  ; EXIT.....MAN ON GROUND
-LEDTG1          cmpx   #TLIST+20
-                bne    LEDTG0
-                lda    #1
-LEDTG2          rts
+LEDTR_:         ldx #TLIST
+LEDTG0:         ldy ,x++
+                beq LEDTG1
+                ldd OCVECT,y                      ; Get the mans collision vector
+                cmpd #ASTKIL
+                beq LEDTG2                        ; Exit.....man on ground
+LEDTG1:         cmpx #TLIST+20
+                bne LEDTG0
+                lda #1
+LEDTG2:         rts
 
-LNDP1   FCB 5,8
-        FDB LND10,LND11
-        FDB ON58,OFF58
+LNDP1:          FCB 5,8
+                FDB LND10,LND11
+                FDB ON58,OFF58
 
-LNDP2 FCB 5,8
-        FDB LND20,LND21
-        FDB ON58,OFF58
+LNDP2:          FCB 5,8
+                FDB LND20,LND21
+                FDB ON58,OFF58
 
-LNDP3   FCB 5,8
-        FDB LND30,LND31
-        FDB ON58,OFF58
+LNDP3:          FCB 5,8
+                FDB LND30,LND31
+                FDB ON58,OFF58
 
-LNDP4   FCB 5,8
-        FDB LND40,LND41
-        FDB ON58,OFF58
+LNDP4:          FCB 5,8
+                FDB LND40,LND41
+                FDB ON58,OFF58
 
-LND10   FCB $00,$03,$30,$30,$23,$00,$03,$30
-        FCB $23,$44,$03,$03,$33,$30,$00,$00
-        FCB $33,$44,$30,$30,$23,$30,$30,$30
-        FCB $20,$43,$03,$03,$33,$30,$03,$00
-        FCB $00,$00,$30,$30,$20,$00,$00,$30
+LND10:          FCB $00,$03,$30,$30,$23,$00,$03,$30
+                FCB $23,$44,$03,$03,$33,$30,$00,$00
+                FCB $33,$44,$30,$30,$23,$30,$30,$30
+                FCB $20,$43,$03,$03,$33,$30,$03,$00
+                FCB $00,$00,$30,$30,$20,$00,$00,$30
 
-LND11   FCB $00,$00,$03,$03,$02,$00,$00,$03
-        FCB $02,$34,$00,$00,$33,$03,$30,$00
-        FCB $33,$44,$33,$33,$32,$03,$03,$03
-        FCB $32,$44,$00,$00,$33,$03,$00,$00
-        FCB $00,$30,$33,$33,$32,$00,$30,$03
+LND11:          FCB $00,$00,$03,$03,$02,$00,$00,$03
+                FCB $02,$34,$00,$00,$33,$03,$30,$00
+                FCB $33,$44,$33,$33,$32,$03,$03,$03
+                FCB $32,$44,$00,$00,$33,$03,$00,$00
+                FCB $00,$30,$33,$33,$32,$00,$30,$03
 
-LND20   FCB $00,$03,$30,$20,$33,$00,$03,$30
-        FCB $32,$44,$33,$33,$32,$30,$00,$00
-        FCB $33,$44,$00,$00,$33,$30,$30,$30
-        FCB $30,$42,$33,$33,$32,$30,$03,$00
-        FCB $00,$00,$30,$30,$30,$00,$00,$30
+LND20:          FCB $00,$03,$30,$20,$33,$00,$03,$30
+                FCB $32,$44,$33,$33,$32,$30,$00,$00
+                FCB $33,$44,$00,$00,$33,$30,$30,$30
+                FCB $30,$42,$33,$33,$32,$30,$03,$00
+                FCB $00,$00,$30,$30,$30,$00,$00,$30
 
-LND21   FCB $00,$00,$03,$02,$03,$00,$00,$03
-        FCB $03,$34,$03,$03,$33,$03,$30,$00
-        FCB $23,$44,$30,$30,$23,$03,$03,$03
-        FCB $33,$44,$03,$03,$33,$03,$00,$00
-        FCB $00,$20,$33,$33,$23,$00,$30,$03
+LND21:          FCB $00,$00,$03,$02,$03,$00,$00,$03
+                FCB $03,$34,$03,$03,$33,$03,$30,$00
+                FCB $23,$44,$30,$30,$23,$03,$03,$03
+                FCB $33,$44,$03,$03,$33,$03,$00,$00
+                FCB $00,$20,$33,$33,$23,$00,$30,$03
 
-LND30   FCB $00,$03,$23,$33,$33,$00,$03,$30
-        FCB $33,$33,$30,$30,$23,$30,$00,$00
-        FCB $23,$33,$03,$03,$33,$30,$30,$30
-        FCB $30,$33,$30,$30,$23,$30,$03,$00
-        FCB $00,$00,$20,$30,$30,$00,$00,$30
+LND30:          FCB $00,$03,$23,$33,$33,$00,$03,$30
+                FCB $33,$33,$30,$30,$23,$30,$00,$00
+                FCB $23,$33,$03,$03,$33,$30,$30,$30
+                FCB $30,$33,$30,$30,$23,$30,$03,$00
+                FCB $00,$00,$20,$30,$30,$00,$00,$30
 
-LND31   FCB $00,$00,$02,$03,$03,$00,$00,$03
-        FCB $03,$33,$33,$33,$32,$03,$30,$00
-        FCB $32,$33,$00,$00,$33,$03,$03,$03
-        FCB $33,$33,$33,$33,$32,$03,$00,$00
-        FCB $00,$30,$02,$03,$33,$00,$30,$03
+LND31:          FCB $00,$00,$02,$03,$03,$00,$00,$03
+                FCB $03,$33,$33,$33,$32,$03,$30,$00
+                FCB $32,$33,$00,$00,$33,$03,$03,$03
+                FCB $33,$33,$33,$33,$32,$03,$00,$00
+                FCB $00,$30,$02,$03,$33,$00,$30,$03
 
-LND40   FCB $00,$02,$33,$33,$32,$00,$03,$30
-        FCB $33,$33,$00,$00,$33,$30,$00,$00
-        FCB $32,$33,$33,$33,$32,$30,$30,$30
-        FCB $30,$33,$00,$00,$33,$30,$03,$00
-        FCB $00,$00,$30,$20,$30,$00,$00,$30
+LND40:          FCB $00,$02,$33,$33,$32,$00,$03,$30
+                FCB $33,$33,$00,$00,$33,$30,$00,$00
+                FCB $32,$33,$33,$33,$32,$30,$30,$30
+                FCB $30,$33,$00,$00,$33,$30,$03,$00
+                FCB $00,$00,$30,$20,$30,$00,$00,$30
 
-LND41 FCB $00,$00,$03,$03,$03,$00,$00,$03
-        FCB $03,$23,$30,$30,$23,$03,$30,$00
-        FCB $33,$33,$03,$03,$33,$03,$03,$03
-        FCB $23,$33,$30,$30,$23,$03,$00,$00
-        FCB $00,$30,$03,$02,$33,$00,$30,$03
-    
-; PHONY LANDER START
-   
+LND41:          FCB $00,$00,$03,$03,$03,$00,$00,$03
+                FCB $03,$23,$30,$30,$23,$03,$30,$00
+                FCB $33,$33,$03,$03,$33,$03,$03,$03
+                FCB $23,$33,$30,$30,$23,$03,$00,$00
+                FCB $00,$30,$03,$02,$33,$00,$30,$03
 
-PHST            ldd    #$04C0
-                ldx    #$A000                  ; X ADDRESS
-                pshs   D,X
-            PHSL 
+; Phony lander start
+
+
+PHST:           ldd #$04C0
+                ldx #$a000                        ; X address
+                pshs d,x
+PHSL:
                 MKPROB (PHLND,LNDP1,LKIL2,$4433)
-                tfr    X,Y
-                stx    OPTR
+                tfr x,y
+                stx OPTR
                 OBI (ASTP1,AKIL1,$6666)
-                stx    proc.d2,U
-                stx    OPTR
+                stx proc.d2,u
+                stx OPTR
                 clra
                 clrb
-                std    OYV,X
-                std    OXV,X
-                std    OXV,Y
-                ldd    2,S
-                std    OX16,X                  ; X COORD
-                std    OX16,Y
-                addd   #$1800
-                std    2,S                     ; SPACING
-                ldd    #$E000
-                std    OY16,X
-                lda    1,S
-                std    OY16,Y
-                suba   #$28
-                sta    1,S
-                ldd    #$200
-                std    OYV,Y
-                std    proc.d4,U               ; FOR LANDER KILLER FOOLING
-                lda    #1
-                sta    OTYP,X
-                sta    OTYP,Y                  ; DONT HYPER PLEASE
-                dec    ,S
-                bne    PHSL
-                lda    #10
-                sta    LNDCNT
-                puls   D,X,PC
+                std OYV,x
+                std OXV,x
+                std OXV,y
+                ldd 2,s
+                std OX16,x                        ; X coord
+                std OX16,y
+                addd #$1800
+                std 2,s                           ; Spacing
+                ldd #$E000
+                std OY16,x
+                lda 1,s
+                std OY16,y
+                suba #$28
+                sta 1,s
+                ldd #$200
+                std OYV,y
+                std proc.d4,u                     ; For lander killer fooling
+                lda #1
+                sta OTYP,x
+                sta OTYP,y                        ; Dont hyper please
+                dec ,s
+                bne PHSL
+                lda #10
+                sta LNDCNT
+                puls d,x,pc
 
 
-;;; PHONY LANDER ROUTINE
-;;; PD=LANDER,PD2=GUY
-PHLND           ldx    proc.data,U         ; REV WHEN ON HIM
-                lda    OY16,X
-                cmpa   #$D0
-                bhs    !skip
+;;; Phony lander routine
+;;; PD=lander,PD2=guy
+PHLND:          ldx proc.data,u                   ; Rev when on him
+                lda OY16,x
+                cmpa #$d0
+                bhs !skip
                 NAP (1,PHLND)
-!skip           ldx    proc.data,U
-                ldd    #$D400
-                std    OY16,X
-                ldd    #$FF80
-                std    OYV,X
-                ldx    proc.d2,U
-                std    OYV,X
-!loop 
-                NAP (60,!loop)                          ; R.I.P.
-
+!skip:          ldx proc.data,u
+                ldd #$d400
+                std OY16,x
+                ldd #$FF80
+                std OYV,x
+                ldx proc.d2,u
+                std OYV,x
+!loop:
+                NAP (60,!loop)                    ; R.i.p.

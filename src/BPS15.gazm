@@ -1,29 +1,29 @@
-; <<<<<  S T A R G A T E  >>>>>
+; <<<<<  Stargate  >>>>>
 
-        ORG BPSORG
+                ORG BPSORG
 
-UFOST           jmp    UFOST_
-PRBST           jmp    PRBST_
-MMSW            jmp    MMSW_
-RIPV1           jmp    RIPST_
-MPROB           jmp    MPROB_
-BMSTV           jmp    BMST
-BAITPV          FDB UFNP1
-BREDPV          FDB BMRP0
-PHRDPV          FDB BMSP0
-MCHYPV          FDB MCHYP0
-MCHRPV          FDB MCHRP0
-MCHGPV          FDB MCHGP0
+UFOST:          jmp UFOST_
+PRBST:          jmp PRBST_
+MMSW:           jmp MMSW_
+RIPV1:          jmp RIPST_
+MPROB:          jmp MPROB_
+BMSTV:          jmp BMST
+BAITPV:         FDB UFNP1
+BREDPV:         FDB BMRP0
+PHRDPV:         FDB BMSP0
+MCHYPV:         FDB MCHYP0
+MCHRPV:         FDB MCHRP0
+MCHGPV:         FDB MCHGP0
 
-;;; __Proc__: UFO PROCESS START
+;;; __Proc__: ufo process start
 ;;;
-;;;  * PD  : OBJECT
-;;;  * PD2 : SHOT TIMER
-;;;  * PD5 : 18 FRAME (3 X 6) VELOCITY DIVIDER
-;;;  * PD4 : COUNTS NUMBER OF ITERS LEFT IN IMAGE LOOP
-UFOST_          lda    SEED                   ; START BAITER MASTER????
-                cmpa   #$C0
-                lbls   BMST
+;;;  * PD  : object
+;;;  * PD2 : shot timer
+;;;  * Pd5 : 18 frame (3 X 6) velocity divider
+;;;  * Pd4 : counts number of iters left in image loop
+UFOST_:         lda SEED                          ; Start baiter master????
+                cmpa #$C0
+                lbls BMST
 
 // Request A UFO
 // proc addr = UFOLP
@@ -31,684 +31,685 @@ UFOST_          lda    SEED                   ; START BAITER MASTER????
 // kill routine = UFOKIL
 // blip col = $3333
                 MKPROB(UFOLP,UFNP1,UFOKIL,$3333)
-                beq    !exit                  ; No procs / objs available
+                beq !exit                         ; No procs / objs available
 
 // Woo! Made one, increase the global number of UFOs
-                inc    UFOCNT
-                lda    #3                     ; INITIALIZE VELOCITY DIVIDER
-                sta    proc.d5,U
-                ldd    SEED
-                anda   #$1F
-                addd   BGL
-                std    OX16,X
+                inc UFOCNT
+                lda #3                            ; Initialize velocity divider
+                sta proc.d5,u
+                ldd SEED
+                anda #$1F
+                addd BGL
+                std OX16,x
                 lsrb
-                addb   #YMIN
-                stb    OY16,X
-                lda    #8
-                sta    proc.d2,U              ; INIT SHOT TIMER
-                bsr    UFONV0
-                jmp    APVCT
-!exit           rts
+                addb #YMIN
+                stb OY16,x
+                lda #8
+                sta proc.d2,u                     ; Init shot timer
+                bsr UFONV0
+                jmp APVCT
+!exit:          rts
 
-;;; UFO PROCESS
-UFOLP           ldx    proc.data,U
-                ldd    OPICT,X
-                cmpd   #NULOB
-                beq    UFO4
-                dec    proc.d2,U
-                bne    UFO1
-                lda    UFSTIM
-                jsr    RMAX
-                sta    proc.d2,U
-                jsr    SHOOTV
-                beq    UFO1
-                ldd    #USHSND
-                jsr    SNDLD
-UFO1            dec    proc.d5,U              ; CALL VELOCITY SUBROUTINE ONLY ON 1 OF 3 TRIPS (18 FR)
-                bne    UFO2                   ; NOT THIS TIME
-                lda    #3                     ; RESET DIVIDER
-                sta    proc.d5,U
-                bsr    UFONV                  ; AND DO THE VELOCITY NUMBER
-UFO2            ldd    OBJX,X                 ; SEE IF ON SCREEN
-                beq    UFO4                   ; THEN TAKE A VERY LONG SNOOZE
-                lda    #6
-                sta    proc.d4,U
-UFO5    
+;;; Ufo process
+UFOLP:          ldx proc.data,u
+                ldd OPICT,x
+                cmpd #NULOB
+                beq UFO4
+                dec proc.d2,u
+                bne UFO1
+                lda UFSTIM
+                jsr RMAX
+                sta proc.d2,u
+                jsr SHOOTV
+                beq UFO1
+                ldd #USHSND
+                jsr SNDLD
+UFO1:           dec proc.d5,u                     ; Call velocity subroutine only on 1 of 3 trips (18 fr)
+                bne UFO2                          ; Not this time
+                lda #3                            ; Reset divider
+                sta proc.d5,u
+                bsr UFONV                         ; And do the velocity number
+UFO2:           ldd OBJX,x                        ; See if on screen
+                beq UFO4                          ; Then take A very long snooze
+                lda #6
+                sta proc.d4,u
+UFO5:
                 SLEEP(1)
-UFO3            ldx    proc.data,U            ; GET IMAGE 
-                bsr    UFOPIC                 ; AND DO THE IMAGE NUMBER
-                dec    proc.d4,U
-                bne    UFO5                   ; 1 MORE ITERATION
-                bra    UFOLP
-UFO4    
+UFO3:           ldx proc.data,u                   ; Get image
+                bsr UFOPIC                        ; And do the image number
+                dec proc.d4,u
+                bne UFO5                          ; 1 More iteration
+                bra UFOLP
+UFO4:
                 NAP (6,UFOLP)
 
-UFOPIC          ldy    OPICT,X                ; GET CURRENT IMAGE
-                leay   OBJL,Y                 ; PUSH TO NEXT
-                cmpy   #UFNP7                 ; PAST LAST??
-                bls    UFOPL1                 ; NOPE
-                ldy    #UFNP1                 ; THEN PUT FIRST IN
-UFOPL1          sty    OPICT,X                ; AND SET IN PLACE
-                rts                         ; KAY.BYE
+UFOPIC:         ldy OPICT,x                       ; Get current image
+                leay OBJL,y                       ; Push to next
+                cmpy #UFNP7                       ; Past last??
+                bls UFOPL1                        ; Nope
+                ldy #UFNP1                        ; Then put first in
+UFOPL1:         sty OPICT,x                       ; And set in place
+                rts                               ; Kay.bye
 
-;;; UFO VELOCITY
-;;; Ufo may seek player depending on UFOSK
-;;; UFOSK is set according to the wave data
-UFONV           lda    SEED
-                cmpa   UFOSK
-                bls    UFONVX
+;;; Ufo velocity
+;;; Ufo may seek player depending on ufosk
+;;; Ufosk is set according to the wave data
+UFONV:          lda SEED
+                cmpa UFOSK
+                bls UFONVX
 
-;;; Makes the UFO seek the player
-UFONV0          ldd    #$4001 : std XTEMP
-                ldd    OX16,X
-                subd   PLABX
-                bmi    UFONV1
-                neg    XTEMP
-UFONV1          addd   #20*32                 ; X CLOSE?
-                cmpd   #40*32
-                bls    UFONV3                 ; YES, DONT SEEK
-                ldb    XTEMP
+;;; Makes the ufo seek the player
+UFONV0:
+                ldd #$4001
+                std XTEMP
+                ldd OX16,x
+                subd PLABX
+                bmi UFONV1
+                neg XTEMP
+UFONV1:         addd #20*32                       ; X close?
+                cmpd #40*32
+                bls UFONV3                        ; Yes, dont seek
+                ldb XTEMP
                 sex
-                addd   PLAXV
-                std    OXV,X
-UFONV3          lda    OY16,X
-                suba   PLAYC
-                bmi    UFONV4
-                neg    XTEMP+1
-UFONV4          adda   #10
-                cmpa   #20                    ; Y CLOSE?
-                bls    UFONVX                 ; YES, QUIT
+                addd PLAXV
+                std OXV,x
+UFONV3:         lda OY16,x
+                suba PLAYC
+                bmi UFONV4
+                neg XTEMP+1
+UFONV4:         adda #10
+                cmpa #20                          ; Y close?
+                bls UFONVX                        ; Yes, quit
                 clrb
-                lda    XTEMP+1
-                addd   PLAYV
-                asra                        ; DIVIDE    BY 2
+                lda XTEMP+1
+                addd PLAYV
+                asra                              ; Divide    by 2
                 rorb
-                std    OYV,X
-UFONVX          rts
+                std OYV,x
+UFONVX:         rts
 
-;;; UFOKILL
-UFOKIL          dec    UFOCNT
-                KILP    ($120,UFHSND)
+;;; Ufokill
+UFOKIL:         dec UFOCNT
+                KILP ($120,UFHSND)
                 rts
 
 ;;; Make a process+object
-;;; RET=PROCESS,RET+2=OBJECT PICT,RET+4=COLL routine,RET+6=BLIP
-;;; U RETURNED WITH PROCESS, X=OBJECT
-;;; X-PD,U                                         ;0-OXV,X OYV,X
-;;; RET EQ IF NOTHING LEFT
-MPROB_          pshs   D,Y
-        // quit if there are no procs or objs on the free list
-                ldx    OFREE
-                beq    !error                 ; NONE LEFT
-                ldx    FREE
-                beq    !error
+;;; Ret=process,ret+2=object pict,ret+4=coll routine,ret+6=blip
+;;; U returned with process, X=object
+;;; X-PD,U                                         ;0-oxv,X oyv,X
+;;; Ret eq if nothing left
+MPROB_:         pshs d,y
+// quit if there are no procs or objs on the free list
+                ldx OFREE
+                beq !error                        ; None left
+                ldx FREE
+                beq !error
 
-        // Okay! Make a proc
-                clra                        ; user type = 0
-                ldu    4,S                  ; User stack -> at passed params
-                pulu   X                    ; X -> run process routine
-                jsr    MKPROC               ; X -> proc data
-                leay   ,X                   ; Y -> proc
+// Okay! Make a proc
+                clra                              ; User type = 0
+                ldu 4,s                           ; User stack -> at passed params
+                pulu x                            ; X -> run process routine
+                jsr MKPROC                        ; X -> proc data
+                leay ,x                           ; Y -> proc
 
 
-        // Okay! Lets make an object!
-                jsr    GETOB                ; X -> object
-                pulu   D                    ; Copy the pic param into the object struct
-                std    OPICT,X               
-                pulu   D                    ; Copy collission parm into the object struct
-                std    OCVECT,X
-                pulu   D
-                std    OBJCOL,X             ; Object blip
-                stu    4,S                  ; NEW RET ADDR
+// Okay! Lets make an object!
+                jsr GETOB                         ; X -> object
+                pulu d                            ; Copy the pic param into the object struct
+                std OPICT,x
+                pulu d                            ; Copy collission parm into the object struct
+                std OCVECT,x
+                pulu d
+                std OBJCOL,x                      ; Object blip
+                stu 4,s                           ; New ret addr
 
-        // U -> proc
-                leau   ,Y
-                stu    OBJID,X                ; Save the process ptr into the objid
+// U -> proc
+                leau ,y
+                stu OBJID,x                       ; Save the process ptr into the objid
 
-        // Save the object ptr into the proc
-                stx    proc.data,U
+// Save the object ptr into the proc
+                stx proc.data,u
 
-        // x -> object
+// x -> object
                 clra
                 clrb
-                std    OYV,X                  ; zero the obj vels
-                std    OXV,X
+                std OYV,x                         ; Zero the obj vels
+                std OXV,x
 
-                lda    #1                     ; make sure the zero flag is 1
-                puls   D,Y,PC              ; return
+                lda #1                            ; Make sure the zero flag is 1
+                puls d,y,pc                       ; Return
 
 ;;; No procs left, clear up stack and return with z flag set
-!error 
-                ldu    4,S                    ; CLEAN UP STACK
-                leau   8,U
-                stu    4,S
-                clra                        ; Return with Z flag = 1
-                puls   D,Y,PC
+!error:
+                ldu 4,s                           ; Clean up stack
+                leau 8,u
+                stu 4,s
+                clra                              ; Return with z flag = 1
+                puls d,y,pc
 
-;;; START BAITER MASTER
-;;; PD=OBJ,PD2=IMAGE#,PD4=BASE IMAGE TABLE,PD6=SHOT TIMER
-BMST    
+;;; Start baiter master
+;;; PD=obj,PD2=image#,pd4=base image table,pd6=shot timer
+BMST:
                 MKPROB (BM,BMRP0,BMKIL,$3333)
-                beq    BMSTX
-                inc    BMCNT
-                clr    proc.d2,U
-                ldd    SEED
-                anda   #$1F
-                addd   BGL
-                std    OX16,X                 ; INIT X
+                beq BMSTX
+                inc BMCNT
+                clr proc.d2,u
+                ldd SEED
+                anda #$1F
+                addd BGL
+                std OX16,x                        ; Init X
                 lsrb
-                addb   #YMIN
-                stb    OY16,X
-                lda    BMSTIM
-                jsr    RMAX
-                sta    proc.d6,U
-                ldy    #BMPT1
-                lda    SEED
-                anda   #3                     ; CHOOSE BM TYPE
-                bne    BMST1                  ; BSO BONER
-            FCB $31,$A9,$00,$0C                         ; ((LEAY    BMPT2-BMPT1,Y))
-            ; leay BMPT1_size,Y
+                addb #YMIN
+                stb OY16,x
+                lda BMSTIM
+                jsr RMAX
+                sta proc.d6,u
+                ldy #BMPT1
+                lda SEED
+                anda #3                           ; Choose bm type
+                bne BMST1                         ; Keep the first bomb image table
+                leay >BMPT1_size,y                ; Force the 16-bit indexed form
 
-BMST1           sty    proc.d4,U              ; BASE IMAGE TABLE BSO BONER
-                bsr    BMNV0
-                jsr    MCHPIC                 ; GET IMAGE
-                jmp    APVCT
-BMSTX           rts
+BMST1:          sty proc.d4,u                     ; Store the selected image table
+                bsr BMNV0
+                jsr MCHPIC                        ; Get image
+                jmp APVCT
+BMSTX:          rts
 
 
-;;; BAITER MASTER PROCESS
-;;; PD=OBJ,PD2=IMAGE#,PD4=BASE IMAGE TABLE,PD6=SHOT TIMER
+;;; Baiter master process
+;;; PD=obj,PD2=image#,pd4=base image table,pd6=shot timer
 
-BM              ldx    proc.data,U
-                ldd    OPICT,X
-                cmpd   #NULOB                 ; APPEARING?
-                beq    BMX
-                lda    #-1
-                ldb    PLAYC
-                subb   OY16,X
-                addb   #20
-                cmpb   #10
-                bhs    !BM1
-                lda    #-4                    ; 4X FASTER WHEN CLOSE IN Y
-!BM1            adda   proc.d6,U
-                cmpa   #$FC
-                blo    !BM2
-                jsr    BMSHT
-                lda    BMSTIM
-                ldy    proc.d4,U
-                cmpy   #BMPT2
-                bne    !BM1A
-                lsra                        ; MORE  SHOTS FOR RED GUYS
-!BM1A           jsr    RMAX
-!BM2            sta    proc.d6,U
-                bsr    BMNV                   ; GET VEL+PICT
-                jsr    MCHPIC
-BMX         
+BM:             ldx proc.data,u
+                ldd OPICT,x
+                cmpd #NULOB                       ; Appearing?
+                beq BMX
+                lda #-1
+                ldb PLAYC
+                subb OY16,x
+                addb #20
+                cmpb #10
+                bhs !BM1
+                lda #-4                           ; 4X faster when close in Y
+!BM1:           adda proc.d6,u
+                cmpa #$FC
+                blo !BM2
+                jsr BMSHT
+                lda BMSTIM
+                ldy proc.d4,u
+                cmpy #BMPT2
+                bne !BM1A
+                lsra                              ; More  shots for red guys
+!BM1A:          jsr RMAX
+!BM2:           sta proc.d6,u
+                bsr BMNV                          ; Get vel+pict
+                jsr MCHPIC
+BMX:
                 NAP(6,BM)
 
-;;; GET BM NEW VELOCITY
-BMNV            lda    SEED                   ; SMART OR DUMB
-                cmpa   BMSK
-                bls    BMNV5
-BMNV0           ldd    #$2001
-                std    XTEMP
-                ldd    OX16,X
-                subd   PLABX
-                bmi    BMNV1
-                neg    XTEMP
-BMNV1           addd   #20*32                 ; TOO CLOSE
-                cmpd   #40*32
-                bls    BMNV2                  ; YIP
-                ldb    XTEMP
+;;; Get bm new velocity
+BMNV:           lda SEED                          ; Smart or dumb
+                cmpa BMSK
+                bls BMNV5
+BMNV0:          ldd #$2001
+                std XTEMP
+                ldd OX16,x
+                subd PLABX
+                bmi BMNV1
+                neg XTEMP
+BMNV1:          addd #20*32                       ; Too close
+                cmpd #40*32
+                bls BMNV2                         ; Yip
+                ldb XTEMP
                 sex
-                addd   PLAXV
-                std    OXV,X
-BMNV2           lda    OY16,X
-                suba   PLAYC
-                suba   #4
-                bmi    BMNV3
-                neg    XTEMP+1
-BMNV3           adda   #10
-                cmpa   #20
-                bls    BMNV5                  ; TOO CLOSE
-                lda    XTEMP+1
-                addd   PLAYV
+                addd PLAXV
+                std OXV,x
+BMNV2:          lda OY16,x
+                suba PLAYC
+                suba #4
+                bmi BMNV3
+                neg XTEMP+1
+BMNV3:          adda #10
+                cmpa #20
+                bls BMNV5                         ; Too close
+                lda XTEMP+1
+                addd PLAYV
                 asra
                 rorb
-                std    OYV,X
-BMNV5           rts
+                std OYV,x
+BMNV5:          rts
 
-;;; BAITER MASTER SHOOTING
-BMSHT           pshs   X,U,D,Y
-                lda    OX16,X
-                suba   BGL
-                cmpa   #$26
-                bhi    BMSHTX                 ; NO
-                lda    MCHCNT
-                cmpa   #12
-                bhs    BMSHTX
-                leay   ,X
-                MKPROB  (MCH,MCHP1,MCHKIL,$3300)            ; LAUNCH A BUTTFACE
-                beq    BMSHTX                 ; NOBODY HOME
-                inc    MCHCNT
-                ldd    #BMSSND
-                jsr    SNDLD
-                clr    proc.d2,U
-                lda    SEED
-                anda   #3
-                beq    BMSHT1
+;;; Baiter master shooting
+BMSHT:          pshs x,u,d,y
+                lda OX16,x
+                suba BGL
+                cmpa #$26
+                bhi BMSHTX                        ; No
+                lda MCHCNT
+                cmpa #12
+                bhs BMSHTX
+                leay ,x
+                MKPROB (MCH,MCHP1,MCHKIL,$3300)   ; Launch A buttface
+                beq BMSHTX                        ; Nobody home
+                inc MCHCNT
+                ldd #BMSSND
+                jsr SNDLD
+                clr proc.d2,u
+                lda SEED
+                anda #3
+                beq BMSHT1
                 deca
-BMSHT1          ldb    #MCHPT2-MCHPT1
+BMSHT1:         ldb #MCHPT2-MCHPT1
                 mul
-                addd   #MCHPT1
-                std    proc.d4,U              ; BASE PICT TABLE
-                ldb    #$40                   ; INIT XV
-                jsr    RMAX
-                lda    OX16,Y
-                cmpa   PLABX
-                bmi    BMSHT2
+                addd #MCHPT1
+                std proc.d4,u                     ; Base pict table
+                ldb #$40                          ; Init xv
+                jsr RMAX
+                lda OX16,y
+                cmpa PLABX
+                bmi BMSHT2
                 negb
-BMSHT2          sex
-                addd   PLAXV
-                std    OXV,X
-                lda    MCHSLP
+BMSHT2:         sex
+                addd PLAXV
+                std OXV,x
+                lda MCHSLP
                 lsra
-                jsr    RMAX
-                sta    proc.d3,U
-                jsr    RAND
-                ldb    HSEED
+                jsr RMAX
+                sta proc.d3,u
+                jsr RAND
+                ldb HSEED
                 sex
-                std    OYV,X
-                ldd    OX16,Y
-                std    OX16,X
-                ldd    OY16,Y
-                std    OY16,X
-                jsr    MCHPIC                 ; PICTURE
-                stx    OPTR
-BMSHTX          puls   X,U,D,Y,PC
+                std OYV,x
+                ldd OX16,y
+                std OX16,x
+                ldd OY16,y
+                std OY16,x
+                jsr MCHPIC                        ; Picture
+                stx OPTR
+BMSHTX:         puls x,u,d,y,pc
 
 ;
-; KILL A MUNCHY-POOH
+; Kill A munchy-pooh
 ;
 
-MCHKIL          dec    MCHCNT
-                KILP    ($50,MCKSND)
+MCHKIL:         dec MCHCNT
+                KILP ($50,MCKSND)
                 rts
 
-;;; KILL BAITER MASTER
-BMKIL           dec    BMCNT
-                KILP    ($120,BMKSND)
+;;; Kill baiter master
+BMKIL:          dec BMCNT
+                KILP ($120,BMKSND)
                 rts
 
-BMSSND          FCB $D0,$01,$10,$18,0               ; BM SHOOT SND
-BMKSND          FCB $D0,$01,$0C,$01,$1,$08,$17,0    ; BM KILL
-MCKSND          FCB $D0,$01,$0C,$1A,$1,$08,$17,0    ; MUNCHY KILL
-                                            
-;;; MUNCHIES
-;;; PD=OBJECT,PD2=IMAGE#,PD3=SLEEP TIME,PD4=BASE IMAGE TABLE
-MCH             ldx    proc.data,U            ; GET OBJ
-                dec    proc.d3,U
-                bne    !MCH10
-                ldb    MCHXV                  ; CALC VEL LIMITS
+BMSSND:         FCB $D0,$01,$10,$18,0             ; Bm shoot snd
+BMKSND:         FCB $D0,$01,$0C,$01,$1,$08,$17,0  ; Bm kill
+MCKSND:         FCB $D0,$01,$0C,$1A,$1,$08,$17,0  ; Munchy kill
+
+;;; Munchies
+;;; PD=object,PD2=image#,pd3=sleep time,pd4=base image table
+MCH:            ldx proc.data,u                   ; Get obj
+                dec proc.d3,u
+                bne !MCH10
+                ldb MCHXV                         ; Calc vel limits
                 clra
-                pshs   D
+                pshs d
                 negb
                 sex
-                pshs   D
-                lda    MCHYV
+                pshs d
+                lda MCHYV
                 clrb
-                pshs   D
+                pshs d
                 nega
-                pshs   D
+                pshs d
 // VEL LIMITS 0,S =-YV
-// 2,S =YV; 4,S =-XV; 6,S =XV
-                ldd    HSEED
-                anda   #1
-                addd   PLABX
-                subd   OX16,X
-                std    XTEMP                  ; DELTA X
-                ldd    SEED
-                anda   #7
-                addd   PLAY16
-                subd   OY16,X
-                std    XTEMP2
-!MCHVLP         asr    XTEMP
-                ror    XTEMP+1
-                asr    XTEMP2
-                ror    XTEMP2+1
-                ldd    XTEMP
-                bpl    !MCHV1
-                cmpd   4,S
-                blt    !MCHVLP
-                bra    !MCHV2
-!MCHV1          cmpd   6,S
-                bhi    !MCHVLP
-!MCHV2          ldd    XTEMP2
-                bpl    !MCHV3
-                cmpd   ,S
-                blt    !MCHVLP
-                bra    !MCHVX
-!MCHV3          cmpd   2,S
-                bhi    !MCHVLP
-!MCHVX          leas   8,S                    ; CLEAR STACK
-                std    OYV,X
-                ldd    XTEMP
-                addd   PLAXV
-                std    OXV,X
-                lda    MCHSLP                 ; NEW SLEEP TIME
-                jsr    RMAX
-                sta    proc.d3,U
-!MCH10          bsr    MCHPIC
+// 2,S =YV; 4,S =-xv; 6,S =xv
+                ldd HSEED
+                anda #1
+                addd PLABX
+                subd OX16,x
+                std XTEMP                         ; Delta X
+                ldd SEED
+                anda #7
+                addd PLAY16
+                subd OY16,x
+                std XTEMP2
+!MCHVLP:        asr XTEMP
+                ror XTEMP+1
+                asr XTEMP2
+                ror XTEMP2+1
+                ldd XTEMP
+                bpl !MCHV1
+                cmpd 4,s
+                blt !MCHVLP
+                bra !MCHV2
+!MCHV1:         cmpd 6,s
+                bhi !MCHVLP
+!MCHV2:         ldd XTEMP2
+                bpl !MCHV3
+                cmpd ,s
+                blt !MCHVLP
+                bra !MCHVX
+!MCHV3:         cmpd 2,s
+                bhi !MCHVLP
+!MCHVX:         leas 8,s                          ; Clear stack
+                std OYV,x
+                ldd XTEMP
+                addd PLAXV
+                std OXV,x
+                lda MCHSLP                        ; New sleep time
+                jsr RMAX
+                sta proc.d3,u
+!MCH10:         bsr MCHPIC
                 NAP (6,MCH)
 
-;;; GET MUNCHY PICTURE
-;;; X=OBJ,U=PROCESS
-;;; PD2=IMAGE#,PD4=BASE IMAGE
-MCHPIC          pshs   D,Y
-                lda    proc.d2,U              ; GET IMAGE #
+;;; Get munchy picture
+;;; X=obj,U=process
+;;; PD2=image#,pd4=base image
+MCHPIC:         pshs d,y
+                lda proc.d2,u                     ; Get image #
                 inca
-                ldb    OXV,X
-                bmi    MCHP1                  ; CHECK DIR
-                cmpa   #2
-                bls    MCHP2
+                ldb OXV,x
+                bmi MCHP1                         ; Check dir
+                cmpa #2
+                bls MCHP2
                 clra
-                bra    MCHP2
-MCHP1           cmpa   #5
-                bhi    MCHP11
-MCHP10          cmpa   #3
-                bhs    MCHP2
-MCHP11          lda    #3
-MCHP2           sta    proc.d2,U
-                ldy    proc.d4,U
+                bra MCHP2
+MCHP1:          cmpa #5
+                bhi MCHP11
+MCHP10:         cmpa #3
+                bhs MCHP2
+MCHP11:         lda #3
+MCHP2:          sta proc.d2,u
+                ldy proc.d4,u
                 asla
-                ldd    A,Y
-                std    OPICT,X
-                puls   D,Y,PC
+                ldd a,y
+                std OPICT,x
+                puls d,y,pc
 
-; BAITER MASTER PICTURE TABLES
-BMPT1       FDB BMRP0,BMRP1,BMRP2,BMRP0,BMRP3,BMRP4 ; ROUND BM
-BMPT1_size  equ 12
-BMPT2       FDB BMSP0,BMSP1,BMSP2,BMSP0,BMSP3,BMSP4 ; SQUARE BM
+; Baiter master picture tables
+BMPT1:          FDB BMRP0,BMRP1,BMRP2,BMRP0,BMRP3,BMRP4  ; Round bm
+BMPT1_size:     equ 12
+BMPT2:          FDB BMSP0,BMSP1,BMSP2,BMSP0,BMSP3,BMSP4  ; Square bm
 
-; MUNCHY PICT TABLES
-MCHPT1  FDB MCHGP0,MCHGP1,MCHGP2,MCHGP0,MCHGP3,MCHGP4 ; GREEN
-MCHPT2  FDB MCHRP0,MCHRP1,MCHRP2,MCHRP0,MCHRP3,MCHRP4 ; RED
-MCHPT3  FDB MCHYP0,MCHYP1,MCHYP2,MCHYP0,MCHYP3,MCHYP4 ; YELLOW
-
-;
-; MUNCHY PICTS
-; YELLOW MUNCHY
-
-MCHYP0  FCB 3,5
-        FDB MCYD00,MCYD01,ON35,OFF35
-MCHYP1  FCB 3,5
-        FDB MCYD10,MCYD11,ON35,OFF35
-MCHYP2  FCB 3,5
-        FDB MCYD20,MCYD21,ON35,OFF35
-MCHYP3  FCB 3,5
-        FDB MCYD30,MCYD31,ON35,OFF35
-MCHYP4  FCB 3,5
-        FDB MCYD40,MCYD41,ON35,OFF35
-MCYD00  FCB $44,$44,$44,$44,$44
-        FCB $44,$44,$44,$44,$44
-        FCB $40,$40,$40,$40,$40
-MCYD10  FCB $44,$44,$44,$44,$44
-        FCB $44,$00,$00,$00,$44
-        FCB $40,$00,$00,$00,$40
-MCYD20  FCB $44,$44,$44,$44,$44
-        FCB $44,$44,$00,$44,$44
-        FCB $40,$40,$00,$40,$40
-MCYD30  FCB $44,$00,$00,$00,$44
-        FCB $44,$04,$04,$04,$44
-        FCB $40,$40,$40,$40,$40
-MCYD40  FCB $44,$44,$00,$44,$44
-        FCB $44,$44,$04,$44,$44
-        FCB $40,$40,$40,$40,$40
-MCYD01  FCB $04,$04,$04,$04,$04
-        FCB $44,$44,$44,$44,$44
-        FCB $44,$44,$44,$44,$44
-MCYD11  FCB $04,$04,$04,$04,$04
-        FCB $44,$40,$40,$40,$44
-        FCB $44,$00,$00,$00,$44
-MCYD21  FCB $04,$04,$04,$04,$04
-        FCB $44,$44,$40,$44,$44
-        FCB $44,$44,$00,$44,$44
-MCYD31  FCB $04,$00,$00,$00,$04
-        FCB $44,$00,$00,$00,$44
-        FCB $44,$44,$44,$44,$44
-MCYD41  FCB $04,$04,$00,$04,$04
-        FCB $44,$44,$00,$44,$44
-        FCB $44,$44,$44,$44,$44
-
-; RED MUNCHY
-
-MCHRP0  FCB 3,5
-        FDB MCRD00,MCRD01,ON35,OFF35
-MCHRP1  FCB 3,5
-        FDB MCRD10,MCRD11,ON35,OFF35
-MCHRP2  FCB 3,5
-        FDB MCRD20,MCRD21,ON35,OFF35
-MCHRP3  FCB 3,5
-        FDB MCRD30,MCRD31,ON35,OFF35
-MCHRP4  FCB 3,5
-        FDB MCRD40,MCRD41,ON35,OFF35
-MCRD00  FCB $22,$22,$22,$22,$22
-        FCB $22,$22,$22,$22,$22
-        FCB $20,$20,$20,$20,$20
-MCRD10  FCB $22,$22,$22,$22,$22
-        FCB $22,$00,$00,$00,$22
-        FCB $20,$00,$00,$00,$20
-MCRD20  FCB $22,$22,$22,$22,$22
-        FCB $22,$22,$00,$22,$22
-        FCB $20,$20,$00,$20,$20
-MCRD30  FCB $22,$00,$00,$00,$22
-        FCB $22,$02,$02,$02,$22
-        FCB $20,$20,$20,$20,$20
-MCRD40  FCB $22,$22,$00,$22,$22
-        FCB $22,$22,$02,$22,$22
-        FCB $20,$20,$20,$20,$20
-MCRD01  FCB $02,$02,$02,$02,$02
-        FCB $22,$22,$22,$22,$22
-        FCB $22,$22,$22,$22,$22
-MCRD11  FCB $02,$02,$02,$02,$02
-        FCB $22,$20,$20,$20,$22
-        FCB $22,$00,$00,$00,$22
-MCRD21  FCB $02,$02,$02,$02,$02
-        FCB $22,$22,$20,$22,$22
-        FCB $22,$22,$00,$22,$22
-MCRD31  FCB $02,$00,$00,$00,$02
-        FCB $22,$00,$00,$00,$22
-        FCB $22,$22,$22,$22,$22
-MCRD41  FCB $02,$02,$00,$02,$02
-        FCB $22,$22,$00,$22,$22
-        FCB $22,$22,$22,$22,$22
-
-; GREEN MUNCHY
-MCHGP0  FCB 3,5
-        FDB MCGD00,MCGD01,ON35,OFF35
-MCHGP1  FCB 3,5
-        FDB MCGD10,MCGD11,ON35,OFF35
-MCHGP2  FCB 3,5
-        FDB MCGD20,MCGD21,ON35,OFF35
-MCHGP3  FCB 3,5
-        FDB MCGD30,MCGD31,ON35,OFF35
-MCHGP4  FCB 3,5
-        FDB MCGD40,MCGD41,ON35,OFF35
-MCGD00  FCB $33,$33,$33,$33,$33
-        FCB $33,$33,$33,$33,$33
-        FCB $30,$30,$30,$30,$30
-MCGD10  FCB $33,$33,$33,$33,$33
-        FCB $33,$00,$00,$00,$33
-        FCB $30,$00,$00,$00,$30
-MCGD20  FCB $33,$33,$33,$33,$33
-        FCB $33,$33,$00,$33,$33
-        FCB $30,$30,$00,$30,$30
-MCGD30  FCB $33,$00,$00,$00,$33
-        FCB $33,$03,$03,$03,$33
-        FCB $30,$30,$30,$30,$30
-MCGD40  FCB $33,$33,$00,$33,$33
-        FCB $33,$33,$03,$33,$33
-        FCB $30,$30,$30,$30,$30
-MCGD01  FCB $03,$03,$03,$03,$03
-        FCB $33,$33,$33,$33,$33
-        FCB $33,$33,$33,$33,$33
-MCGD11  FCB $03,$03,$03,$03,$03
-        FCB $33,$30,$30,$30,$33
-        FCB $33,$00,$00,$00,$33
-MCGD21  FCB $03,$03,$03,$03,$03
-        FCB $33,$33,$30,$33,$33
-        FCB $33,$33,$00,$33,$33
-MCGD31  FCB $03,$00,$00,$00,$03
-        FCB $33,$00,$00,$00,$33
-        FCB $33,$33,$33,$33,$33
-MCGD41  FCB $03,$03,$00,$03,$03
-        FCB $33,$33,$00,$33,$33
-        FCB $33,$33,$33,$33,$33
-
-; BAITER MASTER ROUND
-BMRP0   FCB 3,7
-        FDB BMRD00,BMRD01,ON47,OFF47
-BMRP1   FCB 4,7
-        FDB BMRD10,BMRD11,ON47,OFF47
-BMRP2   FCB 4,7
-        FDB BMRD20,BMRD21,ON47,OFF47
-BMRP3   FCB 4,7
-        FDB BMRD30,BMRD31,ON47,OFF47
-BMRP4   FCB 4,7
-        FDB BMRD40,BMRD41,ON47,OFF47
-BMRD00  FCB $99,$98,$98,$98,$98,$98,$99
-        FCB $99,$88,$88,$88,$88,$88,$99
-        FCB $99,$88,$88,$88,$88,$88,$99
-        FCB $90,$90,$90,$90,$90,$90,$90
-BMRD10  FCB $99,$98,$98,$98,$98,$98,$99
-        FCB $99,$90,$90,$90,$90,$90,$99
-        FCB $99,$00,$00,$00,$00,$00,$99
-        FCB $90,$00,$00,$00,$00,$00,$90
-BMRD20  FCB $99,$98,$98,$98,$98,$98,$99
-        FCB $99,$88,$99,$90,$99,$88,$99
-        FCB $99,$88,$99,$00,$99,$88,$99
-        FCB $90,$90,$90,$00,$90,$90,$90
-BMRD30  FCB $99,$00,$00,$00,$00,$00,$99
-        FCB $99,$00,$00,$00,$00,$00,$99
-        FCB $99,$98,$98,$98,$98,$98,$99
-        FCB $90,$90,$90,$90,$90,$90,$90
-BMRD40  FCB $99,$98,$99,$00,$99,$98,$99
-        FCB $99,$88,$99,$00,$99,$88,$99
-        FCB $99,$88,$98,$98,$98,$88,$99
-        FCB $90,$90,$90,$90,$90,$90,$90
-BMRD01  FCB $09,$09,$09,$09,$09,$09,$09
-        FCB $99,$88,$88,$88,$88,$88,$99
-        FCB $99,$88,$88,$88,$88,$88,$99
-        FCB $99,$89,$89,$89,$89,$89,$99
-BMRD11  FCB $09,$09,$09,$09,$09,$09,$09
-        FCB $99,$89,$89,$89,$89,$89,$99
-        FCB $99,$00,$00,$00,$00,$00,$99
-        FCB $99,$00,$00,$00,$00,$00,$99
-BMRD21  FCB $09,$09,$09,$09,$09,$09,$09
-        FCB $99,$88,$89,$89,$89,$88,$99
-        FCB $99,$88,$99,$00,$99,$88,$99
-        FCB $99,$89,$99,$00,$99,$89,$99
-BMRD31  FCB $09,$00,$00,$00,$00,$00,$09
-        FCB $99,$00,$00,$00,$00,$00,$99
-        FCB $99,$09,$09,$09,$09,$09,$99
-        FCB $99,$89,$89,$89,$89,$89,$99
-BMRD41  FCB $09,$09,$09,$00,$09,$09,$09
-        FCB $99,$88,$99,$00,$99,$88,$99
-        FCB $99,$88,$99,$09,$99,$88,$99
-        FCB $99,$89,$89,$89,$89,$89,$99
-; BAITER MASTER SQUARE
-BMSP0   FCB 4,7
-        FDB BMSD00,BMSD01,ON47,OFF47
-BMSP1   FCB 4,7
-        FDB BMSD10,BMSD11,ON47,OFF47
-BMSP2   FCB 4,7
-        FDB BMSD20,BMSD21,ON47,OFF47
-BMSP3   FCB 4,7
-        FDB BMSD30,BMSD31,ON47,OFF47
-BMSP4   FCB 4,7
-        FDB BMSD40,BMSD41,ON47,OFF47
-BMSD00  FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
-        FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
-        FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
-        FCB $F0,$F0,$F0,$F0,$F0,$F0,$F0
-BMSD10  FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
-        FCB $FF,$F0,$F0,$F0,$F0,$F0,$FF
-        FCB $FF,$00,$00,$00,$00,$00,$FF
-        FCB $F0,$00,$00,$00,$00,$00,$F0
-BMSD20  FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
-        FCB $FF,$BB,$FF,$F0,$FF,$BB,$FF
-        FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
-        FCB $F0,$F0,$F0,$00,$F0,$F0,$F0
-BMSD30  FCB $FF,$00,$00,$00,$00,$00,$FF
-        FCB $FF,$00,$00,$00,$00,$00,$FF
-        FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
-        FCB $F0,$F0,$F0,$F0,$F0,$F0,$F0
-BMSD40  FCB $FF,$FB,$FF,$00,$FF,$FB,$FF
-        FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
-        FCB $FF,$BB,$FB,$FB,$FB,$BB,$FF
-        FCB $F0,$F0,$F0,$F0,$F0,$F0,$F0
-BMSD01  FCB $0F,$0F,$0F,$0F,$0F,$0F,$0F
-        FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
-        FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
-        FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
-BMSD11  FCB $0F,$0F,$0F,$0F,$0F,$0F,$0F
-        FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
-        FCB $FF,$00,$00,$00,$00,$00,$FF
-        FCB $FF,$00,$00,$00,$00,$00,$FF
-BMSD21  FCB $0F,$0F,$0F,$0F,$0F,$0F,$0F
-        FCB $FF,$BB,$BF,$BF,$BF,$BB,$FF
-        FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
-        FCB $FF,$BF,$FF,$00,$FF,$BF,$FF
-BMSD31  FCB $0F,$00,$00,$00,$00,$00,$0F
-        FCB $FF,$00,$00,$00,$00,$00,$FF
-        FCB $FF,$0F,$0F,$0F,$0F,$0F,$FF
-        FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
-BMSD41  FCB $0F,$0F,$0F,$00,$0F,$0F,$0F
-        FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
-        FCB $FF,$BB,$FF,$0F,$FF,$BB,$FF
-        FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
+; Munchy pict tables
+MCHPT1:         FDB MCHGP0,MCHGP1,MCHGP2,MCHGP0,MCHGP3,MCHGP4  ; Green
+MCHPT2:         FDB MCHRP0,MCHRP1,MCHRP2,MCHRP0,MCHRP3,MCHRP4  ; Red
+MCHPT3:         FDB MCHYP0,MCHYP1,MCHYP2,MCHYP0,MCHYP3,MCHYP4  ; Yellow
 
 ;
-;    PROBE START - PUT [A] PROBES OUT AND HAVE THEM COLIDE SOME 
-;       AT A RANDOM COORDINATE SOME DELTA-T LATER
+; Munchy picts
+; Yellow munchy
+
+MCHYP0:         FCB 3,5
+                FDB MCYD00,MCYD01,ON35,OFF35
+MCHYP1:         FCB 3,5
+                FDB MCYD10,MCYD11,ON35,OFF35
+MCHYP2:         FCB 3,5
+                FDB MCYD20,MCYD21,ON35,OFF35
+MCHYP3:         FCB 3,5
+                FDB MCYD30,MCYD31,ON35,OFF35
+MCHYP4:         FCB 3,5
+                FDB MCYD40,MCYD41,ON35,OFF35
+MCYD00:         FCB $44,$44,$44,$44,$44
+                FCB $44,$44,$44,$44,$44
+                FCB $40,$40,$40,$40,$40
+MCYD10:         FCB $44,$44,$44,$44,$44
+                FCB $44,$00,$00,$00,$44
+                FCB $40,$00,$00,$00,$40
+MCYD20:         FCB $44,$44,$44,$44,$44
+                FCB $44,$44,$00,$44,$44
+                FCB $40,$40,$00,$40,$40
+MCYD30:         FCB $44,$00,$00,$00,$44
+                FCB $44,$04,$04,$04,$44
+                FCB $40,$40,$40,$40,$40
+MCYD40:         FCB $44,$44,$00,$44,$44
+                FCB $44,$44,$04,$44,$44
+                FCB $40,$40,$40,$40,$40
+MCYD01:         FCB $04,$04,$04,$04,$04
+                FCB $44,$44,$44,$44,$44
+                FCB $44,$44,$44,$44,$44
+MCYD11:         FCB $04,$04,$04,$04,$04
+                FCB $44,$40,$40,$40,$44
+                FCB $44,$00,$00,$00,$44
+MCYD21:         FCB $04,$04,$04,$04,$04
+                FCB $44,$44,$40,$44,$44
+                FCB $44,$44,$00,$44,$44
+MCYD31:         FCB $04,$00,$00,$00,$04
+                FCB $44,$00,$00,$00,$44
+                FCB $44,$44,$44,$44,$44
+MCYD41:         FCB $04,$04,$00,$04,$04
+                FCB $44,$44,$00,$44,$44
+                FCB $44,$44,$44,$44,$44
+
+; Red munchy
+
+MCHRP0:         FCB 3,5
+                FDB MCRD00,MCRD01,ON35,OFF35
+MCHRP1:         FCB 3,5
+                FDB MCRD10,MCRD11,ON35,OFF35
+MCHRP2:         FCB 3,5
+                FDB MCRD20,MCRD21,ON35,OFF35
+MCHRP3:         FCB 3,5
+                FDB MCRD30,MCRD31,ON35,OFF35
+MCHRP4:         FCB 3,5
+                FDB MCRD40,MCRD41,ON35,OFF35
+MCRD00:         FCB $22,$22,$22,$22,$22
+                FCB $22,$22,$22,$22,$22
+                FCB $20,$20,$20,$20,$20
+MCRD10:         FCB $22,$22,$22,$22,$22
+                FCB $22,$00,$00,$00,$22
+                FCB $20,$00,$00,$00,$20
+MCRD20:         FCB $22,$22,$22,$22,$22
+                FCB $22,$22,$00,$22,$22
+                FCB $20,$20,$00,$20,$20
+MCRD30:         FCB $22,$00,$00,$00,$22
+                FCB $22,$02,$02,$02,$22
+                FCB $20,$20,$20,$20,$20
+MCRD40:         FCB $22,$22,$00,$22,$22
+                FCB $22,$22,$02,$22,$22
+                FCB $20,$20,$20,$20,$20
+MCRD01:         FCB $02,$02,$02,$02,$02
+                FCB $22,$22,$22,$22,$22
+                FCB $22,$22,$22,$22,$22
+MCRD11:         FCB $02,$02,$02,$02,$02
+                FCB $22,$20,$20,$20,$22
+                FCB $22,$00,$00,$00,$22
+MCRD21:         FCB $02,$02,$02,$02,$02
+                FCB $22,$22,$20,$22,$22
+                FCB $22,$22,$00,$22,$22
+MCRD31:         FCB $02,$00,$00,$00,$02
+                FCB $22,$00,$00,$00,$22
+                FCB $22,$22,$22,$22,$22
+MCRD41:         FCB $02,$02,$00,$02,$02
+                FCB $22,$22,$00,$22,$22
+                FCB $22,$22,$22,$22,$22
+
+; Green munchy
+MCHGP0:         FCB 3,5
+                FDB MCGD00,MCGD01,ON35,OFF35
+MCHGP1:         FCB 3,5
+                FDB MCGD10,MCGD11,ON35,OFF35
+MCHGP2:         FCB 3,5
+                FDB MCGD20,MCGD21,ON35,OFF35
+MCHGP3:         FCB 3,5
+                FDB MCGD30,MCGD31,ON35,OFF35
+MCHGP4:         FCB 3,5
+                FDB MCGD40,MCGD41,ON35,OFF35
+MCGD00:         FCB $33,$33,$33,$33,$33
+                FCB $33,$33,$33,$33,$33
+                FCB $30,$30,$30,$30,$30
+MCGD10:         FCB $33,$33,$33,$33,$33
+                FCB $33,$00,$00,$00,$33
+                FCB $30,$00,$00,$00,$30
+MCGD20:         FCB $33,$33,$33,$33,$33
+                FCB $33,$33,$00,$33,$33
+                FCB $30,$30,$00,$30,$30
+MCGD30:         FCB $33,$00,$00,$00,$33
+                FCB $33,$03,$03,$03,$33
+                FCB $30,$30,$30,$30,$30
+MCGD40:         FCB $33,$33,$00,$33,$33
+                FCB $33,$33,$03,$33,$33
+                FCB $30,$30,$30,$30,$30
+MCGD01:         FCB $03,$03,$03,$03,$03
+                FCB $33,$33,$33,$33,$33
+                FCB $33,$33,$33,$33,$33
+MCGD11:         FCB $03,$03,$03,$03,$03
+                FCB $33,$30,$30,$30,$33
+                FCB $33,$00,$00,$00,$33
+MCGD21:         FCB $03,$03,$03,$03,$03
+                FCB $33,$33,$30,$33,$33
+                FCB $33,$33,$00,$33,$33
+MCGD31:         FCB $03,$00,$00,$00,$03
+                FCB $33,$00,$00,$00,$33
+                FCB $33,$33,$33,$33,$33
+MCGD41:         FCB $03,$03,$00,$03,$03
+                FCB $33,$33,$00,$33,$33
+                FCB $33,$33,$33,$33,$33
+
+; Baiter master round
+BMRP0:          FCB 3,7
+                FDB BMRD00,BMRD01,ON47,OFF47
+BMRP1:          FCB 4,7
+                FDB BMRD10,BMRD11,ON47,OFF47
+BMRP2:          FCB 4,7
+                FDB BMRD20,BMRD21,ON47,OFF47
+BMRP3:          FCB 4,7
+                FDB BMRD30,BMRD31,ON47,OFF47
+BMRP4:          FCB 4,7
+                FDB BMRD40,BMRD41,ON47,OFF47
+BMRD00:         FCB $99,$98,$98,$98,$98,$98,$99
+                FCB $99,$88,$88,$88,$88,$88,$99
+                FCB $99,$88,$88,$88,$88,$88,$99
+                FCB $90,$90,$90,$90,$90,$90,$90
+BMRD10:         FCB $99,$98,$98,$98,$98,$98,$99
+                FCB $99,$90,$90,$90,$90,$90,$99
+                FCB $99,$00,$00,$00,$00,$00,$99
+                FCB $90,$00,$00,$00,$00,$00,$90
+BMRD20:         FCB $99,$98,$98,$98,$98,$98,$99
+                FCB $99,$88,$99,$90,$99,$88,$99
+                FCB $99,$88,$99,$00,$99,$88,$99
+                FCB $90,$90,$90,$00,$90,$90,$90
+BMRD30:         FCB $99,$00,$00,$00,$00,$00,$99
+                FCB $99,$00,$00,$00,$00,$00,$99
+                FCB $99,$98,$98,$98,$98,$98,$99
+                FCB $90,$90,$90,$90,$90,$90,$90
+BMRD40:         FCB $99,$98,$99,$00,$99,$98,$99
+                FCB $99,$88,$99,$00,$99,$88,$99
+                FCB $99,$88,$98,$98,$98,$88,$99
+                FCB $90,$90,$90,$90,$90,$90,$90
+BMRD01:         FCB $09,$09,$09,$09,$09,$09,$09
+                FCB $99,$88,$88,$88,$88,$88,$99
+                FCB $99,$88,$88,$88,$88,$88,$99
+                FCB $99,$89,$89,$89,$89,$89,$99
+BMRD11:         FCB $09,$09,$09,$09,$09,$09,$09
+                FCB $99,$89,$89,$89,$89,$89,$99
+                FCB $99,$00,$00,$00,$00,$00,$99
+                FCB $99,$00,$00,$00,$00,$00,$99
+BMRD21:         FCB $09,$09,$09,$09,$09,$09,$09
+                FCB $99,$88,$89,$89,$89,$88,$99
+                FCB $99,$88,$99,$00,$99,$88,$99
+                FCB $99,$89,$99,$00,$99,$89,$99
+BMRD31:         FCB $09,$00,$00,$00,$00,$00,$09
+                FCB $99,$00,$00,$00,$00,$00,$99
+                FCB $99,$09,$09,$09,$09,$09,$99
+                FCB $99,$89,$89,$89,$89,$89,$99
+BMRD41:         FCB $09,$09,$09,$00,$09,$09,$09
+                FCB $99,$88,$99,$00,$99,$88,$99
+                FCB $99,$88,$99,$09,$99,$88,$99
+                FCB $99,$89,$89,$89,$89,$89,$99
+; Baiter master square
+BMSP0:          FCB 4,7
+                FDB BMSD00,BMSD01,ON47,OFF47
+BMSP1:          FCB 4,7
+                FDB BMSD10,BMSD11,ON47,OFF47
+BMSP2:          FCB 4,7
+                FDB BMSD20,BMSD21,ON47,OFF47
+BMSP3:          FCB 4,7
+                FDB BMSD30,BMSD31,ON47,OFF47
+BMSP4:          FCB 4,7
+                FDB BMSD40,BMSD41,ON47,OFF47
+BMSD00:         FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
+                FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
+                FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
+                FCB $F0,$F0,$F0,$F0,$F0,$F0,$F0
+BMSD10:         FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
+                FCB $FF,$F0,$F0,$F0,$F0,$F0,$FF
+                FCB $FF,$00,$00,$00,$00,$00,$FF
+                FCB $F0,$00,$00,$00,$00,$00,$F0
+BMSD20:         FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
+                FCB $FF,$BB,$FF,$F0,$FF,$BB,$FF
+                FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
+                FCB $F0,$F0,$F0,$00,$F0,$F0,$F0
+BMSD30:         FCB $FF,$00,$00,$00,$00,$00,$FF
+                FCB $FF,$00,$00,$00,$00,$00,$FF
+                FCB $FF,$FB,$FB,$FB,$FB,$FB,$FF
+                FCB $F0,$F0,$F0,$F0,$F0,$F0,$F0
+BMSD40:         FCB $FF,$FB,$FF,$00,$FF,$FB,$FF
+                FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
+                FCB $FF,$BB,$FB,$FB,$FB,$BB,$FF
+                FCB $F0,$F0,$F0,$F0,$F0,$F0,$F0
+BMSD01:         FCB $0F,$0F,$0F,$0F,$0F,$0F,$0F
+                FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
+                FCB $FF,$BB,$BB,$BB,$BB,$BB,$FF
+                FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
+BMSD11:         FCB $0F,$0F,$0F,$0F,$0F,$0F,$0F
+                FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
+                FCB $FF,$00,$00,$00,$00,$00,$FF
+                FCB $FF,$00,$00,$00,$00,$00,$FF
+BMSD21:         FCB $0F,$0F,$0F,$0F,$0F,$0F,$0F
+                FCB $FF,$BB,$BF,$BF,$BF,$BB,$FF
+                FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
+                FCB $FF,$BF,$FF,$00,$FF,$BF,$FF
+BMSD31:         FCB $0F,$00,$00,$00,$00,$00,$0F
+                FCB $FF,$00,$00,$00,$00,$00,$FF
+                FCB $FF,$0F,$0F,$0F,$0F,$0F,$FF
+                FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
+BMSD41:         FCB $0F,$0F,$0F,$00,$0F,$0F,$0F
+                FCB $FF,$BB,$FF,$00,$FF,$BB,$FF
+                FCB $FF,$BB,$FF,$0F,$FF,$BB,$FF
+                FCB $FF,$BF,$BF,$BF,$BF,$BF,$FF
+
+;
+;    Probe start - put [A] probes out and have them colide some
+;       At A random coordinate some delta-t later
 ;
 
-PRBST_          sta    XTEMP                  ; COUNT IN RAM
-                ldy    HSEED                  ; GET A RANDOM X TO ARRIVE AT.
-                pshs   Y                   ; OPERATE FROM STACK 
-                lda    SEED                   ; GET A NEW ONE
-                anda   #$1                    ; KEEP IT SMALL
-                ldb    HSEED
-                addd   #$80                   ; 2 SECOND MINIMUM
-                pshs   D                   ; OPERATE ON IT ON STACK 
-                MAKP    (PRBTIM)                    ; MAKE THE MESSAGE TIMER PROCESS
-                ldd    ,S                     ; GET TIME
-                std    proc.data,X            ; AND PASS IT. 
-PRBS1   
-                OBI (PRBP1,PRBKIL,$CCCC)            ; GET THE OBJECT ETC.
-                jsr    RAND
-                ldb    LSEED
+PRBST_:         sta XTEMP                         ; Count in RAM
+                ldy HSEED                         ; Get A random X to arrive at.
+                pshs y                            ; Operate from stack
+                lda SEED                          ; Get A new one
+                anda #$1                          ; Keep it small
+                ldb HSEED
+                addd #$80                         ; 2 Second minimum
+                pshs d                            ; Operate on it on stack
+                MAKP (PRBTIM)                     ; Make the message timer process
+                ldd ,s                            ; Get time
+                std proc.data,x                   ; And pass it.
+PRBS1:
+                OBI (PRBP1,PRBKIL,$CCCC)          ; Get the object etc.
+                jsr RAND
+                ldb LSEED
                 lsrb
-                addb   #YMIN
-                stb    OY16,X
-                ldb    SEED
-                andb   #$3F
-                lda    XTEMP
+                addb #YMIN
+                stb OY16,x
+                ldb SEED
+                andb #$3F
+                lda XTEMP
                 rora
-                bcc    PRBS0
-                negb                        ; EVERY OTHER ONE OPPOSITE DIR.
-PRBS0           sex
-                std    OXV,X                  ; SET THAT VELOCITY
-                bpl    PRBML1                 ; NEGATIVE B
+                bcc PRBS0
+                negb                              ; Every other one opposite dir.
+PRBS0:          sex
+                std OXV,x                         ; Set that velocity
+                bpl PRBML1                        ; Negative B
                 negb
-                bsr    PRBMUL                 ; DO THE MULTIPLY
-                bra    PRBML2
-PRBML1          bsr    PRBMUL
+                bsr PRBMUL                        ; Do the multiply
+                bra PRBML2
+PRBML1:         bsr PRBMUL
                 coma
                 comb
-                addd   #1
-PRBML2          pshs   D
-                ldb    HSEED                  ; GET SOME FUDGE THEY WILL ALL PASS WITHIN 8
+                addd #1
+PRBML2:         pshs d
+                ldb HSEED                         ; Get some fudge they will all pass within 8
                 sex
                 aslb
                 rola
@@ -718,256 +719,261 @@ PRBML2          pshs   D
                 rola
                 aslb
                 rola
-                addd   4,S                    ; GET ARRIVAL SPOT
-                addd   0,S
-                addd   0,S                    ; TWICE BECAUSE OF SIGN BULLSHIT
-                std    OX16,X                 ; THIS IS PLACE TO DEPART FROM
-                leas   2,S
-                ldb    LSEED
-                andb   #$7F
-                subb   #$40
+                addd 4,s                          ; Get arrival spot
+                addd 0,s
+                addd 0,s                          ; Twice because of sign bullshit
+                std OX16,x                        ; This is place to depart from
+                leas 2,s
+                ldb LSEED
+                andb #$7F
+                subb #$40
                 sex
-                bmi    PRBS2
-                orb    #$20
-                bra    PRBS3
-PRBS2           andb   #$DF
-PRBS3           std    OYV,X
-                lda    #1                     ; NO HYPER
-                sta    OTYP,X
-                jsr    APVCT
-                dec    XTEMP
-                bne    PRBS1
-                leas   4,S                    ; GET RID OF TEMPS
-PRBSTX          rts
+                bmi PRBS2
+                orb #$20
+                bra PRBS3
+PRBS2:          andb #$DF
+PRBS3:          std OYV,x
+                lda #1                            ; No hyper
+                sta OTYP,x
+                jsr APVCT
+                dec XTEMP
+                bne PRBS1
+                leas 4,s                          ; Get rid of temps
+PRBSTX:         rts
 
-PRBMUL          pshs   B                   ; SAVE MULTIPLIER
-                lda    3,S                    ; GET HIGH HALF OF MULTIPLICAND
-                mul                         ; COMPUTE SOME STUFF
-                pshs   B                   ; SAVE LOW PART OF RESULT
-                lda    1,S                    ; GET MULTIPLIER BACK
-                ldb    5,S                    ; LOW HALF OF MULTIPLICAND
+PRBMUL:         pshs b                            ; Save multiplier
+                lda 3,s                           ; Get high half of multiplicand
+                mul                               ; Compute some stuff
+                pshs b                            ; Save low part of result
+                lda 1,s                           ; Get multiplier back
+                ldb 5,s                           ; Low half of multiplicand
                 mul
-                adda   0,S                    ; COLUMN ADD
-                lsra                        ; DIVIDE BY 2 MAKING ROOM FOR SIGN BIT
-                rorb            
-                leas   2,S
-                rts                         ; D HAS RESULT
+                adda 0,s                          ; Column ADD
+                lsra                              ; Divide by 2 making room for sign bit
+                rorb
+                leas 2,s
+                rts                               ; D has result
 
-PRBTIM          lda    PRBCNT                 ; CHECK OUT COUNT
-                cmpa   #3
-                blo    PRBDIE                 ; NOT ENOUGH...BYE BYE.
-                clr    XTEMP                  ; USE AS COUNTER
-                ldd    proc.data,U            ; GET 16 MS TIME
-PRBT1           subd   #$40                   ; TAKE A SECOND AWAY
-                bcs    PRBT2
-                inc    XTEMP
-                bra    PRBT1
-PRBT2           lda    XTEMP                  ; GET THE NUMBER
-                jsr    HEXBCD                 ; MAKE BCD
-                sta    proc.data,U            ; AND SAVE
-PRBT3           ldx    #PODM1                 ; GET TIME  
-PRBT5           ldb    proc.data,U            ; SEND THE MESSAGE
-                jsr    MESLDV                 ; DONE.
+PRBTIM:         lda PRBCNT                        ; Check out count
+                cmpa #3
+                blo PRBDIE                        ; Not enough...bye bye.
+                clr XTEMP                         ; Use as counter
+                ldd proc.data,u                   ; Get 16 ms time
+PRBT1:          subd #$40                         ; Take A second away
+                bcs PRBT2
+                inc XTEMP
+                bra PRBT1
+PRBT2:          lda XTEMP                         ; Get the number
+                jsr HEXBCD                        ; Make BCD
+                sta proc.data,u                   ; And save
+PRBT3:          ldx #PODM1                        ; Get time
+PRBT5:          ldb proc.data,u                   ; Send the message
+                jsr MESLDV                        ; Done.
                 SLEEP ($40)
-                lda    PRBCNT                 ; COUNT EM.
-                cmpa   #3
-                blo    PRBDIE                 ; NOT ENOUGH ANY MORE...BYE.
-                lda    proc.data,U            ; GET TIMER
-                adda   #$99                   ; TAKE ONE AWAY
+                lda PRBCNT                        ; Count em.
+                cmpa #3
+                blo PRBDIE                        ; Not enough any more...bye.
+                lda proc.data,u                   ; Get timer
+                adda #$99                         ; Take one away
                 daa
-                bmi    PRBDIE                 ; TIMER OUT...BYE
-                sta    proc.data,U            ; GET READY FOR MESSAGE
-                ldx    #PODM2
-                bra    PRBT5
-PRBDIE          jmp    SUCIDE
+                bmi PRBDIE                        ; Timer out...bye
+                sta proc.data,u                   ; Get ready for message
+                ldx #PODM2
+                bra PRBT5
+PRBDIE:         jmp SUCIDE
 
-RIPT2   FCB $76
+RIPT2:          FCB $76
 
-PODM1   FCB $A0,PTR+CLEAR,$50,PODM
-        FDB PODM2
-PODM2   FCB $A0,COND        
-        FDB PODM2
-        FCB $50,PODTM
+PODM1:          FCB $A0,PTR+CLEAR,$50,PODM
+                FDB PODM2
+PODM2:          FCB $A0,COND
+                FDB PODM2
+                FCB $50,PODTM
 
 ;
-; KILL PROBE
+; Kill probe
 ;
-import ::core::SBRET
-PRBKIL          ldd    #PHPOD                 ; SUBSTITUTE PHONEY PICTURE
-                std    OPICT,X
-                KILO    ($210,PRHSND)
-                dec    PRBCNT
-                lda    #6
-                jsr    RMAX
-                ldy    ,S                     ; GET RETURN ADDRESS
-                cmpy   #SBRET                 ; IS IT A SMART BOMB CALLING US??
-                beq    !PRBSB                 ; THEN HANDLE SLIGHTLY DIFFERENTLY
-                leay   ,X
-                jsr    MMSW
+                import ::core::SBRET
+PRBKIL:         ldd #PHPOD                        ; Substitute phoney picture
+                std OPICT,x
+                KILO ($210,PRHSND)
+                dec PRBCNT
+                lda #6
+                jsr RMAX
+                ldy ,s                            ; Get return address
+                cmpy #SBRET                       ; Is it A smart bomb calling us??
+                beq !PRBSB                        ; Then handle slightly differently
+                leay ,x
+                jsr MMSW
                 rts
 
-!PRBSB          ldb    #$45                   ; 450 POINTS NOMINALLY
-                jsr    RAND                   ; HALF OF THE TIME GIVE EXTRA
+!PRBSB:         ldb #$45                          ; 450 Points nominally
+                jsr RAND                          ; Half of the time give extra
                 rora
-                lda    #$1                    ; 10'S HAVE THE POWER
-                bcc    !PRBS_1
-                ldb    #$60                   ; 600 HALF OF THE TIME      
-!PRBS_1         jsr    SCORE
-                jsr    GETOB                  ; GET OBJECT BACK FROM POD.
-                tfr    X,Y                     ; SAVE OBJECT
-                MAKP(SBSWP)                     ; MAKE A PROCESS TO DO THIS DEED
-                sty    proc.data,X            ; AND PASS IT THE OBJECT
-                rts                         ; AND WE'RE DONE!
+                lda #$1                           ; 10'S have the power
+                bcc !PRBS_1
+                ldb #$60                          ; 600 Half of the time
+!PRBS_1:        jsr SCORE
+                jsr GETOB                         ; Get object back from pod.
+                tfr x,y                           ; Save object
+                MAKP(SBSWP)                       ; Make A process to do this DEED
+                sty proc.data,x                   ; And pass it the object
+                rts                               ; And we're done!
 
-SBSWP   
-                SLEEP(4)                      ; DELAY TO LET THE POD STUFF MOVE.
-                lda    #3                     ; DO 3 OF THEM.     
-                sta    proc.data+2,U
-!BOOM1          ldx    proc.data,U            ; GET OBJECT
-                jsr    XSVCT                  ; DO AN EXPLOSION
-                ldd    PHFPB                  ; LOAD FROM PHONEY FIREBALL POINTER 
-                std    OPICT,X                ; THIS MAKES 2 PURPLE, 2 RED-YELLOW.
-                dec    proc.data+2,U
-                beq    !BOOM2
+SBSWP:
+                SLEEP(4)                          ; Delay to let the pod stuff move.
+                lda #3                            ; Do 3 of them.
+                sta proc.data+2,u
+!BOOM1:         ldx proc.data,u                   ; Get object
+                jsr XSVCT                         ; Do an explosion
+                ldd PHFPB                         ; Load from phoney fireball pointer
+                std OPICT,x                       ; This makes 2 purple, 2 red-yellow.
+                dec proc.data+2,u
+                beq !BOOM2
                 NAP (3,!BOOM1)
-!BOOM2          ldd    OFREE
-                std    ,X
-                stx    OFREE
+!BOOM2:         ldd OFREE
+                std ,x
+                stx OFREE
                 DIE()
 
 ///
-RIPST_          jsr    GNCIDE                 ; STOP ALL OF THE ACTION
-                lda #$FF : sta STATUS         ; FOR REAL!
-                SLEEP(1)                      ; STOP SAM BIT INTERFERENCE
-                jsr    SCRCLR                 ; CLEAR THE SCREEN
-                jsr    PRINV                  ; INITIALIZE PRINTING PARAMETERS
-                ldb #$7F : stb PCRAM+1        ; MAKE SURE ITS VISIBLE
-                ldy    RIPTV
-                leay   B,Y
-RIPST0          lda    ,Y+                    ; GET A BYTE
-                beq    RIPEND                 ; END.  
-                cmpa   #$2                    ; CHECK TIME??
-                bne    RIPST8
-                lda    PIA21                  ; CHECK LEVER
-                bpl    RIPEN2                 ; HE LET GO...CAN IT!
-                bra    RIPST0                 ; GO AND GET NEXT BYTE.
-RIPST8          cmpa   #$1                    ; CURSOR??
-                bne    RIPST1                 ; NOPE
-                ldx    ,Y++
-                clr    TXFLAV                 ; MAKE IT ALL LINE UP PRETTY
-                bra    RIPST0
-RIPST1          adda   #$2E                   ; GET OUT OF READABLE ASCII
-                ldu    #RIPST0
-                pshs   U
-                ldu    RIPT1
-                ldb    RIPT2
-                leau   B,U
-                leau   B,U
-                leau   B,U
-                jmp    ,U
+RIPST_:         jsr GNCIDE                        ; Stop all of the action
+                lda #$FF                          ; For real!
+                sta STATUS
+                SLEEP(1)                          ; Stop sam bit interference
+                jsr SCRCLR                        ; Clear the screen
+                jsr PRINV                         ; Initialize printing parameters
+                ldb #$7F                          ; Make sure its visible
+                stb PCRAM+1
+                ldy RIPTV
+                leay b,y
+RIPST0:         lda ,y+                           ; Get A byte
+                beq RIPEND                        ; End.
+                cmpa #$2                          ; Check time??
+                bne RIPST8
+                lda PIA21                         ; Check lever
+                bpl RIPEN2                        ; He let go...can it!
+                bra RIPST0                        ; Go and get next byte.
+RIPST8:         cmpa #$1                          ; Cursor??
+                bne RIPST1                        ; Nope
+                ldx ,y++
+                clr TXFLAV                        ; Make it all line up pretty
+                bra RIPST0
+RIPST1:         adda #$2E                         ; Get out of readable ascii
+                ldu #RIPST0
+                pshs u
+                ldu RIPT1
+                ldb RIPT2
+                leau b,u
+                leau b,u
+                leau b,u
+                jmp ,u
 
-;   BRA RIPST0  THIS IS WHAT WOULD HAVE FOLLOWED A CONVENTIONAL JSR.
-RIPEND          SLEEP(1)
-                lda    PIA21
-                bmi    RIPEND
-RIPEN2          jsr    SCRCLR
-                jmp    [$FFFE]                ; END RESET
+;   Bra ripst0  this is what would have followed A conventional jsr.
+RIPEND:         SLEEP(1)
+                lda PIA21
+                bmi RIPEND
+RIPEN2:         jsr SCRCLR
+                jmp [$FFFE]                       ; End reset
 
-RIPT1           FDB PR57V-($76*3)
+RIPT1:          FDB PR57V-($76*3)
 
-;;;RANDOM VELOCITY
-;;;X=OBJECT
-RANDV           jsr    RAND
-                ldb    SEED
+;;;Random velocity
+;;;X=object
+RANDV:          jsr RAND
+                ldb SEED
                 sex
                 aslb
-                rola                        ; X2
-                std    OYV,X
-                ldb    LSEED
-                andb   #$3F
-                addb   #-$20
+                rola                              ; X2
+                std OYV,x
+                ldb LSEED
+                andb #$3F
+                addb #-$20
                 sex
-                std    OXV,X
+                std OXV,x
                 rts
 
-;;; MAKE A MINI SWARMER
-;;; Y=OBJECT AT CENTER,A=#
-MMSW_           pshs   D,X,Y,U
-                sta    XTEMP
-!loop           lda    SWCNT
+;;; Make A mini swarmer
+;;; Y=object at center,A=#
+MMSW_:          pshs d,x,y,u
+                sta XTEMP
+!loop:          lda SWCNT
                 inca
-                cmpa   #20
-                bhi    !exit                  ; TOO MANY GUYS
+                cmpa #20
+                bhi !exit                         ; Too many guys
 
-                MKPROB  (MSWM,SWPIC1,MSWKIL,$2424)
-                beq    !exit                  ; NONE LEFT
+                MKPROB (MSWM,SWPIC1,MSWKIL,$2424)
+                beq !exit                         ; None left
 
-                sta    SWCNT
-                ldd OX16,Y : std OX16,X
-                ldd OY16,Y : std OY16,X
-                bsr    RANDV
-                ldd    HSEED
-                andb   SWAC
-                stb    proc.d2,U              ; ACCEL
-                anda   #$1F
-                sta    proc.time,U
-                lda    SWSTIM
-                jsr    RMAX
-                sta    proc.d4,U
-                stx    OPTR
-                dec    XTEMP : bne !loop
+                sta SWCNT
+                ldd OX16,y
+                std OX16,x
+                ldd OY16,y
+                std OY16,x
+                bsr RANDV
+                ldd HSEED
+                andb SWAC
+                stb proc.d2,u                     ; Accel
+                anda #$1F
+                sta proc.time,u
+                lda SWSTIM
+                jsr RMAX
+                sta proc.d4,u
+                stx OPTR
+                dec XTEMP
+                bne !loop
 
-!exit           puls   D,X,Y,U,PC
-
-
-;;; MINI SWARM KILL
-;;; X=OBJECT
-MSWKIL          dec    SWCNT
-                jsr    KILOFF                 ; TRASH IT
-                pshs   X
-                jsr    KILLOP                 ; AND ITS PROCESS
-                puls   X
-                ldd    OX16,X                 ; MODIFY FOR LARGER IMAGE
-                subd   #$40
-                std    OX16,X
-                lda    OY16,X
-                suba   #2
-                sta    OY16,X
-                ldu    #SWXP1
-                stu    OPICT,X
-                ldd    #$115   
-                jsr    SCORE
-                ldd    #SWHSND
-                jsr    SNDLD                  ; GET THE STUPID STUFF OUT OF THE WAY
-                jmp    XSVCT
+!exit:          puls d,x,y,u,pc
 
 
-;;; MINI S    WARM PROCESS
-;;; PD=OBJECT,PD2 ACCELERATION,PD4=SHOT TIMER
-MSWM            ldx    proc.data,U
-                ldb    SWXV
-                ldy    PLABX
-                cmpy   OX16,X
-                bhs    !MSWM2
+;;; Mini swarm kill
+;;; X=object
+MSWKIL:         dec SWCNT
+                jsr KILOFF                        ; Trash it
+                pshs x
+                jsr KILLOP                        ; And its process
+                puls x
+                ldd OX16,x                        ; Modify for larger image
+                subd #$40
+                std OX16,x
+                lda OY16,x
+                suba #2
+                sta OY16,x
+                ldu #SWXP1
+                stu OPICT,x
+                ldd #$115
+                jsr SCORE
+                ldd #SWHSND
+                jsr SNDLD                         ; Get the stupid stuff out of the way
+                jmp XSVCT
+
+
+;;; Mini S    warm process
+;;; PD=object,PD2 acceleration,pd4=shot timer
+MSWM:           ldx proc.data,u
+                ldb SWXV
+                ldy PLABX
+                cmpy OX16,x
+                bhs !MSWM2
                 negb
-!MSWM2          sex
-                std    OXV,X                  ; X VELOCITY
-                bra    !MSWL
-!MSWLP          ldb    proc.d2,U
-                ldx    proc.data,U
-                lda    PLAYC                  ; GET Y ACCEL
-                cmpa   OY16,X
-                bhi    !MSWM3
+!MSWM2:         sex
+                std OXV,x                         ; X velocity
+                bra !MSWL
+!MSWLP:         ldb proc.d2,u
+                ldx proc.data,u
+                lda PLAYC                         ; Get Y accel
+                cmpa OY16,x
+                bhi !MSWM3
                 negb
-!MSWM3          sex
-                addd   OYV,X
-                cmpd   #$0200
-                blt    !MSWM4
-                ldd    #$0200
-!MSWM4          cmpd   #-$200
-                bgt    !MSWM5
-                ldd    #-$200
-!MSWM5          std    OYV,X
+!MSWM3:         sex
+                addd OYV,x
+                cmpd #$0200
+                blt !MSWM4
+                ldd #$0200
+!MSWM4:         cmpd #-$200
+                bgt !MSWM5
+                ldd #-$200
+!MSWM5:         std OYV,x
 
 // DAMPING
                 coma
@@ -976,52 +982,52 @@ MSWM            ldx    proc.data,U
                 rola
                 aslb
                 rola
-                tfr    A,B
+                tfr a,b
                 sex
-                addd   OYV,X
-                std    OYV,X
+                addd OYV,x
+                std OYV,x
 // RANDOM FACTOR
-                ldb    SEED
-                andb   #$1F
-                addb   #-$10
+                ldb SEED
+                andb #$1F
+                addb #-$10
                 sex
-                addd   OYV,X
-                std    OYV,X
-                ldd    PLABX                  ; PAST HIM?
-                subd   OX16,X
-                addd   #150*32
-                cmpd   #300*32                ; WAY PAST?
-                bhi    MSWM                   ; GO BACK + GIT IM
-; FIRE?
-                dec    proc.d4,U
-                bne    !MSWL
-                jsr    SWBMB                  ; BOMB GUY
-!MSWL    
+                addd OYV,x
+                std OYV,x
+                ldd PLABX                         ; Past him?
+                subd OX16,x
+                addd #150*32
+                cmpd #300*32                      ; Way past?
+                bhi MSWM                          ; Go back + git im
+; Fire?
+                dec proc.d4,u
+                bne !MSWL
+                jsr SWBMB                         ; Bomb guy
+!MSWL:
                 NAP(3,!MSWLP)
 
-;;; SWARM BOMB
-SWBMB           pshs   X
-                ldd    PLABX
-                subd   OX16,X
-                eora   OXV,X
-                bmi    SWBX                   ; NOT HEADED FOR PLAYER
-                leay   ,X
+;;; Swarm bomb
+SWBMB:          pshs x
+                ldd PLABX
+                subd OX16,x
+                eora OXV,x
+                bmi SWBX                          ; Not headed for player
+                leay ,x
                 SHL(FBOUT,BMBP1,BKIL)
-                beq    SWBX
-                ldd    OXV,Y
+                beq SWBX
+                ldd OXV,y
                 aslb
                 rola
                 aslb
                 rola
                 aslb
                 rola
-                std    OXV,X
-                ldd    #SWSSND                ; SWARMER SOUND
-                jsr    SNDLD
+                std OXV,x
+                ldd #SWSSND                       ; Swarmer sound
+                jsr SNDLD
                 clrb
-                lda    PLAYC
-                suba   OY16,X
-SWB1            asra    
+                lda PLAYC
+                suba OY16,x
+SWB1:           asra
                 rorb
                 asra
                 rorb
@@ -1031,131 +1037,130 @@ SWB1            asra
                 rorb
                 asra
                 rorb
-                std    OYV,X
-SWBX            lda    SWSTIM
-                jsr    RMAX
-                sta    proc.d4,U
-                puls   X,PC
+                std OYV,x
+SWBX:           lda SWSTIM
+                jsr RMAX
+                sta proc.d4,u
+                puls x,pc
 
-PHPOD       FCB 4,8
-            FDB PHPOD0,PHPOD0
-            FDB ON48,OFF48
+PHPOD:          FCB 4,8
+                FDB PHPOD0,PHPOD0
+                FDB ON48,OFF48
 
-PHPOD0      FCB $00,$0E,$88,$D8,$F8,$8E,$08,$00
-            FCB $D8,$88,$8C,$C8,$8C,$88,$EF,$8F
-            FCB $F8,$8E,$88,$C8,$88,$8E,$8D,$E8
-            FCB $00,$80,$E8,$DD,$D8,$E8,$80,$00
+PHPOD0:         FCB $00,$0E,$88,$D8,$F8,$8E,$08,$00
+                FCB $D8,$88,$8C,$C8,$8C,$88,$EF,$8F
+                FCB $F8,$8E,$88,$C8,$88,$8E,$8D,$E8
+                FCB $00,$80,$E8,$DD,$D8,$E8,$80,$00
 
-UFNP1       FCB 6,4
-            FDB BAIT10,BAIT11
-            FDB ON64,OFF64
+UFNP1:          FCB 6,4
+                FDB BAIT10,BAIT11
+                FDB ON64,OFF64
 
-UFNP2       FCB 6,4
-            FDB BAIT20,BAIT21
-            FDB ON64,OFF64
+UFNP2:          FCB 6,4
+                FDB BAIT20,BAIT21
+                FDB ON64,OFF64
 
-UFNP3       FCB 6,4
-            FDB BAIT30,BAIT31
-            FDB ON64,OFF64
+UFNP3:          FCB 6,4
+                FDB BAIT30,BAIT31
+                FDB ON64,OFF64
 
-UFNP4       FCB 6,4
-            FDB BAIT40,BAIT41
-            FDB ON64,OFF64
+UFNP4:          FCB 6,4
+                FDB BAIT40,BAIT41
+                FDB ON64,OFF64
 
-UFNP5       FCB 6,4
-            FDB BAIT50,BAIT51
-            FDB ON64,OFF64
+UFNP5:          FCB 6,4
+                FDB BAIT50,BAIT51
+                FDB ON64,OFF64
 
-UFNP6       FCB 6,4
-            FDB BAIT60,BAIT61
-            FDB ON64,OFF64
+UFNP6:          FCB 6,4
+                FDB BAIT60,BAIT61
+                FDB ON64,OFF64
 
-UFNP7       FCB 6,4
-            FDB BAIT70,BAIT71
-            FDB ON64,OFF64
+UFNP7:          FCB 6,4
+                FDB BAIT70,BAIT71
+                FDB ON64,OFF64
 
-BAIT10      FCB $00,$03,$31,$03
-            FCB $33,$11,$11,$33
-            FCB $33,$00,$00,$33
-            FCB $33,$01,$01,$33
-            FCB $30,$13,$11,$33
-            FCB $00,$00,$30,$00
-BAIT11      FCB $00,$00,$03,$00
-            FCB $03,$31,$11,$33
-            FCB $33,$10,$10,$33
-            FCB $33,$00,$00,$33
-            FCB $33,$11,$11,$33
-            FCB $00,$30,$13,$30
-BAIT20      FCB $00,$03,$31,$03
-            FCB $33,$11,$11,$33
-            FCB $33,$10,$10,$33
-            FCB $33,$00,$00,$33
-            FCB $30,$13,$11,$33
-            FCB $00,$00,$30,$00
-BAIT21      FCB $00,$00,$03,$00
-            FCB $03,$31,$11,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$00,$00,$33
-            FCB $33,$01,$01,$33
-            FCB $00,$30,$13,$30
-BAIT30      FCB $00,$03,$31,$03
-            FCB $33,$11,$11,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$00,$00,$33
-            FCB $30,$03,$01,$33
-            FCB $00,$00,$30,$00
-BAIT31      FCB $00,$00,$03,$00
-            FCB $03,$31,$11,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$10,$10,$33
-            FCB $33,$00,$00,$33
-            FCB $00,$30,$13,$30
-BAIT40      FCB $00,$03,$31,$03
-            FCB $33,$01,$01,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$10,$10,$33
-            FCB $30,$03,$01,$33
-            FCB $00,$00,$30,$00
-BAIT41      FCB $00,$00,$03,$00
-            FCB $03,$30,$10,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$00,$00,$33
-            FCB $00,$30,$13,$30
-BAIT50      FCB $00,$03,$31,$03
-            FCB $33,$00,$00,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$11,$11,$33
-            FCB $30,$03,$01,$33
-            FCB $00,$00,$30,$00
-BAIT51      FCB $00,$00,$03,$00
-            FCB $03,$30,$10,$33
-            FCB $33,$01,$01,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$10,$10,$33
-            FCB $00,$30,$13,$30
-BAIT60      FCB $00,$03,$31,$03
-            FCB $33,$00,$00,$33
-            FCB $33,$01,$01,$33
-            FCB $33,$11,$11,$33
-            FCB $30,$13,$11,$33
-            FCB $00,$00,$30,$00
-BAIT61      FCB $00,$00,$03,$00
-            FCB $03,$30,$10,$33
-            FCB $33,$00,$00,$33
-            FCB $33,$11,$11,$33
-            FCB $33,$11,$11,$33
-            FCB $00,$30,$13,$30
-BAIT70      FCB $00,$03,$31,$03
-            FCB $33,$10,$10,$33
-            FCB $33,$00,$00,$33
-            FCB $33,$11,$11,$33
-            FCB $30,$13,$11,$33
-            FCB $00,$00,$30,$00
-BAIT71      FCB $00,$00,$03,$00
-            FCB $03,$31,$11,$33
-            FCB $33,$00,$00,$33
-            FCB $33,$01,$01,$33
-            FCB $33,$11,$11,$33
-            FCB $00,$30,$13,$30
-
+BAIT10:         FCB $00,$03,$31,$03
+                FCB $33,$11,$11,$33
+                FCB $33,$00,$00,$33
+                FCB $33,$01,$01,$33
+                FCB $30,$13,$11,$33
+                FCB $00,$00,$30,$00
+BAIT11:         FCB $00,$00,$03,$00
+                FCB $03,$31,$11,$33
+                FCB $33,$10,$10,$33
+                FCB $33,$00,$00,$33
+                FCB $33,$11,$11,$33
+                FCB $00,$30,$13,$30
+BAIT20:         FCB $00,$03,$31,$03
+                FCB $33,$11,$11,$33
+                FCB $33,$10,$10,$33
+                FCB $33,$00,$00,$33
+                FCB $30,$13,$11,$33
+                FCB $00,$00,$30,$00
+BAIT21:         FCB $00,$00,$03,$00
+                FCB $03,$31,$11,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$00,$00,$33
+                FCB $33,$01,$01,$33
+                FCB $00,$30,$13,$30
+BAIT30:         FCB $00,$03,$31,$03
+                FCB $33,$11,$11,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$00,$00,$33
+                FCB $30,$03,$01,$33
+                FCB $00,$00,$30,$00
+BAIT31:         FCB $00,$00,$03,$00
+                FCB $03,$31,$11,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$10,$10,$33
+                FCB $33,$00,$00,$33
+                FCB $00,$30,$13,$30
+BAIT40:         FCB $00,$03,$31,$03
+                FCB $33,$01,$01,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$10,$10,$33
+                FCB $30,$03,$01,$33
+                FCB $00,$00,$30,$00
+BAIT41:         FCB $00,$00,$03,$00
+                FCB $03,$30,$10,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$00,$00,$33
+                FCB $00,$30,$13,$30
+BAIT50:         FCB $00,$03,$31,$03
+                FCB $33,$00,$00,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$11,$11,$33
+                FCB $30,$03,$01,$33
+                FCB $00,$00,$30,$00
+BAIT51:         FCB $00,$00,$03,$00
+                FCB $03,$30,$10,$33
+                FCB $33,$01,$01,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$10,$10,$33
+                FCB $00,$30,$13,$30
+BAIT60:         FCB $00,$03,$31,$03
+                FCB $33,$00,$00,$33
+                FCB $33,$01,$01,$33
+                FCB $33,$11,$11,$33
+                FCB $30,$13,$11,$33
+                FCB $00,$00,$30,$00
+BAIT61:         FCB $00,$00,$03,$00
+                FCB $03,$30,$10,$33
+                FCB $33,$00,$00,$33
+                FCB $33,$11,$11,$33
+                FCB $33,$11,$11,$33
+                FCB $00,$30,$13,$30
+BAIT70:         FCB $00,$03,$31,$03
+                FCB $33,$10,$10,$33
+                FCB $33,$00,$00,$33
+                FCB $33,$11,$11,$33
+                FCB $30,$13,$11,$33
+                FCB $00,$00,$30,$00
+BAIT71:         FCB $00,$00,$03,$00
+                FCB $03,$31,$11,$33
+                FCB $33,$00,$00,$33
+                FCB $33,$01,$01,$33
+                FCB $33,$11,$11,$33
+                FCB $00,$30,$13,$30
