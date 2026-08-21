@@ -37,14 +37,14 @@ LSDDD:          RMB 1                             ;;; Random Seed low
 PCSAV:          RMB 8                             ;;; Save old pcram values
 
                 struct ptable {
-                YACC : word,
-                XACC : word,
-                XV : word,
-                YV : word,
-                XPOS : word,
-                OLD : byte,
-                YPOS : word,
-                FROB : byte,
+                    YACC : word,
+                    XACC : word,
+                    XV : word,
+                    YV : word,
+                    XPOS : word,
+                    OLD : byte,
+                    YPOS : word,
+                    FROB : byte,
                 }
 
 PTABLE:

@@ -395,5 +395,5 @@ PHMIS0:         FCB $00,$09,$92,$09,$00
                 FCB $90,$29,$92,$29,$90
                 FCB $00,$00,$90,$00,$00
 
-MISBLP:         EQU $9000
-DYNBLP:         EQU $9229
+MISBLP:         equ $9000
+DYNBLP:         equ $9229

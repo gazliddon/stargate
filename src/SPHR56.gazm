@@ -503,19 +503,19 @@ SBTYPE:         EQU 5                             ;;; Process type: smart bomb
 
 ;;; Process structure
                 struct proc {
-                link : word,
-                addr : word,
-                time : byte,
-                type : byte,
-                cod : byte,
-                data : byte,
-                d1 : byte,
-                d2 : byte,
-                d3 : byte,
-                d4 : byte,
-                d5 : byte,
-                d6 : byte,
-                d7 : byte,
+                    link : word,
+                    addr : word,
+                    time : byte,
+                    type : byte,
+                    cod : byte,
+                    data : byte,
+                    d1 : byte,
+                    d2 : byte,
+                    d3 : byte,
+                    d4 : byte,
+                    d5 : byte,
+                    d6 : byte,
+                    d7 : byte,
                 }
 
 ;;; **Process table**
@@ -541,10 +541,10 @@ THTEND:                                           ;;; End of thrust table
 
 ;;;Star data structure
                 struct smap {
-                sx : byte,
-                sy : byte,
-                scol : byte,
-                pad : byte,
+                    sx : byte,
+                    sy : byte,
+                    scol : byte,
+                    pad : byte,
                 }
 
 SNUM:           EQU 16
@@ -617,14 +617,14 @@ MESSY:          RMB 2
 ;Player data table
 ;
                 struct player_data {
-                PSCOR : byte[4],
-                PRPLA : byte[4],
-                PLAS : byte,
-                PWAV : byte,
-                PSBC : byte,
-                PINV : byte,
-                PTARG : byte,
-                PENEMY : byte[50]
+                    PSCOR : byte[4],
+                    PRPLA : byte[4],
+                    PLAS : byte,
+                    PWAV : byte,
+                    PSBC : byte,
+                    PINV : byte,
+                    PTARG : byte,
+                    PENEMY : byte[50]
                 }
 
 PLDATA:
@@ -730,13 +730,13 @@ TLEND:
 
 ;;;Volcano lava data structure
                 struct lava {
-                xvel : word,
-                yvel : word,
-                x16 : word,
-                x8 : byte,
-                y16 : word,
-                col : word,
-                time : byte,
+                    xvel : word,
+                    yvel : word,
+                    x16 : word,
+                    x8 : byte,
+                    y16 : word,
+                    col : word,
+                    time : byte,
                 }
 
 ;;; Start of lava table

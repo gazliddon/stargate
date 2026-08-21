@@ -21,12 +21,12 @@ LSDDD:          RMB 1
 PTABLE:
 
                 struct ptable2 {
-                YV : word,
-                XV : word,
-                XPOS : word,
-                OLD : byte,
-                YPOS : word,
-                FROB : byte
+                    YV : word,
+                    XV : word,
+                    XPOS : word,
+                    OLD : byte,
+                    YPOS : word,
+                    FROB : byte
                 }
 
 XV:             equ ptable2.XV

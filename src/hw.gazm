@@ -43,10 +43,10 @@ RWCNTL:         EQU $C900
 // Stagate has two 6821 PIAS https://sowerbutts.com/replica1-serial/6821.pdf
 // 6821 have two bidirectional data ports that can generate interupts
                 struct Pia {
-                data_a : byte,
-                ctrl_a : byte,
-                data_b : byte,
-                ctrl_b : byte,
+                    data_a : byte,
+                    ctrl_a : byte,
+                    data_b : byte,
+                    ctrl_b : byte,
                 }
 
 ROM_PIA:        equ $c80c                         ;;; ROM PIA base address

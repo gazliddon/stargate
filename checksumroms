@@ -1,15 +1,20 @@
 #!/bin/bash
 while (( "$#"  )) ; do
-	RES="$(shasum -a 256 $2 | cut -c 1-64 2>&1)"
-
-	if [[ $RES == $1 ]]
-	then
-        echo -e "$2\t✅";
+	EXPECTED="$1"
+	FILE="$2"
+	
+	if [ ${#EXPECTED} -eq 40 ]; then
+		RES="$(shasum -a 1 "$FILE" | awk '{print $1}')"
 	else
-        echo -e "$2\t❌";
+		RES="$(shasum -a 256 "$FILE" | awk '{print $1}')"
+	fi
+
+	if [[ "$RES" == "$EXPECTED" ]]; then
+		echo -e "$FILE\t✅ ($RES)"
+	else
+		echo -e "$FILE\t❌ ($RES != $EXPECTED)"
 	fi
 
 	shift
 	shift
 done
-
