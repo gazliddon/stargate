@@ -1,15 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Game macros
-                macro poke(addr,val) {
-                    org 0
-                    put addr
-                    fcb val
-                }
-
-                macro section(addr) {
-                    org 0
-                    put addr
-                }
 
 
 ;;; Create a process with a run address of addr

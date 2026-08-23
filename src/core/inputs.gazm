@@ -1,4 +1,10 @@
-                org SWTAB
+;; =============================================================================
+;; STARGATE - Controls, Switch Handling, Sound Dispatch & Brightie Effects
+;; Originally: SD51.SRC (rev 51) by Sam Dicker
+;; Section:    sd51 ($5000) / bright_rom ($8F00)
+;; =============================================================================
+
+                section sd51, start = SWTAB
 
                 FDB LFIRE                         ; Fire
                 FCB LTYPE,$E8
@@ -256,7 +262,6 @@ STTRAN:         lda ,x+                           ; Copy into second player
                 cmpx #.P1END
                 bne STTRAN
                 NEWP (PLSTRT,STYPE)               ; Start player going
-DRTS:
 STARTX:         rts
 ;
 ; Player start process
@@ -315,16 +320,16 @@ PLSTR5:         clra
                 dec PLAS,x
                 jsr TDISP
                 ldd .P1SCR
-                bne PL00                          ; Not start of game
+                bne !PL00                         ; Not start of game
                 ldd .P1SCR+2
-                bne PL00
+                bne !PL00
                 clr MESSSP
                 lda #120
                 sta MESSTM
                 ldx #MESSUL+$200                  ; Willy cp message
                 lda #CP2M
                 jsr WRD5FV
-PL00:
+!PL00:
                 MAKP (SCPROC)
                 jsr ONCOL                         ; Get coloring procs
                 lda PDFLG                         ; No change in player
@@ -1441,7 +1446,7 @@ NOWRPT:         ldx #WRPMES                       ; B has number of men needed.
 SGCHK0:         jsr MESLDV
                 bra SGC1
 ;
-                import ::trek5::WARPV
+                import ::warp::WARPV
 
 WARP:           jsr GNCIDE                        ; Kill everyone!
                 jsr SCRCLR                        ; Clear the screen
@@ -1625,7 +1630,7 @@ BRIGHT:         lda proc.data ,u                  ; Save status from scanner cra
                 jsr BRT
                 jmp SGC3
 
-                org 0x8f00
+                section bright_rom, start = $8F00, size = $0100
 ;    Make room for brightie!
 ;
 ; On lites

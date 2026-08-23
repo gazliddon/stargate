@@ -1,8 +1,10 @@
-; NLIST
-; LIST
-; TTL <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Landers, Mutants & Humanoid/Astronaut Physics
+;; Originally: LMA12.SRC (rev 12) by Eugene Jarvis
+;; Section:    lma12 ($4540)
+;; =============================================================================
 
-                ORG LMAORG
+                section lma12, start = LMAORG
 
 LANDST:         jmp LNDST_
 SCZST:          jmp SCZST_

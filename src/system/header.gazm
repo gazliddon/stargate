@@ -1,11 +1,9 @@
-; TTL    <<<<<  Stargate >>>>>
-;************   Stargate    v e r S i o n    S g w 4   **************
+;; =============================================================================
+;; STARGATE - System Header, Game Equates, Process Table & CMOS RAM Layout
+;; Originally: SPHR56.SRC (rev 56) by Eugene Jarvis & Larry DeMar
+;; Section:    cmos_ram / dp_ram / work_ram
+;; =============================================================================
 
-// [[
-// # Hello
-// * a a a a  a  aaa  aa
-// * Text
-// ]]
 HSTK:           EQU $BFFF                         ;;; Stack top
 
 ; Score display constants
@@ -164,7 +162,7 @@ DNORG:          EQU $5AD0
 
 ////////////////////////////////////////////////////////////////////////////////
 ; Cmos RAM allocation
-                ORG CMOS+$100                     ; Writable cmos
+                section cmos_ram
 
 CREDST:         RMB 2                             ;;; Credits backup
 SLOT1:          RMB 6                             ;;; Left coin total
@@ -183,7 +181,7 @@ CMSCOR:         RMB 40*SCRSIZ                     ;;; 40 Backed up scores, 39 of
 TODAYS:         RMB 6*SCRSIZ                      ;;; Todays greatest
 TODEND:
 
-                ORG CMOS                          ;;; Adequate birth control protection
+                section cmos_read_only, start = CMOS, size = $0100 ;;; Adequate birth control protection
 
 REPLAY:         RMB 2                             ;;; Replay level
 NSHIP:          RMB 2                             ;;; # Of ships/1 credit game
@@ -225,7 +223,7 @@ ADJSUM:         RMB 2
 OMESUM:         RMB 2
 
 ;Base page RAM area
-                ORG $9C00
+                section dp_ram
 RAM:
                 SETDP RAM>>8
 
@@ -443,7 +441,7 @@ SWPR4_:         RMB 4                             ;;; Fourth switch buffer
 CHKS1:          RMB 1
 
 ; Table data
-                ORG RAM+$100                      ; Past base page
+                section work_ram                  ; Past base page
 WRPRAM:         EQU RAM+$100                      ;;; Warp effect overlays explosions and terrain
 RAMALS:         RMB $400                          ;;; Ram for explosions
 RAMEND:                                           ;;; End of excplosion RAM

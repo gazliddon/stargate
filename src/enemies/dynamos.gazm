@@ -1,10 +1,14 @@
-// TTL   <<<<<  S T A R G A T E  >>>>>
+;; =============================================================================
+;; STARGATE - Space Dynamos & Mine Layer Enemy AI
+;; Originally: DN11.SRC (rev 11) by Eugene Jarvis
+;; Section:    dn11 ($5AD0)
+;; =============================================================================
 
 .DYN_OPTR:      EQU proc.data
 .VEL:           EQU proc.data+2
 .SHOT:          EQU proc.data+3
 
-                ORG DNORG
+                section dn11, start = DNORG
 
 
 DYNSTV:         jmp DYNSRT

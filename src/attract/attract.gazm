@@ -1,8 +1,10 @@
-; NLIST
-; LIST
-; TTL   <<<<<  Stargate >>>>>
+;; =============================================================================
+;; STARGATE - Attract Mode Display, Credits & Gameplay Instructions
+;; Originally: ATTR9.SRC (rev 9)
+;; Section:    attr9 ($DA00)
+;; =============================================================================
 
-                ORG ATRORG
+                section attr9, start = ATRORG
 ;;; __Routine:__ pickup
 PICKUP:
                 lda #$FF

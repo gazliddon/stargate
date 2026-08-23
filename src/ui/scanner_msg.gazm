@@ -1,6 +1,8 @@
-;  TTL <<<<<  Stargate  >>>>>
-
-;  Message handler
+;; =============================================================================
+;; STARGATE - Radar Scanner Area Message Overlay Primitives
+;; Originally: MESS2.SRC (rev 2)
+;; Section:    mess2 ($3740)
+;; =============================================================================
 
 ;  X points at message descriptor, D and Y hold any relevant data.
 ;
@@ -54,7 +56,7 @@
 
 BLKTIM:         equ $18                           ; Blink timer.
 
-                org MESORG
+                section mess2, start = MESORG
 MESLDV:         jmp MESSLD                        ;;; Loader
 MESINV:         jmp MESSIN                        ;;; Initializer
 

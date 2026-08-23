@@ -1,9 +1,9 @@
 
-                ORG $5F70
+                section fixup_5f70, start = $5F70
                 FCB $B7                           ; Match the proms goofy
 
-                ORG $3237
+                section fixup_3237, start = $3237
                 FCB $02                           ; Match the proms!!!!!
 
-                org 0xd950
+                section fixup_d950, start = $D950
                 FCB $8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E

@@ -1,4 +1,8 @@
-;  TTL	<<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Game Objects, Collisions & Scanner Rendering
+;; Originally: RB37.SRC (rev 37) by Eugene Jarvis & Larry DeMar
+;; Section:    lo_rom (resumed) / patch_2b70 ($2B70)
+;; =============================================================================
 
 ;;; Moves objects between active and inactive lists depending if the object
 ;;; On screen or not
@@ -2315,9 +2319,9 @@ SWPCH:          ldb STATUS
                 ldb PIA3
                 andb #$FE
                 orb ATRSW3
-                jmp ::core::PATCH2
+                jmp PATCH2
 SWPCHX:         ldb PIA2
-                jmp ::core::PATCH1
+                jmp PATCH1
 
 ;;; No score in attr patch
 SCRPCH:         pshs a,b,x,u,y
@@ -2341,7 +2345,7 @@ LASPAT:         lda SAMEXC                        ; No laser during BAD terrain
                 rts
 NOLAS:          jmp SUCIDE
 
-                org 0x2b70
+                section patch_2b70, start = $2B70
 SWPACH:         beq SWP_
                 jsr INVSTV
 SWP_:           lda INDIAG                        ; No switch proc if in diags

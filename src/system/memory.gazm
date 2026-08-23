@@ -12,51 +12,23 @@ stargate_rom_10: equ 0xd000                       ; Crc(60b07ff7) sha1(ba833f48d
 stargate_rom_11: equ 0xe000                       ; Crc(7d2c5daf) sha1(6ca39f493eb8b370154ad46ef01976d352c929e1) )
 stargate_rom_12: equ 0xf000                       ; Crc(a0396670) sha1(c46872550e0ca031453c6513f8f0448ecc9b5572) )
 
-                org 0
-                put stargate_rom_1
+section lo_rom, start = $0000, size = $9000
                 incbinref "$(REF_ROMS_DIR)/01",stargate_rom_1
-
-                org 0
-                put stargate_rom_2
                 incbinref "$(REF_ROMS_DIR)/02",stargate_rom_2
-
-                org 0
-                put stargate_rom_3
                 incbinref "$(REF_ROMS_DIR)/03",stargate_rom_3
-
-                org 0
-                put stargate_rom_4
                 incbinref "$(REF_ROMS_DIR)/04",stargate_rom_4
-
-                org 0
-                put stargate_rom_5
                 incbinref "$(REF_ROMS_DIR)/05",stargate_rom_5
-
-                org 0
-                put stargate_rom_6
                 incbinref "$(REF_ROMS_DIR)/06",stargate_rom_6
-
-                org 0
-                put stargate_rom_7
                 incbinref "$(REF_ROMS_DIR)/07",stargate_rom_7
-
-                org 0
-                put stargate_rom_8
                 incbinref "$(REF_ROMS_DIR)/08",stargate_rom_8
-
-                org 0
-                put stargate_rom_9
                 incbinref "$(REF_ROMS_DIR)/09",stargate_rom_9
 
-                org 0
-                put stargate_rom_10
+section hi_rom, start = $D000, size = $3000
                 incbinref "$(REF_ROMS_DIR)/10",stargate_rom_10
-
-                org 0
-                put stargate_rom_11
                 incbinref "$(REF_ROMS_DIR)/11",stargate_rom_11
-
-                org 0
-                put stargate_rom_12
                 incbinref "$(REF_ROMS_DIR)/12",stargate_rom_12
 
+;; RAM Sections
+section dp_ram,   start = $9C00, size = $0100
+section work_ram, start = $9D00, size = $2300
+section cmos_ram, start = $CD00, size = $0400

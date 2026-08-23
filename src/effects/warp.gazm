@@ -1,11 +1,15 @@
-; TTL  <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Stargate Portal Entrance & Warp Sequence Effects
+;; Originally: TREK5.SRC (rev 5)
+;; Section:    warp_ram (WRPRAM) / trek5 ($3240)
+;; =============================================================================
 
-; Does stuff for the warp sequence
+                scope warp
 
 BLOPT:          EQU $5080                         ;;; Place to explode
 RINDEL:         EQU $9                            ;;; Updates until next ring
 
-                ORG WRPRAM
+                section warp_ram, start = WRPRAM
 
 ;;; Time till next color change
 ;;; * A
@@ -50,7 +54,7 @@ PCSAV:          RMB 8                             ;;; Save old pcram values
 PTABLE:
                 RMB ptable.size * 300
 
-                ORG WRPORG
+                section trek5, start = WRPORG
 WARPV:          jmp ROCK0                         ; Warp
 
 ;;; Table that an element is pointted to by frobpt

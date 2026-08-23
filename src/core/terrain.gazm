@@ -1,9 +1,10 @@
-; TTL <<<<<  Stargate  >>>>>
-;
-; Data structure
-; Variables
+;; =============================================================================
+;; STARGATE - Mountain Terrain Generation, Deformation & Scrolling
+;; Originally: ET13.SRC (rev 13) by Eugene Jarvis
+;; Section:    dp_ram (BGSAV) / et13 ($2C00)
+;; =============================================================================
 
-                ORG BGSAV
+                section dp_ram, start = BGSAV
 
 BGLXX:          RMB 2                             ; Oldie
 SSTACK:         RMB 2                             ; Temp stack save
@@ -15,7 +16,7 @@ TOFF1:          RMB 1                             ; Alt offset flav1
 SCFLG:          RMB 1                             ; Scroll direction 0=rt.,$FF=lft.
 
 ; Vectors
-                ORG BGORG
+                section et13, start = BGORG
 BGINIT:         jmp BGI                           ;;; Init terrain Vector
 BGOUT:          jmp BGO                           ;;; Output terrain Vector
 BGERAS:         jmp BGE_label                     ;;; Erase terrain vector

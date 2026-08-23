@@ -1,6 +1,10 @@
-; Prayah 1: p l o g l A m S t A h t
-; A lot of sound stuff in this file
-                org 0
+;; =============================================================================
+;; STARGATE - Core Executive Loop & Process Dispatcher
+;; Originally: RA37.SRC (rev 37) by Eugene Jarvis & Larry DeMar
+;; Section:    lo_rom ($0000)
+;; =============================================================================
+
+                section lo_rom
 
 ;;; Deletes an object
 ;;; Y = object
@@ -1561,9 +1565,9 @@ PLAYER:         lda STATUS                        ; Controls inactive?
                 coma
                 comb
                 addd #1                           ; Negd
-                bpl PL00
+                bpl !PL00
                 com ITEMP                         ; Sign extend
-PL00:           aslb                              ; Shift
+!PL00:          aslb                              ; Shift
                 rola
                 aslb
                 rola

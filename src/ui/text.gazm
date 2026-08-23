@@ -1,4 +1,8 @@
-; TTL   <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - 5x7 and 3x5 Font Renderer & Glyph Character Tables
+;; Originally: TEXT31.SRC (rev 31)
+;; Section:    dp_ram (TXTSAV) / text31 ($7000)
+;; =============================================================================
 
 ;      Text program organization.
 ;
@@ -37,9 +41,7 @@
 
 ;      Prnt57 - same as prnt35 except for 5 X 7 characters.
 
-;       Prn57f - even randy could figure out what this routine does.
-
-                ORG TXTSAV
+                section dp_ram, start = TXTSAV
 
                 RMB 1                             ; (Texcol) current printing color (nibbles represent flavor color)
                 RMB 1                             ; (Txflav) flavor of current cursor (0=even, 1=odd)
@@ -66,7 +68,7 @@ SLASH:          EQU $5E
 LASCAR:         EQU $5E                           ; Last character
 CLRDEF:         EQU $11                           ; Color 1 is default
 
-                ORG TEXORG
+                section text31, start = TEXORG
 
 ;;; Text number graphics tables
 N0V:            FDB $0308,NUMBR0                  ; Number 0

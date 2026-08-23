@@ -1,11 +1,8 @@
-; TTL <<<<<  Stargate  >>>>>
-
-////////////////////////////////////////////////////////////////////////////////
-;
-; Sam explosions and appearances
-;
-; Assemble with sphr*,romeq*
-////////////////////////////////////////////////////////////////////////////////
+;; =============================================================================
+;; STARGATE - Explosions, Particle Systems & Object Appearance
+;; Originally: SAM16.SRC (rev 16) by Sam Dicker
+;; Section:    exp_ram (EXPRAM) / sam16 ($2700)
+;; =============================================================================
 
 ;
 ; Explosion,appear equates
@@ -25,7 +22,7 @@ RAMSIZ:         EQU $40                           ; Length of RAM allocation
 ; Explosion direct page variables
 ;
 
-                ORG EXPRAM
+                section exp_ram, start = EXPRAM
 LAST:           RMB 2
 SIZE:           RMB 1
 DSIZE:          RMB 1
@@ -40,7 +37,7 @@ XSIZE:          RMB 2                             ; Variable explosion size fact
 ;
 ; Explosion/appear vectors
 ;
-                ORG SAMORG
+                section sam16, start = SAMORG
 APVCT:          jmp APST                          ; Appear start
 XSVCT:          jmp EXSTT                         ; Explosion start
 XUVCT:          jmp EXPU                          ; Expanded update

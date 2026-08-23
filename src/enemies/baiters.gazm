@@ -1,6 +1,10 @@
-; <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Baiters, Pods & Swarmers AI
+;; Originally: BPS15.SRC (rev 15) by Eugene Jarvis
+;; Section:    bps15 ($3840)
+;; =============================================================================
 
-                ORG BPSORG
+                section bps15, start = BPSORG
 
 UFOST:          jmp UFOST_
 PRBST:          jmp PRBST_
@@ -793,7 +797,6 @@ PODM2:          FCB $A0,COND
 ;
 ; Kill probe
 ;
-                import ::core::SBRET
 PRBKIL:         ldd #PHPOD                        ; Substitute phoney picture
                 std OPICT,x
                 KILO ($210,PRHSND)

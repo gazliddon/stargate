@@ -1,6 +1,10 @@
-; TTL <<<<< Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - High Score Table Audits, CMOS Verification & Copyright Padding
+;; Originally: TESTC8.SRC (rev 8)
+;; Section:    testc8 ($E940) / copyright_f400 ($F400)
+;; =============================================================================
 
-                ORG TSCORG                        ; Place to run from
+                section testc8, start = TSCORG
 
 PUPHSC:         jmp CKHS                          ; Check high scores (power up)
 ENDPRC:         jmp ENDGAM                        ; End of game high score processing
@@ -595,7 +599,7 @@ CMPSC5:         orcc #$01                         ; Sec player is higher
                 FCC " STARGATE - COPYRIGHT  (C) 1981 WILLIAMS ELECTRONICS INC. "
                 FCC " ALL RIGHTS RESERVED "
 
-                ORG $F400
+                section copyright_f400, start = $F400
                 FCC " STARGATE - COPYRIGHT  (C) 1981 WILLIAMS ELECTRONICS INC. "
                 FCC " ALL RIGHTS RESERVED "
 

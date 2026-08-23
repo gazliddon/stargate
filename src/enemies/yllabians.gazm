@@ -1,6 +1,10 @@
-; TTL  <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Yllabian Space Guppies & Firebombers AI
+;; Originally: YF14.SRC (rev 14) by Eugene Jarvis
+;; Section:    yf14 ($4F40)
+;; =============================================================================
 
-                ORG YFORG
+                section yf14, start = YFORG
 FBSTRT:         jmp FBSTR_
 YLST:           jmp YLST_
 RIPV:           jmp RIPCHK

@@ -1,6 +1,10 @@
-//  <<<<< S T A R G A T E  >>>>>
+;; =============================================================================
+;; STARGATE - Logo Presentation, High Score Hall of Fame & Name Entry
+;; Originally: LOG11.SRC (rev 11)
+;; Section:    log11 ($D000)
+;; =============================================================================
 
-                org LOGORG
+                section log11, start = LOGORG
 
 ATTR:           jmp ATTR_                         ;;; Attract mode
 GOV:            jmp ATTR_                         ;;; Attract mode

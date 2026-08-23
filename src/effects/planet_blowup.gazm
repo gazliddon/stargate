@@ -1,6 +1,12 @@
-; TTL  <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Terrain Destruction & Planet Explosion Effects
+;; Originally: TREKC5.SRC (rev 5)
+;; Section:    warp_ram (WRPRAM) / trekc5 ($3440)
+;; =============================================================================
 
-                ORG WRPRAM                        ; Use same RAM as warp effect.
+                scope blowup
+
+                section warp_ram, start = WRPRAM  ; Use same RAM as warp effect.
 
 TEMP1:          RMB 2                             ; Used by roksub for distortion of diamond
 TEMP2:          RMB 1                             ; Used to measure time till next guy out.
@@ -42,7 +48,7 @@ PSIZZ:          equ ptable2.size
 PTABE:          EQU *
                 RMB PSIZZ*4
 
-                ORG BLOWV                         ; ROM space for blow up
+                section trekc5, start = BLOWV     ; ROM space for blow up
                 jmp ROCK0                         ; Go to entry point
 
 PIECES:         FCB $11

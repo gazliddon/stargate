@@ -1,10 +1,12 @@
-;  NLIST
-;  LIST
-;  TTL    <<<<<  Stargate  >>>>>
+;; =============================================================================
+;; STARGATE - Power-Up Diagnostic Self-Tests, Monitor Grid & 6809 Vectors
+;; Originally: TEST12.SRC (rev 12)
+;; Section:    sam_ram (RAMALS) / test12 ($F480) / vectors ($FFF0)
+;; =============================================================================
 
                 SETDP RAM>>8
 
-                org RAMALS                        ;  Use sams RAM
+                section sam_ram, start = RAMALS   ;  Use sams RAM
 
 SW0ST:          RMB 1
 SW0SCN:         RMB 1
@@ -17,7 +19,7 @@ SW2SCI:         RMB 1
 SW3STI:         RMB 1
 SW3SCI:         RMB 1
 
-                org TSTORG
+                section test_12, start = TSTORG
 AUD:            jmp AUD_
 AUD1:           jmp AUD1_
 PWRUPV:         jmp PWRUP
@@ -1256,7 +1258,7 @@ ROMEND:         FCB 0
 
 
 ;; Hardware Vectors
-                org $fff0
+                section vectors, start = $FFF0, size = $0010
                 fdb PWRUPV                        ; Reserved by motorola
                 fdb PWRUPV                        ; Sw3
                 fdb PWRUPV                        ; Sw2

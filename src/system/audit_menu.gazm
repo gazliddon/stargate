@@ -1,5 +1,11 @@
-; TTL  <<<<< Stargate  >>>>>
-                ORG RAMALS                        ; Use sam RAM for storage
+;; =============================================================================
+;; STARGATE - Operator Bookkeeping, Game Adjustments & Pricing Menu
+;; Originally: TESTB12.SRC (rev 12)
+;; Section:    sam_ram_b (RAMALS) / testb12 ($E000)
+;; =============================================================================
+
+                section sam_ram_b, start = RAMALS ; Use sam RAM for storage
+
 XSTOR:          RMB 2
 YSTOR:          RMB 2
 ASTOR:          RMB 1
@@ -9,7 +15,7 @@ FROBX:          EQU $C
 ADJX:           EQU $11
 ADVALX:         EQU $59
 
-                ORG TSBORG
+                section test_b12, start = TSBORG
 
 ADJV:           jmp ADJUST
 CMINIT:         jmp CKCMOS
