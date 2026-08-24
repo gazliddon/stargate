@@ -5,7 +5,7 @@ REF_ROMS_DIR = "stargate"
 
 # Minimum gazm assembler version this fixture is validated against.
 # scripts/prepare-release.sh keeps this in lockstep with gazm/Cargo.toml.
-requires-gazm = "0.10.0"
+requires-gazm = "0.11.0"
 
 [[targets]]
 name = "stargate"
