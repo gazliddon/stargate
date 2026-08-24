@@ -41,18 +41,18 @@ LSDDD:          RMB 1                             ;;; Random Seed low
 PCSAV:          RMB 8                             ;;; Save old pcram values
 
                 struct ptable {
-                    YACC : word,
-                    XACC : word,
-                    XV : word,
-                    YV : word,
-                    XPOS : word,
-                    OLD : byte,
-                    YPOS : word,
-                    FROB : byte,
+                    YACC : word
+                    XACC : word
+                    XV : word
+                    YV : word
+                    XPOS : word
+                    OLD : byte
+                    YPOS : word
+                    FROB : byte
                 }
 
 PTABLE:
-                RMB ptable.size * 300
+                RMB ptable::size * 300
 
                 section trek5, start = WRPORG
 WARPV:          jmp ROCK0                         ; Warp
@@ -105,7 +105,7 @@ ROKSUB:         clrb
                 coma
                 comb
                 addd #1
-                std ptable.size,x                 ; Store the negative side for the next one
+                std ptable::size,x                 ; Store the negative side for the next one
                 std ,x++
                 bsr !RNDDIS
                 std ,x++
@@ -160,7 +160,7 @@ STORSB:         clra
 ;;; Warping!
 ROCK0:          ldu CRPROC
                 puls x                            ; Get return address
-                stx proc.data+6,u
+                stx proc::data+6,u
                 ldx #PCRAM+1
                 ldy #PCSAV
                 ldu #PCTAB
@@ -221,54 +221,54 @@ ROCK0:          ldu CRPROC
                 cmpy #PCRAM+9
                 bne !loop2
                 ldu CRPROC                        ; Get process in case of bashing
-                jmp [proc.data+6,u]               ; Return
+                jmp [proc::data+6,u]               ; Return
 
 !rokup2:
                 cmpx TABPTR                       ; At end???
                 beq !UPDATE
 
-                sty [ptable.OLD,x]                ; Erases old one
-                ldd ptable.YACC,x
-                addd ptable.YV,x
-                std ptable.YV,x
-                addd ptable.YPOS,x
+                sty [ptable::OLD,x]                ; Erases old one
+                ldd ptable::YACC,x
+                addd ptable::YV,x
+                std ptable::YV,x
+                addd ptable::YPOS,x
                 cmpa #YMAXX
                 bcc !byept2
                 cmpa #YMINN
                 bcs !byept2
-                std ptable.YPOS,x
-                ldd ptable.XACC,x
-                addd ptable.XV,x
-                std ptable.XV,x
-                addd ptable.XPOS,x
+                std ptable::YPOS,x
+                ldd ptable::XACC,x
+                addd ptable::XV,x
+                std ptable::XV,x
+                addd ptable::XPOS,x
                 cmpa #XMAX
                 bcc !byept2
-                std ptable.XPOS,x
-                sta ptable.OLD,x
-                lda ptable.FROB,x
-                ldb ptable.FROB,x
-                std [ptable.OLD,x]                ; Store frob
-                leax ptable.size,x                ; Move to next
+                std ptable::XPOS,x
+                sta ptable::OLD,x
+                lda ptable::FROB,x
+                ldb ptable::FROB,x
+                std [ptable::OLD,x]                ; Store frob
+                leax ptable::size,x                ; Move to next
                 bra !rokup2
 
 !byept2:
                 ldu TABPTR                        ; Get the pointer
-                leau -ptable.size,u               ; Move down one entry
+                leau -ptable::size,u               ; Move down one entry
                 stu TABPTR
-                ldd ptable.YACC,u
-                std ptable.YACC,x
-                ldd ptable.XACC,u
-                std ptable.XACC,x
-                ldd ptable.XV,u
-                std ptable.XV,x
-                ldd ptable.YV,u
-                std ptable.YV,x
-                ldd ptable.XPOS,u
-                std ptable.XPOS,x
-                ldd ptable.OLD,u
-                std ptable.OLD,x
-                ldd ptable.OLD+2,u
-                std ptable.OLD+2,x
+                ldd ptable::YACC,u
+                std ptable::YACC,x
+                ldd ptable::XACC,u
+                std ptable::XACC,x
+                ldd ptable::XV,u
+                std ptable::XV,x
+                ldd ptable::YV,u
+                std ptable::YV,x
+                ldd ptable::XPOS,u
+                std ptable::XPOS,x
+                ldd ptable::OLD,u
+                std ptable::OLD,x
+                ldd ptable::OLD+2,u
+                std ptable::OLD+2,x
                 bra !rokup2
 
 NWRING:         lda TEMP6

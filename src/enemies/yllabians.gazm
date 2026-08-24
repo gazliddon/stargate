@@ -62,7 +62,7 @@ YLSQ0:
                 lda XTEMP                         ; Y spacing
                 adda #4
                 sta XTEMP
-                sta proc.d2,u                     ; Y spacing
+                sta proc::d2,u                     ; Y spacing
                 ldb XTEMP+1
                 sex
                 std OXV,x
@@ -109,7 +109,7 @@ YLBOMB:         pshs x
                 bmi !YLBX                         ; Not headed for player
                 lda YLSTIM                        ; New timer
                 jsr RMAX
-                sta proc.d6,u
+                sta proc::d6,u
                 lda BMBCNT
                 cmpa #15
                 bhi !YLBX                         ; Too many already
@@ -162,19 +162,19 @@ YLKIL:          dec YLCNT                         ; DEAD guy
 ;;; PD=object,PD2=alt offset
 ;;; Pd3=dive offset, pd4=accel, pd5=dive time
 ;;; Pd6=shot timer
-YLPP:           ldx proc.data,u
+YLPP:           ldx proc::data,u
                 ldd OPICT,x
                 cmpd #NULOB                       ; Appearing?
                 bne !offscreen
                 NAP (6,YLPP)                      ; Wait to finish
 
-!offscreen:     ldx proc.data,u
+!offscreen:     ldx proc::data,u
                 lda OBJY,x                        ; On screen?
                 bne !onscreen                     ; Target engaged
                 jsr GETALT                        ; Fly in formation
                 clrb
                 suba OY16,x
-                suba proc.d2,u
+                suba proc::d2,u
                 cmpa #-10
                 bgt !YLPP3
                 ldb #-1
@@ -191,20 +191,20 @@ YLPP:           ldx proc.data,u
                 jmp SLEEP                         ; Random sleep time
 
 // START A DIVE
-!YLPS1:         ldx proc.data,u                   ; Get object ptr
+!YLPS1:         ldx proc::data,u                   ; Get object ptr
                 lda SEED
                 anda #$1F
                 suba #$F
-                sta proc.d3,u                     ; Dive Y offset
+                sta proc::d3,u                     ; Dive Y offset
                 lda LSEED
                 anda #$F
                 adda #$2
-                sta proc.d5,u                     ; Dive timer
+                sta proc::d5,u                     ; Dive timer
                 lda YLSTIM                        ; Shot timer
-                sta proc.d6,u
+                sta proc::d6,u
                 lda YLAC
                 jsr RMAX
-                sta proc.d4,u                     ; Acceleration
+                sta proc::d4,u                     ; Acceleration
 ; X velocity
                 ldd PLABX
                 cmpd OX16,x
@@ -219,10 +219,10 @@ YLPP:           ldx proc.data,u
                 std OXV,x
 
 ; Y accell
-!YLPS2L:        ldx proc.data,u
-                ldb proc.d4,u                     ; Get accell
+!YLPS2L:        ldx proc::data,u
+                ldb proc::d4,u                     ; Get accell
                 lda PLAYC
-                adda proc.d3,u                    ; Dive offset
+                adda proc::d3,u                    ; Dive offset
                 cmpa OY16,x
                 bhi !YLPS5
                 negb
@@ -239,10 +239,10 @@ YLPP:           ldx proc.data,u
                 rorb
                 addd OYV,x
                 std OYV,x
-                dec proc.d6,u                     ; Time to shoot
+                dec proc::d6,u                     ; Time to shoot
                 bne !YLPS6
                 jsr YLBOMB                        ; Bomb the guy
-!YLPS6:         dec proc.d5,u                     ; New dive?
+!YLPS6:         dec proc::d5,u                     ; New dive?
                 beq !YLPS1
                 jsr GYLPIC
                 NAP (4,!YLPS2L)
@@ -256,7 +256,7 @@ RIPC0:          lda RIPOFF                        ; Already active??
                 bne RIPDIE                        ; Then no need to live.
                 inc RIPOFF                        ; Exclude please
                 lda #$3
-                sta proc.data,u
+                sta proc::data,u
 !RIPC2:
                 NAP (8,!RIPC1)
 !RIPC1:         lda PIA21
@@ -264,11 +264,11 @@ RIPC0:          lda RIPOFF                        ; Already active??
                 beq !RIPC4
                 cmpa #$E2                         ; Still old combo??
                 beq !RIPC2                        ; Then don't count
-                dec proc.data,u
+                dec proc::data,u
                 bne !RIPC2
                 bra RIPC3
 !RIPC4:         lda #$3
-                sta proc.data,u
+                sta proc::data,u
 !RIPC5:
                 NAP (8,!RIPC6)
 !RIPC6:         lda PIA21
@@ -276,15 +276,15 @@ RIPC0:          lda RIPOFF                        ; Already active??
                 lbeq RIPV1                        ; Done!
                 cmpa #$51                         ; Old combo??
                 beq !RIPC5
-                dec proc.data,u                   ; Less time
+                dec proc::data,u                   ; Less time
                 bne !RIPC5
 RIPC3:          clr RIPOFF
 RIPDIE:         jmp SUCIDE
 
-.OPTR:          equ proc.data                     ; Object pointer
+.OPTR:          equ proc::data                     ; Object pointer
 .COAST:         equ .OPTR+2                       ; Number of wakeups till next update
 .DELA:          equ .COAST+1
-.RET:           equ proc.data+6                   ; Place to hold caller
+.RET:           equ proc::data+6                   ; Place to hold caller
 
 
 ;;;   Firebomber  (tm) (r) (c) (p) (bs) (etc)
@@ -474,7 +474,7 @@ BOTFI1:         std XTEMP                         ; Save the Y
                 sta OTYP,x                        ; Make non-hyperable   (is this bit ok???????)
                 stx OPTR                          ; Now put it on LIST
                 lda XTEMP2                        ; Get acceleration
-                sta proc.data+2,u                 ; And pass it
+                sta proc::data+2,u                 ; And pass it
 BFIRX:          lda FBFREQ                        ; Time till next ball eligable
                 coma
                 ldu CRPROC                        ; Get back to daddy
@@ -542,14 +542,14 @@ FBXV:           ldb LSEED                         ; Get A radnub
 FBALL:          ldd #SSHSND
                 jsr SNDLD                         ; Make A launch sound
                 lda #$20                          ; Timer
-                sta proc.data+3,u
+                sta proc::data+3,u
 
 FBAL11:
                 SLEEP(3)
-                ldx proc.data,u                   ; Get the object
+                ldx proc::data,u                   ; Get the object
                 jsr FBDIST                        ; Check its on screeness
                 bhi !FBAL4                        ; Gone!
-                dec proc.data+3,u                 ; Timer
+                dec proc::data+3,u                 ; Timer
                 beq !FBAL4                        ; Kill the sucker
                 lda SEED
                 anda #$7                          ; 8 Possible changes
@@ -560,7 +560,7 @@ FBAL11:
                 bls !FBAL3                        ; Nope
                 subd #80                          ; Bring it back into the table
 !FBAL3:         std OPICT,x                       ; Store new image
-                ldb proc.data+2,u                 ; Get accel
+                ldb proc::data+2,u                 ; Get accel
                 sex
                 addd OYV,x
                 std OYV,x
@@ -600,14 +600,14 @@ FBKILL:         dec FBCNT                         ; 1 Less fire bomber
 FBKIL1:         std OPICT,x                       ; Make phoney picture
                 tfr x,y                           ; Move the process
                 MAKP (BOOM)                       ; Do it.
-                sty proc.data,x                   ; And pass it the object
+                sty proc::data,x                   ; And pass it the object
                 rts                               ; And return
 
 BOOM:           lda #3                            ; Do it 4 times
-                sta proc.data+2,u
-!BOOM1:         ldx proc.data,u                   ; Get object
+                sta proc::data+2,u
+!BOOM1:         ldx proc::data,u                   ; Get object
                 jsr XSVCT                         ; Do an explode
-                dec proc.data+2,u
+                dec proc::data+2,u
                 beq !BOOM2
                 NAP (5,!BOOM1)
 !BOOM2:         ldd OFREE

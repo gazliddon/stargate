@@ -43,10 +43,10 @@ RWCNTL:         EQU $C900
 // Stagate has two 6821 PIAS https://sowerbutts.com/replica1-serial/6821.pdf
 // 6821 have two bidirectional data ports that can generate interupts
                 struct Pia {
-                    data_a : byte,
-                    ctrl_a : byte,
-                    data_b : byte,
-                    ctrl_b : byte,
+                    data_a : byte
+                    ctrl_a : byte
+                    data_b : byte
+                    ctrl_b : byte
                 }
 
 ROM_PIA:        equ $c80c                         ;;; ROM PIA base address
@@ -62,7 +62,7 @@ WIDGET_PIA:     equ $c804                         ;;; Widget PIA base address
 ;;; * 0X20 : B5 : Center Coin
 ;;; * 0X40 : B6 : Slam door tilt
 ;;; * 0X80 : B7 : Sound board handshake
-PIA0:           EQU ROM_PIA + Pia.data_a
+PIA0:           EQU ROM_PIA + Pia::data_a
 
 ;;; ROM PIA Port A Ctrl
 ;;;
@@ -74,7 +74,7 @@ PIA0:           EQU ROM_PIA + Pia.data_a
 ;;; * 0X20 : B5 : CA2
 ;;; * 0X40 : B6 : IRQ A
 ;;; * 0X80 : B7 : IRQ B
-PIA0_ctrl:      equ ROM_PIA + Pia.ctrl_a
+PIA0_ctrl:      equ ROM_PIA + Pia::ctrl_a
 
 ;;; ROM PIA Port B Data
 ;;;
@@ -86,7 +86,7 @@ PIA0_ctrl:      equ ROM_PIA + Pia.ctrl_a
 ;;; * 0X20 : B5 : Sound
 ;;; * 0X40 : B6 : led
 ;;; * 0X80 : B7 : led
-PIA1:           equ ROM_PIA + Pia.data_b
+PIA1:           equ ROM_PIA + Pia::data_b
 
 ;;; Alias for ROM PIA data port B
 SOUND:          equ PIA1
@@ -101,7 +101,7 @@ SOUND:          equ PIA1
 ;;; * 0X20 : B5 : CB2
 ;;; * 0X40 : B6 : IRQ A
 ;;; * 0X80 : B7 : IRQ B
-PIA1_ctrl:      equ ROM_PIA + Pia.ctrl_b
+PIA1_ctrl:      equ ROM_PIA + Pia::ctrl_b
 
 ;;; Widget PIA Port A Data
 ;;;
@@ -113,11 +113,11 @@ PIA1_ctrl:      equ ROM_PIA + Pia.ctrl_b
 ;;; * 0X20 : B5 : 1 player start
 ;;; * 0X40 : B6 : Reverse
 ;;; * 0X80 : B7 : Down
-PIA2:           EQU WIDGET_PIA + Pia.data_a
+PIA2:           EQU WIDGET_PIA + Pia::data_a
 
 ;;; Widget PIA Port A Ctrl
 ;;;
-PIA2_ctrl:      equ WIDGET_PIA + Pia.ctrl_a
+PIA2_ctrl:      equ WIDGET_PIA + Pia::ctrl_a
 
 sw_fire:        equ 1 << 0
 sw_thrust:      equ 1 << 1
@@ -133,7 +133,7 @@ sw_down:        equ 1 << 7
 ;;; * B0 Up
 ;;; * B1 hyperdrive (anti-matter)  ....does it matter?
 ;;; * B7 Input 1=cocktail
-PIA3:           equ WIDGET_PIA + Pia.data_b
+PIA3:           equ WIDGET_PIA + Pia::data_b
 
 ;;; Widget PIA Port B ctrl
 ;;;
@@ -145,5 +145,5 @@ PIA3:           equ WIDGET_PIA + Pia.data_b
 ;;; * 0X20 : B5 : cb2_2 :
 ;;; * 0X40 : B6 : IRQ A
 ;;; * 0X80 : B7 : IRQ B
-PIA3_ctrl:      equ WIDGET_PIA + Pia.ctrl_b
+PIA3_ctrl:      equ WIDGET_PIA + Pia::ctrl_b
 

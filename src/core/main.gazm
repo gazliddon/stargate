@@ -106,15 +106,15 @@ SWPX:
 ;;; Process dispatch
 DISP:           ldu #ACTIVE
                 bra DISP2
-DISP1:          dec proc.time,u
+DISP1:          dec proc::time,u
                 bne DISP2
                 stu CRPROC
-                jmp [proc.addr,u]
+                jmp [proc::addr,u]
 
 ;;; Sleep; A=sleep time X 16MSEC; X=wakeup addr
 SLEEP:          ldu CRPROC
-                sta proc.time,u
-                stx proc.addr,u
+                sta proc::time,u
+                stx proc::addr,u
 
 DISP2:          ldu ,u
                 bne DISP1
@@ -159,7 +159,7 @@ KILP1:          cmpx ,u
                 bne KILPLP                        ;  No match
                 ldd ,x                            ;  Get forward link of DEAD guy
                 std ,u
-                lda proc.cod,x
+                lda proc::cod,x
                 beq KILP2                         ;  Reg process
                 ldd SPFREE                        ;  Super process
                 stx SPFREE
@@ -191,7 +191,7 @@ MSPROC:         pshs a,y,u
 !skip:          ldy ,u
                 sty SPFREE
                 lda #1
-                sta proc.cod,u
+                sta proc::cod,u
                 lda ,s                            ; Get type
                 bra MKP1
 
@@ -202,12 +202,12 @@ MKPROC:         pshs a,y,u
                 jsr ERROR
 !skip:          ldy ,u
                 sty FREE                          ; Delink
-                clr proc.cod,u
+                clr proc::cod,u
 
-MKP1:           stx proc.addr,u
-                sta proc.type,u
+MKP1:           stx proc::addr,u
+                sta proc::type,u
                 lda #1
-                sta proc.time,u                   ; Init time
+                sta proc::time,u                   ; Init time
                 ldx [CRPROC]
                 stu [CRPROC]
                 stx ,u                            ; Link in
@@ -221,7 +221,7 @@ GNCIDE:         pshs a,x
                 beq !GNCX
                 cmpx CRPROC
                 beq !GNC1                         ; Do not kill self
-                lda proc.type,x                   ; Dont kill coins
+                lda proc::type,x                   ; Dont kill coins
                 cmpa #CTYPE
                 beq !GNC1
                 bsr KILL
@@ -837,13 +837,13 @@ COIN:           lda SLMCNT
                 bne SLAMX
                 lda #$16                          ; Debounce time
                 sta ,x
-                sty proc.d2,u                     ; Save jump
+                sty proc::d2,u                     ; Save jump
                 NAP (10,CN1)
 CN1:            lda SLMCNT
                 bne SLAMX                         ; Slam, ditch
                 ldd #CNSND
                 jsr SNDLD
-                jsr [proc.d2,u]
+                jsr [proc::d2,u]
 SLAMX:          jmp SUCIDE
 
 ;  Sound table; sndpri,n*(repcnt,sndtmr,snd#) n>=1; sndtmr in 16 msec; sndpri : hi=hi,interruptable by equals; end: repcnt=0
@@ -1064,9 +1064,9 @@ PINIT:          pshs x,d
                 CLRD()
                 ldx #PTAB
                 stx FREE
-PINIT1:         leax proc.size,x
-                stx -proc.size,x
-                cmpx #TABEND-proc.size
+PINIT1:         leax proc::size,x
+                stx -proc::size,x
+                cmpx #TABEND-proc::size
                 bne PINIT1
                 std ,x
                 std ACTIVE                        ;  Super processes
@@ -1331,14 +1331,14 @@ VOLC:           lda #$87
                 clrb
                 sta VFLG
                 ldx #lava_tab
-                std [lava.x8,x]
-                std [lava.x8+lava.size,x]
-                std [lava.x8+2*lava.size,x]
-                std [lava.x8+3*lava.size,x]
-                sta lava.time,x
-                sta lava.time+lava.size,x
-                sta lava.time+2*lava.size,x
-                sta lava.time+3*lava.size,x
+                std [lava::x8,x]
+                std [lava::x8+lava::size,x]
+                std [lava::x8+2*lava::size,x]
+                std [lava::x8+3*lava::size,x]
+                sta lava::time,x
+                sta lava::time+lava::size,x
+                sta lava::time+2*lava::size,x
+                sta lava::time+3*lava::size,x
                 sta VETIM
 !volcx:         rts
 
@@ -1358,39 +1358,39 @@ VOLC:           lda #$87
                 std ITEMP                         ; X offset
                 ldd #0
                 ldx #lava_tab
-                std [lava.x8,x]                   ; Off oldies
-                std [lava.x8+lava.size,x]
-                std [lava.x8+2*lava.size,x]
-                std [lava.x8+3*lava.size,x]
+                std [lava::x8,x]                   ; Off oldies
+                std [lava::x8+lava::size,x]
+                std [lava::x8+2*lava::size,x]
+                std [lava::x8+3*lava::size,x]
 
 
-VOLCLP:         lda lava.time,x
+VOLCLP:         lda lava::time,x
                 beq VOLCLX
-                dec lava.time,x
+                dec lava::time,x
                 beq VOLCLX
-                ldd lava.xvel,x
-                addd lava.x16,x
-                std lava.x16,x
+                ldd lava::xvel,x
+                addd lava::x16,x
+                std lava::x16,x
                 addd ITEMP
                 cmpa #$9A                         ; On screen??
                 blo !volc10
 !volc11:        jmp VOLPAC
 
                 nop
-!volc10:        sta lava.x8,x
-                ldd lava.yvel,x
+!volc10:        sta lava::x8,x
+                ldd lava::yvel,x
                 addd #$0010                       ; Y accel
-                std lava.yvel,x
-                addd lava.y16,x                   ; Y velocity
-                std lava.y16,x
+                std lava::yvel,x
+                addd lava::y16,x                   ; Y velocity
+                std lava::y16,x
                 adda #$10
                 cmpa #YMIN+$10
                 bls !volc11
                 ldd #$4444                        ; Get color
-                std [lava.x8,x]
+                std [lava::x8,x]
 
 
-VOLCLX:         leax lava.size,x
+VOLCLX:         leax lava::size,x
                 cmpx #lava_tab_end
                 bne VOLCLP                        ;  Check for A new eruption
                 dec VETIM
@@ -1403,23 +1403,23 @@ VOLCLX:         leax lava.size,x
                 sta ITEMP
 
 !VOLC2:         ldx #lava_tab
-!VOLC2L:        lda lava.time,x                   ; Active??
+!VOLC2L:        lda lava::time,x                   ; Active??
                 bne !VOLC3                        ; Yes
-                clr lava.x16,x
+                clr lava::x16,x
                 ldb SEED
                 sex
-                std lava.xvel,x
+                std lava::xvel,x
                 lda #3
                 jsr RMAX
                 nega
                 ldb LSEED
-                std lava.yvel,x
+                std lava::yvel,x
                 andb #$3F
                 addb #$38
-                stb lava.time,x
+                stb lava::time,x
                 lda #$9C                          ; Volcano Y
-                sta lava.y16,x
-!VOLC3:         leax lava.size,x
+                sta lava::y16,x
+!VOLC3:         leax lava::size,x
                 cmpx #lava_tab_end
                 beq !VOLC4
                 dec ITEMP
@@ -1861,13 +1861,13 @@ LFIREX:         jmp SUCIDE
 
 ;;;  Right laser
 LASR:           leax $704,x
-                stx proc.data,u
-                stx proc.data+2,u
-                stx proc.data+4,u
+                stx proc::data,u
+                stx proc::data+2,u
+                stx proc::data+4,u
 LASR0:          lda STATUS
                 bita #$40
                 bne LRDIE
-                ldx proc.data,u
+                ldx proc::data,u
                 ldd #$9911
                 cmpx #$9800
                 bhs LRDIE
@@ -1877,12 +1877,12 @@ LASR0:          lda STATUS
                 stb $300,x
                 leax $400,x
                 sta ,x
-                stx proc.data,u
+                stx proc::data,u
                 ldy FISX
                 cmpy #FISEND-3
                 blo LASR2
                 ldy #FISTAB
-LASR2:          ldx proc.data+2,u
+LASR2:          ldx proc::data+2,u
                 ldd ,y++
                 sta ,x
                 stb $100,x
@@ -1890,10 +1890,10 @@ LASR2:          ldx proc.data+2,u
                 stb $200,x
                 leax $300,x
                 sty FISX
-                stx proc.data+2,u
-                clr [proc.data+4,u]
-                inc proc.data+4,u
-                ldd proc.data,u
+                stx proc::data+2,u
+                clr [proc::data+4,u]
+                inc proc::data+4,u
+                ldd proc::data,u
                 suba #$06
                 pshs u
                 ldu #LASP1
@@ -1901,23 +1901,23 @@ LASR2:          ldx proc.data+2,u
                 puls u
                 bne LRDIE
                 NAP (1,LASR0)
-LRDIE:          ldx proc.data+4,u
+LRDIE:          ldx proc::data+4,u
                 clra
 LRDLP:          sta ,x
                 leax $100,x
-                cmpx proc.data,u
+                cmpx proc::data,u
                 bls LRDLP
                 bra LASD
 
 ;;;  Left laser
 LASL:           leax 4,x
-                stx proc.data,u
-                stx proc.data+2,u
-                stx proc.data+4,u
+                stx proc::data,u
+                stx proc::data+2,u
+                stx proc::data+4,u
 LASL0:          lda STATUS
                 bita #$40
                 bne LLDIE
-                ldx proc.data,u
+                ldx proc::data,u
                 ldd #$9911
                 cmpx #$0500
                 bls LLDIE
@@ -1927,12 +1927,12 @@ LASL0:          lda STATUS
                 stb -$300,x
                 leax -$400,x
                 sta ,x
-                stx proc.data,u
+                stx proc::data,u
                 ldy FISX
                 cmpy #FISEND-3
                 blo LASL2
                 ldy #FISTAB
-LASL2:          ldx proc.data+2,u
+LASL2:          ldx proc::data+2,u
                 ldd ,y+
                 sta ,x
                 stb -$100,x
@@ -1940,21 +1940,21 @@ LASL2:          ldx proc.data+2,u
                 stb -$200,x
                 leax -$300,x
                 sty FISX
-                stx proc.data+2,u
-                clr [proc.data+4,u]
-                dec proc.data+4,u
-                ldd proc.data,u
+                stx proc::data+2,u
+                clr [proc::data+4,u]
+                dec proc::data+4,u
+                ldd proc::data,u
                 pshs u
                 ldu #LASP1
                 jsr COLIDE
                 puls u
                 bne LLDIE
                 NAP (1,LASL0)
-LLDIE:          ldx proc.data+4,u
+LLDIE:          ldx proc::data+4,u
                 clra
 LLDLP:          sta ,x
                 leax -$100,x
-                cmpx proc.data,u
+                cmpx proc::data,u
                 bhs LLDLP
 LASD:           dec LFLG
                 jmp SUCIDE

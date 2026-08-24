@@ -602,7 +602,7 @@ PSW1:           stx IRQHK+1                       ; IRQ select
 PCHEK:          pshs x
                 ldx ACTIVE
                 beq PCHK2
-PCHK1:          cmpy proc.addr,x
+PCHK1:          cmpy proc::addr,x
                 beq PCKBYE
                 ldx ,x
                 bne PCHK1
@@ -628,33 +628,33 @@ BSET1:          pshs a                            ; Save for A moment
 BONUS:          clr PCRAM
                 ldu CRPROC
                 puls x
-                stx proc.data +6,u                ; Save return
+                stx proc::data +6,u                ; Save return
 BON1:           clrb
                 tfr d,y                           ; Save for text
                 tfr a,b                           ; Move count to count
                 lda #2                            ; Put in power
-                std proc.d4,u                     ; And save for score
+                std proc::d4,u                     ; And save for score
                 lda #ATWVM                        ; Write it out
                 jsr WRD7FV
                 ldx #$38A0                        ; Initial addr
                 lda ASTCNT
-                sta proc.d2,u
+                sta proc::d2,u
                 beq BC2
 BCLP:           tfr x,d
                 ldy #ASTP3
                 jsr CWRIT
                 leax $400,x
-                ldd proc.d4,u                     ; Get score
+                ldd proc::d4,u                     ; Get score
                 jsr SCORE
-                stx proc.data ,u
+                stx proc::data ,u
                 NAP (4,BC1)
-BC1:            ldx proc.data ,u
-                dec proc.d2,u                     ; All done?
+BC1:            ldx proc::data ,u
+                dec proc::d2,u                     ; All done?
                 bne BCLP                          ; No
 BC2:            ldx PLRX
                 jsr GETWVV
                 NAP ($80,BC3)                     ; Hang out
-BC3:            jmp [proc.data+6,u]               ; Return
+BC3:            jmp [proc::data+6,u]               ; Return
 
 ;;; Firq interrupt routine
 ;;; Dispatches to the correct routine
@@ -965,10 +965,10 @@ SBMB2:          ldx ,x
                 bra SBMB0
 SBMBX:          ldu CRPROC
                 lda #4                            ; Screen flashes/2
-                sta proc.data ,u
+                sta proc::data ,u
 SBMBX0:         com PCRAM
                 NAP (2,SBMBX1)
-SBMBX1:         dec proc.data ,u
+SBMBX1:         dec proc::data ,u
                 bne SBMBX0
                 clr PCRAM
 SBX10:
@@ -985,7 +985,7 @@ HYPER:          lda STATUS
                 bita #$FD
                 lbne HYPX                         ; No go
                 anda #2
-                sta proc.d4,u                     ; Save terrain bit
+                sta proc::d4,u                     ; Save terrain bit
                 lda #$77
                 sta STATUS
                 jsr SCLR1
@@ -1039,14 +1039,14 @@ HYP00:          std PLAX16
                 ldu #PLBPIC                       ; Rev image
                 stu OPICT,x
 HYP1:           ldu CRPROC
-                stx proc.data ,u
+                stx proc::data ,u
                 jsr APVCT
                 NAP ($28,HYP2)
 HYP2:
                 MAKP (DPKIL)                      ; Delayed kill process
-                ldd proc.data ,u
-                std proc.data ,x
-                lda proc.d4,u
+                ldd proc::data ,u
+                std proc::data ,x
+                lda proc::d4,u
                 sta STATUS
                 lda LSEED                         ; DEAD?
                 cmpa #192
@@ -1055,11 +1055,11 @@ HYPX:           jmp SUCIDE
 ;
 ; Delayed player image kill
 ;
-DPKIL:          ldx proc.data ,u
+DPKIL:          ldx proc::data ,u
                 jsr KILOFF
                 jsr GETOB
                 NAP (10,DPK1)
-DPK1:           ldx proc.data ,u
+DPK1:           ldx proc::data ,u
                 ldd OFREE                         ; Back to free LIST
                 std ,x
                 stx OFREE
@@ -1300,12 +1300,12 @@ TIEST1:         stb XTEMP+1                       ; X velocity
                 jsr MSPROC                        ; Make A super process
                 leau ,x                           ; Save index
                 lda XTEMP
-                sta proc.data +8,u
+                sta proc::data +8,u
                 CLRD()
-                std proc.data ,u
-                std proc.d2,u
-                std proc.d4,u
-                std proc.d6,u
+                std proc::data ,u
+                std proc::d2,u
+                std proc::d4,u
+                std proc::d6,u
 TIEST2:
                 OBI (TIEP1,TIEKIL,$8888)
                 ldb XTEMP+1
@@ -1322,12 +1322,12 @@ TIEST2:
                 std OX16,x
                 lda #$50
                 sta OY16,x
-                sta proc.data +9,u                ; Cruise alt
+                sta proc::data +9,u                ; Cruise alt
                 stu OBJID,x
                 stx OPTR
                 lda XTEMP
                 asla
-                adda #proc.data-2
+                adda #proc::data-2
                 stx a,u
                 dec XTEMP
                 bne TIEST2
@@ -1339,7 +1339,7 @@ TIESX:          rts
 ;
 TIE:            lda SEED                          ; ADD random Y
                 anda #$6
-                adda #proc.data
+                adda #proc::data
                 ldx a,u
                 lbeq TIEX                         ; None there
                 ldb SEED
@@ -1380,16 +1380,16 @@ TIE02:          sty OPICT,x
                 bhi TIE06                         ; Bypass this time
                 anda #$3
                 adda #-2
-                adda proc.data+9,u
+                adda proc::data+9,u
                 cmpa #$40                         ; Limit checking
                 bhs TIE03
                 lda #$40
 TIE03:          cmpa #$68
                 blo TIE04
                 lda #$68
-TIE04:          sta proc.data +9,u
+TIE04:          sta proc::data +9,u
 ; Y vel adjust
-TIE06:          lda proc.data +9,u
+TIE06:          lda proc::data +9,u
                 suba OY16,x
                 adda #$10
                 cmpa #$20
@@ -1435,12 +1435,12 @@ TIEKIL:
                 KILO ($125,TIHSND)
                 dec TIECNT
                 ldu OBJID,x
-                leay proc.data,u
+                leay proc::data,u
 TIEK1:          cmpx ,y++
                 bne TIEK1
                 CLRD()
                 std -2,y
-                dec proc.data +8,u
+                dec proc::data +8,u
                 bne TIEKX
                 leax ,u
                 jsr KILL
@@ -1499,9 +1499,9 @@ EXST:           pshs x,u,d,y
 ; Color ties
 ; PD =tctab index
 TIECOL:         ldx #TCTAB
-TIECL1:         stx proc.data ,u
+TIECL1:         stx proc::data ,u
                 NAP (6,TIECL)
-TIECL:          ldx proc.data ,u
+TIECL:          ldx proc::data ,u
                 ldd ,x++
                 std PCRAM+$D
                 lda ,x+
@@ -2198,12 +2198,12 @@ SBD10:          FCB $90,$09,$90
 
 ; ************Scanner blip fix
 PACH1:          ldu CRPROC
-                lda proc.data ,u
+                lda proc::data ,u
                 inca
                 cmpa #4
                 bls PACH10
                 clra
-PACH10:         sta proc.data ,u
+PACH10:         sta proc::data ,u
                 bne PACH1X
                 jsr WVCHKV
                 cmpa #5
@@ -2403,6 +2403,6 @@ HYPACH:         lda SCRFLG                        ; Any score or is it safe to k
                 jmp SUCIDE                        ; Nope..die
 HYPC1:          jmp PLNDV1
 
-VOLPAC:         clr lava.time,x
-                clr lava.x8,x
+VOLPAC:         clr lava::time,x
+                clr lava::x8,x
                 jmp VOLCLX

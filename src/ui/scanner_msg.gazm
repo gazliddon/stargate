@@ -147,14 +147,14 @@ MESS2:
 MESSX:          puls x,d,pc                       ; Cleanup and return for bullshit exit
 
 BLPROK:         ldd MESSST                        ; Get id of current message
-                std proc.data,u                   ; And save
+                std proc::data,u                   ; And save
 BLPR1:          lda MESSBC                        ; Get the blink color
                 sta PCRAM+5                       ; Message blink color
                 lda MESSBL                        ; Get blink rate
                 ldx #BLPR2
                 jmp SLEEP
 BLPR2:          ldd MESSST
-                cmpd proc.data,u                  ; Same message current??
+                cmpd proc::data,u                  ; Same message current??
                 bne BLPRX                         ; Bye....
                 clr PCRAM+5
                 lda MESSBL

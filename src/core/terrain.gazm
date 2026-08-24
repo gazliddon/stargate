@@ -536,10 +536,10 @@ TDATA0:         FCB $55,$40,$00,$00,$00,$00,$3F,$FF,$FF,$FF,$FC,$00,$07,$FF,$FF,
 ;;; Linky player explosion
 LEDEX:
 ; Proc data equates
-!p_obj:         equ proc.data
-!p_count:       equ proc.data+2
-!p_exp_xy:      equ proc.data+3
-!p_ret:         equ proc.data+6
+!p_obj:         equ proc::data
+!p_count:       equ proc::data+2
+!p_exp_xy:      equ proc::data+3
+!p_ret:         equ proc::data+6
 
                 puls d                            ; Get return address
                 std !p_ret,u                      ; Save in conventional spot
