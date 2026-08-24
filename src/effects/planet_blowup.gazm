@@ -26,7 +26,7 @@ HSDDD:          RMB 1
 LSDDD:          RMB 1
 PTABLE:
 
-                struct ptable2 {
+                struct Ptable2 {
                     YV : word
                     XV : word
                     XPOS : word
@@ -35,14 +35,14 @@ PTABLE:
                     FROB : byte
                 }
 
-XV:             equ ptable2::XV
-YV:             equ ptable2::YV
-XPOS:           equ ptable2::XPOS
-OLD:            equ ptable2::OLD
-YPOS:           equ ptable2::YPOS
-FROB:           equ ptable2::FROB
+XV:             equ Ptable2::XV
+YV:             equ Ptable2::YV
+XPOS:           equ Ptable2::XPOS
+OLD:            equ Ptable2::OLD
+YPOS:           equ Ptable2::YPOS
+FROB:           equ Ptable2::FROB
 
-PSIZZ:          equ ptable2::size
+PSIZZ:          equ Ptable2::size
                 RMB PSIZZ*399                     ; Room for 351 entries
 
 PTABE:          EQU *
@@ -184,7 +184,7 @@ GETVEL:         lda HSDDD
 ;;; __Proc__: rock0
 ROCK0:          ldu CRPROC
                 puls x                            ; Get return address
-                stx proc::data+6,u                 ; And save
+                stx Proc::data+6,u                 ; And save
                 ldx IRQHK+1
                 stx IRQSV
                 ldx #BLOIRQ                       ; Use our IRQ
@@ -263,7 +263,7 @@ UPPDT2:         lda #8
                 stx IRQHK+1
                 clr PCRAM
                 ldu CRPROC                        ; Time to can it
-                jmp [proc::data+6,u]
+                jmp [Proc::data+6,u]
 
 RKKKP2:         ldx #PTABLE                       ; Get start of table
                 ldy #0

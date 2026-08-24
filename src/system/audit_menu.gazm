@@ -416,15 +416,15 @@ ADJST0:         jsr UPDOWN                        ; Check for up/down
 
 INCDEC:         puls d
                 ldu CRPROC
-                std proc::data+6,u
+                std Proc::data+6,u
                 lda #$20
-                sta proc::data,u
+                sta Proc::data,u
                 lda PIA2                          ; Check for thrust,fire
                 rora                              ; Fire??
                 bcs INCME
                 rora                              ; Thrust
                 bcs DECME
-IDRET:          jmp [proc::data+6,u]
+IDRET:          jmp [Proc::data+6,u]
 
 INCME:          jsr INC1                          ; One increment
 INCME0:
@@ -432,10 +432,10 @@ INCME0:
 INCME1:         lda PIA2
                 rora
                 bcc IDRET                         ; Let go
-                dec proc::data,u                   ; Delay
+                dec Proc::data,u                   ; Delay
                 bne INCME0
                 lda #5
-                sta proc::data,u
+                sta Proc::data,u
                 bra INCME
 
 DECME:          jsr DEC1
@@ -444,10 +444,10 @@ DECME0:
 DECME1:         lda PIA2
                 bita #2
                 beq IDRET
-                dec proc::data,u
+                dec Proc::data,u
                 bne DECME0
                 lda #5
-                sta proc::data,u
+                sta Proc::data,u
                 bra DECME
 
 INC1:           jsr LSTATE                        ; Get the state loaded
@@ -509,25 +509,25 @@ FROBOF:         pshs x,d
 
 UPDOWN:         puls d
                 ldu CRPROC
-                std proc::data+6,u                 ; Save return address
+                std Proc::data+6,u                 ; Save return address
                 lda #$30                          ; Typomatic first delay
-                sta proc::data,u                   ; Indicate virgin scan
+                sta Proc::data,u                   ; Indicate virgin scan
                 lda PIA2                          ; Check for down
                 bmi DOWNER                        ; Pressed...continue
                 lda PIA3
                 rora
                 bcs UPPER
-UDRET:          jmp [proc::data+6,u]               ; No action...return
+UDRET:          jmp [Proc::data+6,u]               ; No action...return
 
 DOWNER:         jsr DOWN1                         ; Go down one (whatever that means)
 DOWN2:
                 NAP (1,DOWN3)
 DOWN3:          lda PIA2                          ; Check if still pressed
                 bpl UDRET                         ; Done with this pass...no longer pressed
-                dec proc::data,u                   ; Time me
+                dec Proc::data,u                   ; Time me
                 bne DOWN2                         ; Sleep another frame BABE
                 lda #8                            ; Fast rate
-                sta proc::data,u
+                sta Proc::data,u
                 bra DOWNER                        ; Now do another step.
 
 UPPER:          jsr UP1
@@ -536,10 +536,10 @@ UPPER1:
 UPPER2:         lda PIA3
                 rora
                 bcc UDRET                         ; Let go
-                dec proc::data,u
+                dec Proc::data,u
                 bne UPPER1
                 lda #8
-                sta proc::data,u
+                sta Proc::data,u
                 bra UPPER
 
 DOWN1:          jsr LSTATE                        ; Get us our state
@@ -668,11 +668,11 @@ ADVS33:         rts
 
 SLIDE:          ldu CRPROC
                 lda #$25                          ; Start X
-                std proc::data,u                   ; Save echo pointer
+                std Proc::data,u                   ; Save echo pointer
                 puls d
-                std proc::data+6,u
-                stx proc::data+4,u
-                sty proc::data+2,u
+                std Proc::data+6,u
+                stx Proc::data+4,u
+                sty Proc::data+2,u
                 lda #$25
                 jsr WCMOSA
                 lda #OPCNTM
@@ -685,9 +685,9 @@ SLIDE1:         lda PIA0
 SLIDE5:         lda PIA2                          ; Check for thrust of fire
                 rora                              ; Fire??
                 bcc SLIDE3                        ; Nope
-                ldx proc::data+4,u                 ; Get memory pointer
+                ldx Proc::data+4,u                 ; Get memory pointer
                 jsr RCMOSA                        ; Fetch the byte
-                ldx proc::data+4,u                 ; Restore pointer
+                ldx Proc::data+4,u                 ; Restore pointer
                 inca                              ; ADD one
                 cmpa #$3C                         ; No farther right than 38
                 bls SLIDE4
@@ -695,15 +695,15 @@ SLIDE5:         lda PIA2                          ; Check for thrust of fire
                 bra SLIDE4
 SLIDE3:         rora
                 bcc SLIDE6                        ; Nothing pressed...loop
-                ldx proc::data+4,u
+                ldx Proc::data+4,u
                 jsr RCMOSA
-                ldx proc::data+4,u
+                ldx Proc::data+4,u
                 deca
                 cmpa #$10
                 bhs SLIDE4
                 lda #$10
 SLIDE4:         jsr WCMOSA
-                sta proc::data,u                   ; Also make X of echo pointer
+                sta Proc::data,u                   ; Also make X of echo pointer
                 jsr REDISP
                 NAP ($10,SLIDE5)
 SLIDE6:         lda PIA0                          ; Check for advance
@@ -716,17 +716,17 @@ SLIDE8:
 SLIDE9:         lda PIA0
                 bita #2
                 bne SLIDE8
-                jmp [proc::data+6,u]
+                jmp [Proc::data+6,u]
 
 REDISP:         clr TXFLAV
-                ldx proc::data,u                   ; Upper left to echo
+                ldx Proc::data,u                   ; Upper left to echo
                 leax -$100,x
                 lda #90
                 ldb #9
                 jsr BLKCLR                        ; Clear the block
-                ldx proc::data,u                   ; Cursor
+                ldx Proc::data,u                   ; Cursor
                 clr TXFLAV
-                ldy proc::data+2,u                 ; Data pointer
+                ldy Proc::data+2,u                 ; Data pointer
                 ldb #25
 RDSP1:          exg x,y
                 jsr RCMOSA
@@ -901,22 +901,22 @@ OPTST_:         jsr OPCHK                         ; Form check byte
 ;   PD+4 = address to store letter
 ;   PD+6 = return
 GETLET:         ldu CRPROC
-                std proc::data,u                   ; Save count
-                stx proc::data+2,u
-                sty proc::data+4,u
+                std Proc::data,u                   ; Save count
+                stx Proc::data+2,u
+                sty Proc::data+4,u
                 puls d                            ; Get return address
-                std proc::data+6,u
+                std Proc::data+6,u
 GETL__:
                 NAP (4,GETL_1)
 GETL_1:         lda PIA2
                 rora
                 bcs GETL__                        ; Stop typomatic problems
                 MAKP (TIMPRC)
-                ldd proc::data+6,u
-                std proc::data+6,x                 ; Pass return address
-                ldd proc::data,u
-                std proc::data,x
-                stu proc::data+2,x                 ; Pass us to kill
+                ldd Proc::data+6,u
+                std Proc::data+6,x                 ; Pass return address
+                ldd Proc::data,u
+                std Proc::data,x
+                stu Proc::data+2,x                 ; Pass us to kill
                 stx GETLRM                        ; Save his id
                 lda #$99                          ; Set color to white
                 sta TEXCOL
@@ -936,22 +936,22 @@ GETLT2:         jsr LUPDN                         ; Scan for letter change
                 lda PIA2                          ; Check for fire
                 rora
                 bcc GETLT1                        ; Not pressed..loop
-                lda proc::data+1,u                 ; Get alpha 'bit'
+                lda Proc::data+1,u                 ; Get alpha 'bit'
                 adda #$A                          ; Time for chase = 1/4
-                sta proc::data+1,u
+                sta Proc::data+1,u
 GETLT3:
                 NAP (2,GETLT4)
 GETLT4:         lda PIA2                          ; Still down??
                 rora
                 bcc GETLT5                        ; Nope
-                dec proc::data+1,u                 ; One less count
+                dec Proc::data+1,u                 ; One less count
                 beq GETLT5
-                lda proc::data+1,u                 ; Check for 80
+                lda Proc::data+1,u                 ; Check for 80
                 cmpa #$80
                 bne GETLT3
-GETLT5:         lda proc::data+1,u                 ; Restore alpha bit
+GETLT5:         lda Proc::data+1,u                 ; Restore alpha bit
                 anda #$80
-                sta proc::data+1,u
+                sta Proc::data+1,u
                 bsr LLDY                          ; Get the current letter
                 cmpa #$5E                         ; Is it A rub
                 beq GETRUB
@@ -959,42 +959,42 @@ GETLT5:         lda proc::data+1,u                 ; Restore alpha bit
                 sta GETLST+2
                 bsr NOFROB                        ; Take the frob away
                 bsr LLDY                          ; Get current letter
-                ldx proc::data+2,u                 ; Get pointer
+                ldx Proc::data+2,u                 ; Get pointer
                 stx GETLST                        ; Save current echo pointer
                 jsr PR57V                         ; Put the letter out
-                stx proc::data+2,u                 ; This makes new pointer
+                stx Proc::data+2,u                 ; This makes new pointer
                 jsr PUSHY                         ; Push the Y pointer to next
-                dec proc::data,u                   ; One less letter to do
+                dec Proc::data,u                   ; One less letter to do
                 bne GETLT0
                 ldx GETLRM                        ; Kill the timer process
                 jsr KILL
-                jmp [proc::data+6,u]
+                jmp [Proc::data+6,u]
 
 GETRUB:         bsr NOFROB                        ; Make like we're not here.
                 bsr CLRREG
                 lda #$3A
                 jsr LSTY                          ; Store A space at the current spot
                 ldx GETLST
-                stx proc::data+2,u
+                stx Proc::data+2,u
                 ldb GETLST+2
                 stb TXFLAV
-                inc proc::data,u                   ; One more character to get.
-                ldy proc::data+4,u                 ; Get the Y
+                inc Proc::data,u                   ; One more character to get.
+                ldy Proc::data+4,u                 ; Get the Y
                 leay -1,y                         ; Move back one assuming RAM
                 cmpy #$C000                       ; Cmos??
                 blo GETRB1                        ; Nope
                 leay -1,y
-GETRB1:         sty proc::data+4,u
+GETRB1:         sty Proc::data+4,u
                 jmp GETLLL                        ; Now go and get the last character again.
 
 CLRREG:         pshs d
-                ldx proc::data+2,u                 ; Get pointer to region
+                ldx Proc::data+2,u                 ; Get pointer to region
                 ldd #$407                         ; Width,height
                 jsr BLKCLR                        ; Clear the block
                 puls d,pc
 
 PRFROB:         lda #$99
-PRFRB1:         ldx proc::data+2,u                 ; Get pointer
+PRFRB1:         ldx Proc::data+2,u                 ; Get pointer
                 sta 8,x
                 sta $108,x
                 sta $208,x
@@ -1004,32 +1004,32 @@ PRFRB1:         ldx proc::data+2,u                 ; Get pointer
 NOFROB:         clra
                 bra PRFRB1
 
-LLDY:           ldy proc::data+4,u                 ; Get Y pointer
+LLDY:           ldy Proc::data+4,u                 ; Get Y pointer
                 cmpy #$C000
                 bhs LDCMOS                        ; Cmos
                 lda ,y                            ; Else load the number
                 rts
 LDCMOS:         pshs x
-                ldx proc::data+4,u                 ; Load into X
+                ldx Proc::data+4,u                 ; Load into X
                 jsr RCMOSA                        ;  Load it
                 puls x,pc                         ; And return
 
-LSTY:           ldy proc::data+4,u                 ; Get pointer
+LSTY:           ldy Proc::data+4,u                 ; Get pointer
                 cmpy #$C000                       ; Cmos??
                 bhs LSCMOS
                 sta ,y
                 rts
 LSCMOS:         pshs x
-                ldx proc::data+4,u
+                ldx Proc::data+4,u
                 jsr WCMOSA
                 puls x,pc
 
-PUSHY:          ldy proc::data+4,u
+PUSHY:          ldy Proc::data+4,u
                 leay 1,y
                 cmpy #$C000
                 blo PUSHY1                        ; Not cmos..done
                 leay 1,y
-PUSHY1:         sty proc::data+4,u
+PUSHY1:         sty Proc::data+4,u
                 rts
 
 LUPDN:          lda PIA2                          ; Scan for down
@@ -1063,7 +1063,7 @@ LUP1:           jsr DELAY1
 LUPP1:          pshs a                            ; Save A please
                 bsr LLDY                          ; Get the current value
                 inca                              ; Push to next
-                tst proc::data+1,u                 ; See if alpha only
+                tst Proc::data+1,u                 ; See if alpha only
                 beq LUPP2                         ; Yes
                 tst GETLST                        ; Rub allowed??
                 beq LUP1__                        ; Nope.
@@ -1091,7 +1091,7 @@ LUPP2_:         cmpa #$3B                         ; 1 After space (alpha)
 LUPP3:          jsr LSTY                          ; Store the new one.
                 jsr CLRREG                        ; Cut clear out the region
                 ldb TXFLAV                        ; Save the flavor
-                ldx proc::data+2,u                 ; Get cursor
+                ldx Proc::data+2,u                 ; Get cursor
                 jsr PR57V
                 stb TXFLAV                        ; Restore flavor
 LUPBYE:         puls a,pc                         ; And return
@@ -1099,7 +1099,7 @@ LUPBYE:         puls a,pc                         ; And return
 LDN1:           pshs a
                 jsr LLDY                          ; Get the current value
                 deca
-                tst proc::data+1,u                 ; Alpha only??
+                tst Proc::data+1,u                 ; Alpha only??
                 beq LDN2
                 cmpa #$30                         ; Compare to zero
                 bhs LDN1_
@@ -1132,7 +1132,7 @@ DELAY2:         leax -1,x
                 bne DELAY2
                 rts
 
-TIMPRC:         tst proc::data+1,u                 ; Diagnostic call??
+TIMPRC:         tst Proc::data+1,u                 ; Diagnostic call??
                 bne TIMADV
 TIMPR0:
                 NAP ($FF,TIMPR1)                  ; 4 Seconds of sleep
@@ -1140,9 +1140,9 @@ TIMPR1:
                 NAP ($FF,TIMPR6)
 TIMPR6:
                 NAP ($82,TIMPR7)
-TIMPR7:         dec proc::data,u
+TIMPR7:         dec Proc::data,u
                 bne TIMPR0                        ; 8 Seconds per letter
-TIMPR2:         ldx proc::data+2,u
+TIMPR2:         ldx Proc::data+2,u
                 leau ,x                           ; Put in U please
                 jsr LLDY                          ; Load the current character
                 cmpa #$5E                         ; Rub???
@@ -1151,7 +1151,7 @@ TIMPR2:         ldx proc::data+2,u
                 jsr LSTY                          ; And store it
 TIMA__:         ldu CRPROC
                 jsr KILL
-                jmp [proc::data+6,u]
+                jmp [Proc::data+6,u]
 TIMADV:         lda PIA0
                 bita #2
                 bne TIMPR2                        ;  Can it on advance

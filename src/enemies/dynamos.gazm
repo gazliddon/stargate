@@ -4,9 +4,9 @@
 ;; Section:    dn11 ($5AD0)
 ;; =============================================================================
 
-.DYN_OPTR:      EQU proc::data
-.VEL:           EQU proc::data+2
-.SHOT:          EQU proc::data+3
+.DYN_OPTR:      EQU Proc::data
+.VEL:           EQU Proc::data+2
+.SHOT:          EQU Proc::data+3
 
                 section dn11, start = DNORG
 
@@ -119,7 +119,7 @@ DNLPP6:         sta .SHOT,u                       ; And save it down
                 leay ,x                           ; Put object in Y
                 MKPROB (MISILE,MIS0,MISKIL,MISBLP)
                 beq DNLOP9                        ; Fail!
-                sty proc::data+2,u                 ; Pass our object.
+                sty Proc::data+2,u                 ; Pass our object.
                 inc MISCNT                        ; Indicate one more
                 ldd #MISSND
                 jsr SNDLD                         ; Send out A missle sound
@@ -180,7 +180,7 @@ far_offscreen:
                 lda #19
                 sta .SHOT,u
                 NAP($10,!wake)                    ; Far off screen...
-!wake:          ldx proc::data,u                   ; Get object.
+!wake:          ldx Proc::data,u                   ; Get object.
                 jmp DNWAKE
 
 
@@ -190,8 +190,8 @@ DYNKIL:         dec DYNCNT
                 KILP ($120,TIHSND)
                 rts
 
-MISILE:         ldy proc::data+2,u                 ; Get object firing us.
-                ldx proc::data,u                   ; And get our object
+MISILE:         ldy Proc::data+2,u                 ; Get object firing us.
+                ldx Proc::data,u                   ; And get our object
                 ldd OX16,y                        ; Get our X coord.
                 subd PLABX                        ; See which side player is on
                 bpl MISS11                        ; He'S to our left
@@ -208,15 +208,15 @@ MISS22:         std OX16,x
                 std OXV,x
                 std OYV,x
                 inca
-                sta proc::data+2,u                 ; Instant velocity change
+                sta Proc::data+2,u                 ; Instant velocity change
                 stx OPTR
                 stx .DYN_OPTR,u
 
 MSLOOP:         jsr MSPICT                        ; Do the picture number
-                dec proc::data+2,u                 ; Velocity divider
+                dec Proc::data+2,u                 ; Velocity divider
                 bne MSLOP1                        ; Not this time
                 lda #4
-                sta proc::data+2,u
+                sta Proc::data+2,u
                 bsr XCHK                          ; Check the X range.
                 bls NEWY                          ; In hitting distance....
                 bsr YCHK                          ; X not good BE careful about Y

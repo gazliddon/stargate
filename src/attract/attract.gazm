@@ -74,8 +74,8 @@ PH1:            lda #$FF
                 lda #$14
                 sta LNDCNT
                 ldx #PHSTAB                       ; Get commands
-                stx proc::data,u
-PHS1:           ldx proc::data,u
+                stx Proc::data,u
+PHS1:           ldx Proc::data,u
 PHS1A:          ldd ,x++
                 beq PH8                           ; All over
                 cmpa #$FF                         ; Checkpoint
@@ -86,7 +86,7 @@ PHS1A:          ldd ,x++
                 cmpd -2,x
                 bne PH8                           ; Error
                 bra PHS1A
-PHS1B:          stx proc::data,u
+PHS1B:          stx Proc::data,u
                 pshs d
                 bitb #$20
                 beq PHS2
@@ -141,13 +141,13 @@ PHSTAB:         FCB $30,$02
 ;;;    PD,U=table ptr
 ;;;    PD2,U=timer
 FIGHT:          ldx #FITAB
-                stx proc::data,u
+                stx Proc::data,u
                 lda #$FF
                 sta STATUS
                 jsr GNCDAV                        ; Kill everybody
                 lda #3
                 jsr DIMV                          ; Cool the lites
-FITST:          ldy proc::data,u
+FITST:          ldy Proc::data,u
                 ldx ,y++                          ; Get BGL
                 cmpx #$FFFF                       ; Over??
                 lbeq ENEMY                        ; Onto next thing
@@ -199,25 +199,25 @@ FITST0:         lda #st_game_over
                 leay 2,y
                 lda ,y+                           ; Output message #
                 ldx ,y++                          ; Message addr
-                sty proc::data,u
+                sty Proc::data,u
                 jsr WRD5V
                 lda #3
                 jsr BRTV                          ; On lites
                 jsr ONCOLV
                 ldu CRPROC
                 ldd #$300
-                std proc::d2,u
+                std Proc::d2,u
                 lda #1
-                sta proc::d4,u                     ; Up/down timer
-                sta proc::d5,u                     ; Accel timer
+                sta Proc::d4,u                     ; Up/down timer
+                sta Proc::d5,u                     ; Accel timer
                 lda SEED
                 lsra
-                sta proc::d6,u                     ; Rev timer
-FITLP:          ldx proc::d2,u                     ; Fight time-out check
+                sta Proc::d6,u                     ; Rev timer
+FITLP:          ldx Proc::d2,u                     ; Fight time-out check
                 lda #16
                 sta STRCNT                        ; Keep the stars going
                 leax -1,x
-                stx proc::d2,u
+                stx Proc::d2,u
                 lbeq FDTIM
                 lda STATUS                        ; Check death
                 cmpa #$DA
@@ -227,7 +227,7 @@ FITLP:          ldx proc::d2,u                     ; Fight time-out check
                 bls FIT1A
                 cmpa #$C0
                 bhs FIT1AA
-                dec proc::d4,u                     ; Up/down timer
+                dec Proc::d4,u                     ; Up/down timer
                 beq FIT1B
                 jsr RAND                          ; Make A move??
                 cmpa #$FC
@@ -250,8 +250,8 @@ FIT1X:          stb ATRSW3
                 lsra
                 lsra
                 nop
-                sta proc::d4,u
-FIT2:           dec proc::d5,u                     ; Accel change??
+                sta Proc::d4,u
+FIT2:           dec Proc::d5,u                     ; Accel change??
                 bne FIT3                          ; No
                 jsr RAND
                 ldb ATRSW2
@@ -264,17 +264,17 @@ FIT2X:          stb ATRSW2
                 lda SEED
                 lsra
                 lsra
-                sta proc::d5,u
+                sta Proc::d5,u
 FIT3:           jsr RAND                          ; Laser ???
                 cmpa #$0C
                 bhi FIT4
                 NEWP (LFIRE,LTYPE)
-FIT4:           dec proc::d6,u                     ; Rev???
+FIT4:           dec Proc::d6,u                     ; Rev???
                 bne FITX
                 MAKP ( REV )
                 lda SEED
                 ora #$10
-                sta proc::d6,u
+                sta Proc::d6,u
 FITX:
                 NAP (1,FITLP)
 
@@ -295,7 +295,7 @@ FDIE:
 
 ;;;Start over again
                 ldx #FITAB
-                stx proc::data,u
+                stx Proc::data,u
                 jmp FITST
 
 ;;; Dying process
@@ -385,49 +385,49 @@ ENEMY:          jsr SCRCLR
                 sta STATUS
                 ldu CRPROC
                 ldx #EMTAB                        ; Enemies
-                stx proc::data,u
-ENEMY1:         ldy proc::data,u
+                stx Proc::data,u
+ENEMY1:         ldy Proc::data,u
                 ldd ,y
                 beq ENEMY2
                 jsr GETEM
-                sty proc::data,u
+                sty Proc::data,u
                 NAP (8,ENEMY1)
 
 ENEMY2:
                 NAP (01,ENEM2A)
 ENEM2A:         ldx #EMESTB                       ; Messages
-                stx proc::data,u
-ENEM3A:         ldy proc::data,u
+                stx Proc::data,u
+ENEM3A:         ldy Proc::data,u
                 lda ,y+
                 beq ENEM4
                 ldx ,y++
-                sty proc::data,u
+                sty Proc::data,u
                 jsr WRD5FV
                 NAP (4,ENEM3A)
 ENEM4:          lda #30
-                sta proc::d2,u
-ENM4AA:         clr proc::d3,u                     ; Flavor
+                sta Proc::d2,u
+ENM4AA:         clr Proc::d3,u                     ; Flavor
                 ldx #$2F76                        ; Refresh cursor
-                stx proc::d4,u
+                stx Proc::d4,u
                 ldx #SGRTAB
-                stx proc::d6,u
+                stx Proc::d6,u
 ENEM4A:         ldx #EMESTB                       ; Refresh messages
-                stx proc::data,u
-                dec proc::d2,u
+                stx Proc::data,u
+                dec Proc::d2,u
                 lbeq HALVCT                       ; Over...
 
-ENEM4B:         ldy proc::data,u
+ENEM4B:         ldy Proc::data,u
                 lda ,y+
                 cmpa #SGAM
                 beq ENEM4A
                 ldx ,y++
-                sty proc::data,u
+                sty Proc::data,u
                 jsr WRD5FV
                 SLEEP(4)
-                lda proc::d3,u
+                lda Proc::d3,u
                 sta TXFLAV
-                ldx proc::d4,u
-                ldy proc::d6,u
+                ldx Proc::d4,u
+                ldy Proc::d6,u
                 cmpy #SGRTE
                 beq ENM4AA
                 lda ,y+
@@ -435,9 +435,9 @@ ENEM4B:         ldy proc::data,u
                 stb TEXCOL
                 jsr PR57V
                 lda TXFLAV
-                sta proc::d3,u
-                stx proc::d4,u
-                sty proc::d6,u
+                sta Proc::d3,u
+                stx Proc::d4,u
+                sty Proc::d6,u
                 NAP (2,ENEM4B)
 
 ;;; Refresh table
@@ -452,11 +452,11 @@ GETEM:          pshs x,u
                 jsr GETOB
                 ldd [,y++]
                 std OPICT,x
-                std proc::d2,u
-                stx proc::data,u
+                std Proc::d2,u
+                stx Proc::data,u
                 ldd ,y++
-                std proc::d4,u
-                clr proc::d6,u
+                std Proc::d4,u
+                clr Proc::d6,u
                 clra
                 clrb
                 std OXV,x
@@ -477,25 +477,25 @@ GETEM:          pshs x,u
 
 ;;; Animation routine
 ;;; PD=obj,PD2=pict,pd4=ani#,pd5=time/frame,pd6=current#
-ANA:            lda proc::d4,u
+ANA:            lda Proc::d4,u
                 cmpa #1
                 lbeq SUCIDE                       ; Die no animation
-ANA0:           ldx proc::data,u
+ANA0:           ldx Proc::data,u
                 ldd OPICT,x
                 cmpd #NULOB
                 beq ANASLP
-                lda proc::d6,u
+                lda Proc::d6,u
                 inca
-                cmpa proc::d4,u
+                cmpa Proc::d4,u
                 blo ANA1
                 clra
-ANA1:           sta proc::d6,u
+ANA1:           sta Proc::d6,u
                 ldb #OBJL
                 mul
-                ldy proc::d2,u
+                ldy Proc::d2,u
                 leay d,y
                 sty OPICT,x
-ANASLP:         lda proc::d5,u
+ANASLP:         lda Proc::d5,u
                 ldx #ANA0
                 jmp SLEEP
 

@@ -14,7 +14,7 @@ HSCHKV:         jmp HSCHK                         ; Check high scores after FAC 
 HSBUTV:         jmp HSBUT                         ; High score reset button
 
 HSBUT:          lda #$18                          ; 3 Seconds required
-                sta proc::data,u
+                sta Proc::data,u
                 lda #$3F
                 sta SOUND
 HSBUT1:
@@ -22,7 +22,7 @@ HSBUT1:
 HSBUT2:         lda PIA0
                 bita #8                           ; Still pressed??
                 beq HSBUT3                        ; Nope....bye
-                dec proc::data,u
+                dec Proc::data,u
                 bne HSBUT1                        ; Not enough time yet
                 ldy #GODINT                       ; Just put in default name
                 ldx #DEFHSR

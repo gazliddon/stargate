@@ -567,7 +567,7 @@ INVXX:          jmp SUCIDE
 ;;; Player end
 PLEND:          lda #DTYPE                        ; Set this proc to player death type
                 ldu CRPROC
-                sta proc::type,u
+                sta Proc::type,u
                 lda STATUS                        ; Is the game over?
                 bpl PLEND1                        ; No!
 
@@ -594,27 +594,27 @@ PDEATH:         ldy #PLAPIC
                 bpl PDTH1
                 ldy #PLBPIC
 PDTH1:          ldx #PXCTB                        ; Init color
-                stx proc::data ,u
+                stx Proc::data ,u
                 ldu #MONOTB
                 jsr MONO
                 tfr u,x                           ; Pseudo vector
                 ldu CRPROC
-                stx proc::data +4,u
+                stx Proc::data +4,u
 PDTHL:          ldd NPLAXC
-                ldy proc::data +4,u
+                ldy Proc::data +4,u
                 jsr COFF                          ; Blank
                 lda #2
                 ldx #PDTH2
                 jmp SLEEP
 PDTH2:          ldd NPLAXC
-                ldy proc::data +4,u
+                ldy Proc::data +4,u
                 jsr CWRIT
-                ldx proc::data ,u
+                ldx Proc::data ,u
                 lda ,x+
                 beq PDTH4
                 sta PCRAM+$b
                 clr PCRAM                         ; Black screen
-                stx proc::data ,u
+                stx Proc::data ,u
 PDTH3:          lda #2
                 ldx #PDTHL
                 jmp SLEEP
@@ -726,7 +726,7 @@ ASTRES:         ldx ASTPT                         ; Get from fixed indirect (add
                 jsr MKPROC
                 ldu #TLIST
                 leay ,u
-                stu proc::data ,x                  ; Init ptr
+                stu Proc::data ,x                  ; Init ptr
 !ASTS1:         clr ,u+                           ; Clear LIST
                 cmpu #TLEND
                 bne !ASTS1
@@ -863,12 +863,12 @@ DYNBYE:         clr TIMER                         ; No enemy hypering
 
 GEXEC:          ldu CRPROC
                 lda #40                           ; Delta counter
-                sta proc::data ,u
+                sta Proc::data ,u
                 lda UFOTIM
                 sta UFOTMR
                 lda #1
                 sta WAVTMR
-                clr proc::d2,u                     ; Clear bozo flag
+                clr Proc::d2,u                     ; Clear bozo flag
 GEX0:           lda PIA31                         ; Scan inviso switch
                 bita #$2
                 bne GEX00_
@@ -962,19 +962,19 @@ GEX5:           lda GTIME
                 clra
 GEX50:          sta GTIME
                 ldu CRPROC
-                dec proc::data ,u
+                dec Proc::data ,u
                 bne GEX6
                 ldb #2
                 ldy #ELIST
                 jsr WDELT
                 lda #40
-                sta proc::data ,u
+                sta Proc::data ,u
 ; Check wall 1 bozo mode
 GEX6:           ldx PLRX
                 lda PWAV,x
                 deca
                 bne GEX60                         ;  Not wall 1
-                lda proc::d2,u
+                lda Proc::d2,u
                 bne GEX60                         ;  Already did it
                 lda MANCTR                        ;  Ever been boned up the ass for being A wise guy??
                 bne GEX6A                         ;  Yip...
@@ -991,7 +991,7 @@ GEX6A:          lda STATUS                        ;  No bozo if player is DEAD
                 bita #8
                 bne GEX60
                 lda #1
-                sta proc::d2,u
+                sta Proc::d2,u
                 jsr GETWV0
                 jsr PTRANS
                 jsr BOZOV                         ;  Wise up the landers
@@ -1192,12 +1192,12 @@ BONEME:         ldx PLRX
                 jsr SCLR1
                 jsr WRD7V
                 puls x
-                stx proc::data ,u
+                stx Proc::data ,u
                 SLEEP($C0)
                 ldx PLRX
                 jsr GETWVV
                 ldu CRPROC
-                jmp [proc::data,u]
+                jmp [Proc::data,u]
 EXMES1:         jsr BSET
                 jmp BONUS
 
@@ -1326,12 +1326,12 @@ CTERR:          lda BGL                           ; Get the x pos of the terrain
                 std GATCL1
                 std GATCL2
                 std GATCL3
-                ldb proc::data ,u
+                ldb Proc::data ,u
                 incb
                 cmpb #2
                 bls !CTERR1
                 clrb
-!CTERR1:        stb proc::data ,u                  ; Trinary counter
+!CTERR1:        stb Proc::data ,u                  ; Trinary counter
                 ldx #GATCL1
                 aslb                              ; X2
                 abx
@@ -1406,7 +1406,7 @@ SGNK:           clra
 SGTRAN:         ldx #CHKS2+$32
                 lda STATUS
                 anda #$2                          ; Save the terrain bit
-                sta proc::data ,u                  ; Save away in an unlikely place
+                sta Proc::data ,u                  ; Save away in an unlikely place
                 lda #$77
                 sta STATUS                        ; Disable shit
                 ldb #$56                          ; Hidden checksum
@@ -1545,7 +1545,7 @@ SGC3:           clrb
                 beq SG30
                 ldb #$10
 SG30:           ldu CRPROC                        ; Get proper U
-                orb proc::data ,u                  ; And put back the old terrain bit.
+                orb Proc::data ,u                  ; And put back the old terrain bit.
                 stb STATUS
                 lda #$28
                 sta SGDFLG
@@ -1560,8 +1560,8 @@ WRPMS2:         FCB $80,CLEAR,$90,NOWRPM
 ; A=rate, 1=fastest
 ; Pd6,U=ret addr;pd4=rate;pd5=count
 DIM:            puls x
-                stx proc::d6,u
-                sta proc::d4,u
+                stx Proc::d6,u
+                sta Proc::d4,u
                 ldy #MONOTB+110                   ; Save colors in mono table
                 ldx #PCRAM
 DIM00:          ldd ,x++                          ; Save table
@@ -1569,24 +1569,24 @@ DIM00:          ldd ,x++                          ; Save table
                 cmpx #PCRAM+16
                 bne DIM00
                 lda #7
-                sta proc::d5,u                     ; Save
-DIM0:           lda proc::d4,u
+                sta Proc::d5,u                     ; Save
+DIM0:           lda Proc::d4,u
                 ldx #DIM3
                 jmp SLEEP
 DIM3:           ldx #PCRAM
 DIM4:           bsr DIMSUB
                 cmpx #PCRAM+16
                 bne DIM4
-                dec proc::d5,u
+                dec Proc::d5,u
                 bpl DIM0
-                jmp [proc::d6,u]
+                jmp [Proc::d6,u]
 
 ;       Dimsub - take away blue, green, red
 
 DIMSUB:         lda ,x                            ; Working area
                 ldb ,x                            ; Get for red check
                 andb #$7                          ; Red??
-                cmpb proc::d5,u                    ; Too much red??
+                cmpb Proc::d5,u                    ; Too much red??
                 bls DIMSB1                        ; Nope.
                 deca                              ; Take some red away
 DIMSB1:         ldb ,x                            ; Get for green
@@ -1594,7 +1594,7 @@ DIMSB1:         ldb ,x                            ; Get for green
                 lsrb
                 lsrb
                 andb #$07
-                cmpb proc::d5,u
+                cmpb Proc::d5,u
                 bls DIMSB2                        ; Not enough green
                 suba #$08                         ; Take away A green unit.
 DIMSB2:         ldb ,x
@@ -1604,23 +1604,23 @@ DIMSB2:         ldb ,x
                 lsrb
                 lsrb
                 andb #$06                         ; Only 2 bits of blue
-                cmpb proc::d5,u
+                cmpb Proc::d5,u
                 bls DIMSB3
                 suba #$40                         ; Take A blue away.
 DIMSB3:         sta ,x+                           ; Return to sender
                 rts
 
-BRIGHT:         lda proc::data ,u                  ; Save status from scanner crash
+BRIGHT:         lda Proc::data ,u                  ; Save status from scanner crash
                 pshs a
                 jsr ISCAN                         ; Re-do the lists
                 jsr OSCAN
                 jsr SCNR                          ; Do the scanner
                 ldu CRPROC                        ; Restore process id
                 puls a                            ; Restore status
-                sta proc::data ,u
+                sta Proc::data ,u
                 lda STATUS                        ; Get the status
                 anda #$DD                         ; Take away terrain bit...activate objects
-                ora proc::data ,u                  ; Put terrain back if it was there.
+                ora Proc::data ,u                  ; Put terrain back if it was there.
                 sta STATUS
                 SLEEP (1)
                 lda STATUS
@@ -1638,11 +1638,11 @@ BRIGHT:         lda proc::data ,u                  ; Save status from scanner cr
 ; Pd4,U=rate;pd5,U=count;pd6,U=ret addr
 ;
 BRT:            puls x                            ; Get ret addr
-                stx proc::d6,u
-                sta proc::d4,u
+                stx Proc::d6,u
+                sta Proc::d4,u
                 lda #$7                           ; Iterations
-                sta proc::d5,u
-BRGH2:          lda proc::d4,u
+                sta Proc::d5,u
+BRGH2:          lda Proc::d4,u
                 ldx #BRGH3
                 jmp SLEEP
 BRGH3:          ldx #PCRAM+1
@@ -1664,7 +1664,7 @@ BRGH4:          lda ,x                            ; Get back
                 cmpa XTEMP
                 bls BRGH5
                 addb #$8                          ; ADD A green
-BRGH5:          lda proc::d5,u                     ; Get index
+BRGH5:          lda Proc::d5,u                     ; Get index
                 bita #$1
                 bne BRGH6                         ; Not A blue frame
                 lda ,x                            ; Get color back
@@ -1679,8 +1679,8 @@ BRGH6:          stb ,x+                           ; Put back
                 leay 1,y                          ; Kick other ptr.
                 cmpx #PCRAM+16
                 bne BRGH7
-                dec proc::d5,u                     ; DEC it
+                dec Proc::d5,u                     ; DEC it
                 bne BRGH2
-                jmp [proc::d6,u]                   ; Return
+                jmp [Proc::d6,u]                   ; Return
 ;  End
 

@@ -69,7 +69,7 @@ ASTK1:          bsr ASTCLR
 ;;;  * _X_ -> Astronaut `obj` record to kill
 AKIL1:          ldu OBJID,x
                 beq ASTKIL                        ; Not falling
-                ldd proc::addr,u                   ; 1ST time
+                ldd Proc::addr,u                   ; 1ST time
                 cmpd #AFALL2
                 beq NOKILL
                 lda PCFLG
@@ -80,9 +80,9 @@ AKIL1:          ldu OBJID,x
                 MAKP (PPAC)                       ; Do the increasing catch stuff.
                 leay ,x
                 puls x
-                stx proc::data,y                   ; Astro obj-500 routine
+                stx Proc::data,y                   ; Astro obj-500 routine
 AKIL2:          ldd #AFALL2
-                std proc::addr,u
+                std Proc::addr,u
 
 NOKILL:         clra
                 puls d,pc
@@ -165,10 +165,10 @@ TBBL4:
                 jsr SCLEAN                        ; Clean up samram
                 jsr SCRCLR                        ; Clear the stuff away.
                 jsr TDISPV                        ; Put the top stuff back
-                clr proc::data,u                   ; Parameter to indicate which LIST
+                clr Proc::data,u                   ; Parameter to indicate which LIST
                 ldx #IPTR                         ; Make sure inactive guys far away
                 bsr HYPEM
-                inc proc::data,u
+                inc Proc::data,u
                 ldx #OPTR
                 bsr HYPEM
                 jsr OSCAN                         ; Reform LIST
@@ -185,7 +185,7 @@ TBBL4:
 ;;; * Laser
 ;;; * Smartbomb
 NITRUS:         ldx ACTIVE                        ; X -> active procs
-!loop:          lda proc::type,x                   ; Get type
+!loop:          lda Proc::type,x                   ; Get type
                 cmpa #CTYPE                       ; Coin??
                 beq !nosleep
                 cmpa #DTYPE                       ; Death??
@@ -194,7 +194,7 @@ NITRUS:         ldx ACTIVE                        ; X -> active procs
                 beq !nosleep
                 cmpa #SBTYPE
                 beq !nosleep
-                stb proc::time,x                   ; Make max time for non coins
+                stb Proc::time,x                   ; Make max time for non coins
 !nosleep:
                 ldx ,x                            ; X -> next proc
                 bne !loop
@@ -228,7 +228,7 @@ HYPEM:          ldx ,x                            ; Get the next man.
                 std OX16,x
 
 ;
-                tst proc::data,u                   ; Which LIST??
+                tst Proc::data,u                   ; Which LIST??
                 beq HYPEM                         ; Inactive.....leave alone..
 
                 ldd OBJX,x                        ; Get coordinate
@@ -244,13 +244,13 @@ HYPEM:          ldx ,x                            ; Get the next man.
 ;;; Proc.data =current index to tlist
 ;;; Updates 1 astronaut every 2 frames
 ;;; 10 Astronaust
-ASTRO:          ldx proc::data,u                   ; X -> last astronaut processed
+ASTRO:          ldx Proc::data,u                   ; X -> last astronaut processed
                 leax 2,x                          ; Skip to next astro
                 cmpx #TLEND                       ; Have we over stepped the end of the astro table?
                 blo !not_end
                 ldx #TLIST                        ; Yes, point X at the start of the table
 !not_end:
-                stx proc::data,u                   ; Save ptr to process data
+                stx Proc::data,u                   ; Save ptr to process data
 
                 ldx ,x                            ; X ->  obj record
                 beq ASTX                          ; No object! exit
@@ -324,7 +324,7 @@ P250:           ldd #$0125
                 lda OFREE                         ; Any objects??
                 beq SUCVV                         ; Nope...just drop DEAD
                 OBI (C25P1,NOKILL,$0000)
-                ldy proc::data,u                   ; Get the man object
+                ldy Proc::data,u                   ; Get the man object
                 ldd OBJX,y                        ; Is he on screen??
                 lbne P5001                        ; Yep....handle like A set down
                 ldd OX16,y                        ; Get the mans world X
@@ -381,7 +381,7 @@ SUCVV:          beq SUCV
                 OBI (C5P1,NOKILL,$0000)
 P5100:          ldd #$0150
 P5000:          jsr SCORE
-                ldy proc::data,u
+                ldy Proc::data,u
 P5001:          jsr RAND                          ; Cycle the generator in case of many at once
                 ldb SEED
                 asrb                              ; Much smaller
@@ -404,9 +404,9 @@ P2503:          ldb HSEED                         ; Y skew......make it upward
 P501:           subd #$2000
 P502:           std OY16,x
                 stx OPTR
-                stx proc::data,u                   ; Object index
+                stx Proc::data,u                   ; Object index
                 NAP (100,P503)
-P503:           ldx proc::data,u
+P503:           ldx Proc::data,u
                 jsr KILOFF
 SUCV:           jmp SUCIDE
 
@@ -421,7 +421,7 @@ PROCAT:         jsr GNCIDE                        ; Mama...oooo....i dont want t
                 lda #$76
                 sta STATUS
                 NAP (1,PROCT0)
-PROCT0:         ldy proc::data,u
+PROCT0:         ldy Proc::data,u
                 ldd OBJX,y                        ; Get coord of man.
                 bne PROCT1                        ; Ok
                 ldd #$50b0                        ; Use default
@@ -436,9 +436,9 @@ PROCT1:         subb #$15                         ; Raise Y
                 jsr SNDLD                         ; Do the sound
 
                 lda #$18
-                sta proc::data,u
+                sta Proc::data,u
                 ldd #$800                         ; First delay
-                std proc::data+1,u
+                std Proc::data+1,u
 PROCT3:         jsr RAND
                 anda #$1F
                 ldx #COLTAB
@@ -446,14 +446,14 @@ PROCT3:         jsr RAND
                 sta PCRAM
                 NAP (2,PROCT4)
 PROCT4:         clr PCRAM
-                dec proc::data,u                   ; Done??
+                dec Proc::data,u                   ; Done??
                 lbeq ENDWVV                       ; Yep...back into game exec.
-                ldd proc::data+1,u
+                ldd Proc::data+1,u
                 cmpd #$160
                 bhi PROCT6
                 ldd #$160
 PROCT6:         subd #$60
-                std proc::data+1,u
+                std Proc::data+1,u
                 ldx #PROCT3
                 jmp SLEEP
 
@@ -504,11 +504,11 @@ SHOOTX:         puls x,pc
 
 ; Lander shoot
 
-LSHOT:          dec proc::d6,u
+LSHOT:          dec Proc::d6,u
                 bne LSHTX
                 lda LDSTIM
                 jsr RMAX
-                sta proc::d6,u
+                sta Proc::d6,u
                 bsr SHOOT
                 beq LSHTX
                 ldd #LSHSND
@@ -570,8 +570,8 @@ GT2:            ldd ,x
                 bne GT1
                 puls x,pc
 GT3:            stx TPTR                          ; Found one
-                std proc::d2,u
-                stx proc::d4,u
+                std Proc::d2,u
+                stx Proc::d4,u
 GTX:            puls x,pc
 
 ;
@@ -596,7 +596,7 @@ LNDST1:
                 std OYV,x
                 lda LDSTIM                        ; Shooting time
                 jsr RMAX
-                sta proc::d6,u
+                sta Proc::d6,u
                 lda LNDXV
                 jsr RMAX
                 tfr a,b
@@ -618,11 +618,11 @@ LNDSTX:         puls a,pc
 BOZOV_:         pshs x,u,y,d
                 ldu #ACTIVE
                 bra BOZVLP
-BOZOV0:         ldy proc::addr,u
+BOZOV0:         ldy Proc::addr,u
                 cmpy #LANDS0
                 blo BOZVLP                        ; Not A lander
                 bne BOZV2                         ; No velocity
-                ldx proc::data,u
+                ldx Proc::data,u
                 lda LNDXV
                 jsr RMAX
                 tfr a,b
@@ -636,7 +636,7 @@ BOZV2:          cmpy #LANDFX                      ; Not A lander
                 bhi BOZVLP
                 lda LDSTIM                        ; Get shot timer
                 jsr RMAX
-                sta proc::d6,u
+                sta Proc::d6,u
 BOZVLP:         ldu ,u
                 bne BOZOV0
                 puls x,y,u,d,pc
@@ -646,9 +646,9 @@ BOZVLP:         ldu ,u
 ; PD=object,PD2=target,pd4=tlist index
 ; Pd6=shot timer,pd7=rotation divider
 
-LANDS0:         ldx proc::data,u
-                ldy proc::d2,u
-                ldd [proc::d4,u]                   ; Target alive?
+LANDS0:         ldx Proc::data,u
+                ldy Proc::d2,u
+                ldd [Proc::d4,u]                   ; Target alive?
                 beq LNDSAA
                 lda OCVECT+1,y
                 cmpa #ASTKIL&$FF
@@ -689,7 +689,7 @@ LANDS2:         std OYV,x                         ; New Y vel
                 jsr LSHOT
                 bsr LPSUB                         ; Cycle image
                 NAP (3,LNDSP1)
-LNDSP1:         ldx proc::data,u                   ; Get picture back
+LNDSP1:         ldx Proc::data,u                   ; Get picture back
                 bsr LPSUB                         ; Do the picture again
                 NAP (3,LANDS0)
 
@@ -712,9 +712,9 @@ LANDG0:
                 inc OTYP,x                        ; Dont hyper me
                 std OXV,x
                 std OYV,x
-LANDG:          ldx proc::data,u
-                ldy proc::d2,u
-                ldd [proc::d4,u]
+LANDG:          ldx Proc::data,u
+                ldy Proc::d2,u
+                ldd [Proc::d4,u]
                 lbeq LNDSAA                       ; DEAD
                 lda OCVECT+1,y
                 cmpa #ASTKIL&$FF
@@ -767,7 +767,7 @@ LANDG3:         ldd OX16,x
 ; Flee
 
 LANDF:          ldu CRPROC
-                ldx proc::data,u
+                ldx Proc::data,u
                 lda OY16,x
                 cmpa #YMIN+8
                 bls LANDFX                        ; All done
@@ -782,9 +782,9 @@ LANDFO:
 
 LANDFX:         ldd #LSKSND
                 jsr SNDLD
-LNDFXA:         ldx proc::data,u
-                ldy proc::d2,u
-                ldd [proc::d4,u]
+LNDFXA:         ldx Proc::data,u
+                ldy Proc::d2,u
+                ldd [Proc::d4,u]
                 bne LNDFX0
                 jsr KILOFF                        ; Give up
                 dec LNDCNT
@@ -818,7 +818,7 @@ SCZ00:          dec LNDCNT
                 ldx #ALLLND                       ; All lander message
                 jsr MESLDV                        ; And send it.
 SCZ00_:         inc SCZCNT
-                ldx proc::data,u
+                ldx Proc::data,u
                 clr OTYP,x                        ; Ok to hyper
                 ldd #SCZP1
                 std OPICT,x
@@ -827,11 +827,11 @@ SCZ00_:         inc SCZCNT
                 ldd #SCZKIL
                 std OCVECT,x
                 lda SZSTIM
-                sta proc::d2,u
+                sta Proc::d2,u
 
 ;;; I am schitzo i,m feeling fine
 ;;; PD=object,PD2=shot time
-SCZ0:           ldx proc::data,u
+SCZ0:           ldx Proc::data,u
                 ldb SZXV
                 ldy PLABX
                 cmpy OX16,x
@@ -884,11 +884,11 @@ SCZ11:          addb OY16,x
                 bhs SCZ110
                 ldb #YMAX
 SCZ110:         stb OY16,x
-                dec proc::d2,u                     ; Shot time
+                dec Proc::d2,u                     ; Shot time
                 bne SCZ12
                 lda SZSTIM
                 jsr RMAX
-                sta proc::d2,u
+                sta Proc::d2,u
                 jsr SHOOT
                 beq SCZ12
                 ldd #SSHSND
@@ -898,13 +898,13 @@ SCZ12:
 
 ;;; Kill kidnapping lander
 LKIL1:          ldu OBJID,x                       ; Got A passenger?
-                ldd [proc::d4,u]
+                ldd [Proc::d4,u]
                 beq LKILL
 LKIL2:          ldu OBJID,x
                 pshs x
                 MAKP (AFALL)                      ; Start him falling
-                ldu proc::d2,u
-                stu proc::data,x
+                ldu Proc::d2,u
+                stu Proc::data,x
                 ldd #ASCSND
                 jsr SNDLD                         ; Scream.....
                 ldd #0
@@ -935,7 +935,7 @@ ALLLND:         FCB $20,CLEAR + BLINK,$80,LNDKLM
 
 ; Astronaut fall
 
-AFALL:          ldx proc::data,u
+AFALL:          ldx Proc::data,u
                 ldd #8                            ; Accel downward
                 addd OYV,x
                 cmpd #$300
@@ -954,7 +954,7 @@ AFALL0:         jsr GETALT
                 jmp SUCIDE
 AFALL1:
                 NAP (4,AFALL)
-AFALL2:         ldx proc::data,u
+AFALL2:         ldx Proc::data,u
                 ldd #0
                 std OYV,x
                 lda PLAY16
@@ -977,7 +977,7 @@ ALND00:         lda #STYPE
                 jsr MKPROC
                 leay ,x
                 puls x
-                stx proc::data,y                   ; Astro object to 500 proc
+                stx Proc::data,y                   ; Astro object to 500 proc
                 ldd #0
                 std OBJID,x
                 std OYV,x
@@ -1076,7 +1076,7 @@ PHSL:
                 tfr x,y
                 stx OPTR
                 OBI (ASTP1,AKIL1,$6666)
-                stx proc::d2,u
+                stx Proc::d2,u
                 stx OPTR
                 clra
                 clrb
@@ -1096,7 +1096,7 @@ PHSL:
                 sta 1,s
                 ldd #$200
                 std OYV,y
-                std proc::d4,u                     ; For lander killer fooling
+                std Proc::d4,u                     ; For lander killer fooling
                 lda #1
                 sta OTYP,x
                 sta OTYP,y                        ; Dont hyper please
@@ -1109,17 +1109,17 @@ PHSL:
 
 ;;; Phony lander routine
 ;;; PD=lander,PD2=guy
-PHLND:          ldx proc::data,u                   ; Rev when on him
+PHLND:          ldx Proc::data,u                   ; Rev when on him
                 lda OY16,x
                 cmpa #$d0
                 bhs !skip
                 NAP (1,PHLND)
-!skip:          ldx proc::data,u
+!skip:          ldx Proc::data,u
                 ldd #$d400
                 std OY16,x
                 ldd #$FF80
                 std OYV,x
-                ldx proc::d2,u
+                ldx Proc::d2,u
                 std OYV,x
 !loop:
                 NAP (60,!loop)                    ; R.i.p.

@@ -45,7 +45,7 @@ GNCIDA:         pshs a,x
                 beq !loop
 
 ; Do not kill procs of ctype or atype
-                lda proc::type,x
+                lda Proc::type,x
                 cmpa #CTYPE
                 beq !loop
                 cmpa #ATYPE
@@ -60,14 +60,14 @@ GNCIDA:         pshs a,x
 ;;; Proc to scan for new coins being inserted
 ;;; Runs every other frame
 CRDSCN:         lda CREDIT
-                sta proc::data,u
-                clr proc::d1,u
-                clr proc::d2,u
+                sta Proc::data,u
+                clr Proc::d1,u
+                clr Proc::d2,u
 
 !loop:          lda CREDIT
-                cmpa proc::data,u
+                cmpa Proc::data,u
                 beq !CRDSLX
-                sta proc::data,u
+                sta Proc::data,u
                 lda ATRFLG
                 cmpa #$50                         ; Credit page??
                 bne !CRDSL1
@@ -79,9 +79,9 @@ CRDSCN:         lda CREDIT
                 jsr MSPROC
 !CRDSLX:        lda PIA21
                 anda #$8
-                cmpa proc::d1,u
+                cmpa Proc::d1,u
                 beq !HALSX
-                sta proc::d1,u
+                sta Proc::d1,u
                 beq !HALSX
                 lda ATRFLG
                 cmpa #$10
@@ -92,9 +92,9 @@ CRDSCN:         lda CREDIT
                 jsr MSPROC
 !HALSX:         lda PIA21
                 anda #$40
-                cmpa proc::d2,u
+                cmpa Proc::d2,u
                 beq !sleep
-                sta proc::d2,u
+                sta Proc::d2,u
                 beq !sleep
                 lda ATRFLG
                 cmpa #$40
@@ -123,11 +123,11 @@ CRDPAG:
                 jsr OCRDM
                 ldu CRPROC
                 lda CREDIT
-                sta proc::d4,u
+                sta Proc::d4,u
                 lda #2
                 sta PLRCNT
                 lda #8
-                sta proc::d3,u                     ; Timer
+                sta Proc::d3,u                     ; Timer
                 ldx #$14AC
                 jsr OSEXM                         ; Output extra ship message
                 ldx #$3EE0
@@ -144,12 +144,12 @@ CRDPAG:
                 jsr WRD5FV
 CRDP0:          ldx #NSHIP
                 jsr RCMOSD
-                std proc::d1,u
+                std Proc::d1,u
                 ldb FREEPL+1
                 andb #$F
                 beq CRDP00                        ; No free play
-                clr proc::d2,u
-CRDP00:         ldb proc::d2,u
+                clr Proc::d2,u
+CRDP00:         ldb Proc::d2,u
                 bne CRDP1                         ; 2 Credit option selected
                 ldx #$3858
                 bra CRDP2
@@ -157,7 +157,7 @@ CRDP1:          ldx #$5958
                 tfr b,a
                 ldb #2
                 jsr CRDSB
-                lda proc::d1,u
+                lda Proc::d1,u
                 ldx #$1958
 CRDP2:          ldb #1
                 jsr CRDSB
@@ -173,9 +173,9 @@ CRDP3A:         ldb #1
                 lda CREDIT
                 cmpa #2
                 blo CRDP4
-                lda proc::d2,u
+                lda Proc::d2,u
                 bne CRDP4A
-CRDP4:          lda proc::d1,u
+CRDP4:          lda Proc::d1,u
 CRDP4A:         clrb
                 bsr CRDSB1
                 NAP ($80,CRDP5)
@@ -188,23 +188,23 @@ CRDP50:         ldb #2
                 ldx #$3514
                 lda #NPSM
                 jsr WRD7FV
-                ldb proc::d1,u
+                ldb Proc::d1,u
                 lda CREDIT
                 cmpa #4
                 blo CRDP5A
-                tst proc::d2,u
+                tst Proc::d2,u
                 beq CRDP5A
-                ldb proc::d2,u
+                ldb Proc::d2,u
 CRDP5A:         tfr b,a                           ; Same for both players
                 bsr CRDSB1
-CRDP6:          dec proc::d3,u                     ; Timer
+CRDP6:          dec Proc::d3,u                     ; Timer
                 lbeq HALL                         ; Time out
                 lda CREDIT
-                cmpa proc::d4,u
+                cmpa Proc::d4,u
                 beq CRDP7
-                sta proc::d4,u
+                sta Proc::d4,u
                 lda #08
-                sta proc::d3,u
+                sta Proc::d3,u
 CRDP7:
                 NAP ($80,CRDP3)
 
@@ -312,10 +312,10 @@ SECRET:         lda #$40
                 MAKP (CBOMB)
                 ldu CRPROC
                 ldd #$1040
-                std proc::data,u
-SECR0:          dec proc::data+1,u
+                std Proc::data,u
+SECR0:          dec Proc::data+1,u
                 beq SECX                          ; Maximum timeout
-                dec proc::data,u
+                dec Proc::data,u
                 beq SECR1
 SEC55:
                 NAP (60,SECR0)
@@ -323,7 +323,7 @@ SECR1:          lda PIA21
                 anda #$40
                 beq SECX
                 lda #1
-                sta proc::data,u
+                sta Proc::data,u
                 bra SEC55
 SECX:           lda CREDIT
                 beq HALL
@@ -418,29 +418,29 @@ HALL1:          ldx #PCRAM                        ; Clear out colors
 //  PD7= # OF ENTRIES IN COLUMN
                 ldu CRPROC
                 lda #$2                           ; Start with index 2
-                sta proc::data,u
+                sta Proc::data,u
                 ldd #$0C56
-                std proc::data+3,u
+                std Proc::data+3,u
                 ldy #CMSCOR
-                sty proc::data+5,u
+                sty Proc::data+5,u
                 lda #13
-                sta proc::data+7,u
+                sta Proc::data+7,u
                 jmp HSCOLM                        ; Print this matrix of the table
 PRTODY:         ldu CRPROC
                 lda #1
-                sta proc::data,u                   ; Start with 1 for todays
+                sta Proc::data,u                   ; Start with 1 for todays
                 ldd #$0CD0
-                std proc::data+3,u
+                std Proc::data+3,u
                 ldy #TODAYS
-                sty proc::data+5,u
+                sty Proc::data+5,u
                 lda #2
-                sta proc::data+7,u
+                sta Proc::data+7,u
                 jmp HSCOLM
 HSCOLM:         lda #3                            ; 3 Columns
-                sta proc::data+2,u                 ; Set it hard
+                sta Proc::data+2,u                 ; Set it hard
                 clr TXFLAV
-HSCOL0:         lda proc::data+7,u                 ; Number per column
-                sta proc::data+1,u                 ; Make that number left in this column
+HSCOL0:         lda Proc::data+7,u                 ; Number per column
+                sta Proc::data+1,u                 ; Make that number left in this column
 HSCOL3:
                 NAP (1,!sleep)                    ; Time break here
 
@@ -453,12 +453,12 @@ HSCOL3:
                 lda #$11
 !nowrap:        sta TEXCOL
 
-                ldx proc::data+3,u                 ; Get address
-                ldb proc::data,u                   ; Get players index
+                ldx Proc::data+3,u                 ; Get address
+                ldb Proc::data,u                   ; Get players index
                 lda #HSINDX                       ; Index message
                 jsr WRD5V                         ; Print it
 
-                ldy proc::data+5,u                 ; Point at players initials
+                ldy Proc::data+5,u                 ; Point at players initials
                 ldb #3                            ; Iterate 3 times
 !hscol2:        exg x,y
                 jsr RCMOSA                        ; Get an initial
@@ -467,31 +467,31 @@ HSCOL3:
                 decb
                 bne !hscol2                       ; Initials are out there
 
-                ldx proc::data+3,u                 ; Get cursor pointer again
+                ldx Proc::data+3,u                 ; Get cursor pointer again
                 leax $E00,x                       ; Position for score
                 ldu #WRD5V                        ; Use 3 by 5 score routine
                 jsr PRSCOR                        ; Print out the guys score
                 ldu CRPROC
-                ldy proc::data+5,u                 ; Get cmos pointer
+                ldy Proc::data+5,u                 ; Get cmos pointer
                 leay SCRSIZ,y
-                sty proc::data+5,u
-                ldx proc::data+3,u                 ; Get current cursor
+                sty Proc::data+5,u
+                ldx Proc::data+3,u                 ; Get current cursor
                 leax 7,x                          ; Move 7 pixels
-                stx proc::data+3,u
-                lda proc::data,u                   ; Kick index
+                stx Proc::data+3,u
+                lda Proc::data,u                   ; Kick index
                 adda #1
                 daa
-                sta proc::data,u
-                dec proc::data+1,u                 ; One less guy in this column
+                sta Proc::data,u
+                dec Proc::data+1,u                 ; One less guy in this column
                 bne HSCOL3
                 leax $3000,x                      ; Move to next column
                 lda #7                            ; Height per entry
-                ldb proc::data+7,u                 ; Entries per column
+                ldb Proc::data+7,u                 ; Entries per column
                 mul
                 negb                              ; Opposite of total height
                 leax b,x                          ; To restore that height
-                stx proc::data+3,u                 ; Restored
-                dec proc::data+2,u                 ; One less column
+                stx Proc::data+3,u                 ; Restored
+                dec Proc::data+2,u                 ; One less column
                 bne HSCOL0                        ; Do another
                 cmpy #TODAYS+SCRSIZ               ; Are we in todays
                 lbls PRTODY                       ; Nope...go and do todays
@@ -499,16 +499,16 @@ HSCOL3:
                 MAKP (LOGCOL)                     ; Done...start the colors
                 ldu CRPROC
                 lda #8
-                sta proc::data,u
-!HALX1:         dec proc::data,u
+                sta Proc::data,u
+!HALX1:         dec Proc::data,u
                 beq !HALX
                 NAP (60,!HALX1)
 !HALX:          lda #120
-                sta proc::data,u
+                sta Proc::data,u
 !halx2:         lda PIA21
                 anda #$8
                 beq LOGO
-                dec proc::data,u
+                dec Proc::data,u
                 beq LOGO
                 NAP (30,!halx2)
 
@@ -556,47 +556,47 @@ LOGO:           jsr GNCIDA
 ;
 ; Output operator message
 ; PD=mess ptr,PD2=screen addr,pd4=byte cnt.,pd5=pass flag
-OOM:            clr proc::d6,u
+OOM:            clr Proc::d6,u
                 jsr ATMCK                         ; Message o.k.???
                 beq OOM0
                 ldx #OMST
-                inc proc::d6,u                     ; Error flag
+                inc Proc::d6,u                     ; Error flag
                 bra OOM00
 OOM0:           ldx #OPMESS
-OOM00:          stx proc::data,u
+OOM00:          stx Proc::data,u
                 ldx #OPL1                         ; Location of line 1
                 ldb #$20
                 jsr GETMEX
-                stx proc::d2,u
+                stx Proc::d2,u
                 lda #25
-                sta proc::d4,u
-                sta proc::d5,u
+                sta Proc::d4,u
+                sta Proc::d5,u
                 lda #$AA
                 sta TEXCOL
                 clr TXFLAV
-OOML:           ldx proc::data,u
-                lda proc::d6,u                     ; Error?
+OOML:           ldx Proc::data,u
+                lda Proc::d6,u                     ; Error?
                 beq OOML0                         ; No
                 lda ,x+
                 bra OOML00
 OOML0:          jsr RCMOSA
-OOML00:         stx proc::data,u
-                ldx proc::d2,u
+OOML00:         stx Proc::data,u
+                ldx Proc::d2,u
                 jsr PR57V
-                stx proc::d2,u
-                dec proc::d4,u
+                stx Proc::d2,u
+                dec Proc::d4,u
                 beq OOFIN
 OOML1:
                 NAP (3,OOML)
-OOFIN:          lda proc::d5,u
+OOFIN:          lda Proc::d5,u
                 beq OOFX
-                clr proc::d5,u
+                clr Proc::d5,u
                 lda #25
-                sta proc::d4,u
+                sta Proc::d4,u
                 ldx #OPL2
                 ldb #$30
                 jsr GETMEX
-                stx proc::d2,u
+                stx Proc::d2,u
                 clr TXFLAV
                 bra OOML1
 OOFX:
@@ -625,7 +625,7 @@ LOG20:          jsr GNCIDA
                 jsr WRD5FV
                 NAP (40,LOG2)
 LOG2:
-                ldx proc::data+10,u                ; Get start address
+                ldx Proc::data+10,u                ; Get start address
                 leay $8824,x
                 lda #7                            ; Set color 9 to red
                 sta PCRAM+9
@@ -642,7 +642,7 @@ OMST:           FCC "WILLIAMS ELECTRONICS INC"
                 FCC "     "
 ;
 GETMEX:         lda #$25                          ; Assume error
-                tst proc::data+6,u
+                tst Proc::data+6,u
                 bne GETME3
                 jsr RCMOSA                        ; Get the byte
                 cmpa #$10
@@ -655,8 +655,8 @@ GETME3:         tfr d,x
                 rts
 
 ; Operator mess colorer
-OPMCOL:         inc proc::data,u
-                lda proc::data,u
+OPMCOL:         inc Proc::data,u
+                lda Proc::data,u
                 anda #$7
                 ldx #OPMTAB
                 lda a,x
@@ -667,8 +667,8 @@ OPMTAB:         FCB $7,$87,$FF,$FF,$C7,$C7,$FF,$FF
 ;;; Logo cycler
 ;;; PD,U=color index
 LOGCOL:         ldx #LCTAB
-                stx proc::data,u
-LOGLP:          ldx proc::data,u
+                stx Proc::data,u
+LOGLP:          ldx Proc::data,u
                 ldy #PCRAM+1
 LOGL0:          lda ,x+
                 bne LOGL1
@@ -677,12 +677,12 @@ LOGL0:          lda ,x+
 LOGL1:          sta ,y+
                 cmpy #PCRAM+9
                 bne LOGL0
-                ldx proc::data,u
+                ldx Proc::data,u
                 leax 1,x
                 lda ,x
                 bne LOGL2
                 ldx #LCTAB
-LOGL2:          stx proc::data,u
+LOGL2:          stx Proc::data,u
                 NAP (3,LOGLP)
 ;
 ; Logo coloring table
@@ -712,65 +712,65 @@ SHKTAB:         FCB $7,$F,$17,$1E,$25,$2C,$2B,$2A
 ;;; Super process
 ;;; PD+8=table X,PD+40=ret ADD,pd10=saddr
 ;;; A=cols/delay;X=sadd;B=delay/sleep
-OTSGM:          stx proc::data+10,u                ; Start addr
-                sta proc::d1,u                     ; Cols/delay
-                stb proc::data+13,u
+OTSGM:          stx Proc::data+10,u                ; Start addr
+                sta Proc::d1,u                     ; Cols/delay
+                stb Proc::data+13,u
                 puls x
-                stx proc::data+14,u                ; Ret addr
+                stx Proc::data+14,u                ; Ret addr
                 ldx #SGMTAB
-                stx proc::data+8,u
-                clr proc::data+12,u
-OTSGM1:         ldx proc::data+8,u
+                stx Proc::data+8,u
+                clr Proc::data+12,u
+OTSGM1:         ldx Proc::data+8,u
                 ldy ,x++                          ; Letter addr
                 beq OTSGMX                        ; The end
                 lda ,x+
-                std proc::d2,u                     ; Color
+                std Proc::d2,u                     ; Color
                 lda ,x+
-                sta proc::data,u                   ; Flavor mask
+                sta Proc::data,u                   ; Flavor mask
                 ldd ,x++                          ; Screen addr offset
-                addd proc::data+10,u
-                stx proc::data+8,u
+                addd Proc::data+10,u
+                stx Proc::data+8,u
                 tfr d,x
                 jmp OUTLET
-OTSGMX:         jmp [proc::data+14,u]              ; Return
+OTSGMX:         jmp [Proc::data+14,u]              ; Return
 
 ;;; Output letter
 ;;; X=screen addr top left
 ;;; Y=letter data table
 ;;; PD=flavor maskl;pd1=delay;pd3=repcnt
 ;;; Pd12=delay temp
-OUTLET:         clr proc::d3,u
-                stx proc::d4,u
+OUTLET:         clr Proc::d3,u
+                stx Proc::d4,u
 OUTL0:          lda ,y
                 beq OUTLX                         ; End
                 bpl OUTL1
                 bita #$40
                 bne OUTL1
                 anda #$3F
-                sta proc::d3,u
+                sta Proc::d3,u
                 leay 1,y
                 bra OUTL0
 OUTL1:          pshs y
                 jsr OUTCOL
-                lda proc::d3,u
+                lda Proc::d3,u
                 beq OUTL2
-                dec proc::d3,u
+                dec Proc::d3,u
                 beq OUTL2
                 ldy ,s
 OUTL2:          leas 2,s
-                com proc::data,u
+                com Proc::data,u
                 bpl OUTL2A
-                inc proc::d4,u
-OUTL2A:         sty proc::d6,u
-                dec proc::data+12,u
+                inc Proc::d4,u
+OUTL2A:         sty Proc::d6,u
+                dec Proc::data+12,u
                 bpl OUTL3
-                lda proc::d1,u
-                sta proc::data+12,u
+                lda Proc::d1,u
+                sta Proc::data+12,u
                 ldx #OUTL3
-                lda proc::data+13,u
+                lda Proc::data+13,u
                 jmp SLEEP
-OUTL3:          ldx proc::d4,u
-                ldy proc::d6,u
+OUTL3:          ldx Proc::d4,u
+                ldy Proc::d6,u
                 bra OUTL0
 OUTLX:          jmp OTSGM1
 
@@ -788,8 +788,8 @@ OUTC1:          lda ,y+
                 bra OUTCX
 OUTC2:          anda #$3F
                 beq OUTCX
-OUTC3:          ldb proc::data,u
-                andb proc::d2,u
+OUTC3:          ldb Proc::data,u
+                andb Proc::d2,u
                 orcc #$10                         ; Sei
                 clr RWCNTL                        ; Enable RAM read
                 orb ,x
@@ -812,19 +812,19 @@ OUTCX:          lda ,s+
 HALO:           sty XTEMP                         ; Save bottom right in memory
                 puls y                            ; Get return address
                 ldu CRPROC
-                stx proc::data,u                   ; Save upper left
-                sty proc::data+6,u                 ; Return address
+                stx Proc::data,u                   ; Save upper left
+                sty Proc::data+6,u                 ; Return address
                 clrb                              ; Start on even flavor
 
 !loop:          bsr VFILL                         ; Fill A vertical line
                 tstb                              ; Move to next flavor
                 beq !odd                          ; Even flavor..move to odd
                 ldu CRPROC
-                std proc::data+2,u
-                stx proc::data+4,u
+                std Proc::data+2,u
+                stx Proc::data+4,u
                 SLEEP (1)
-                ldd proc::data+2,u
-                ldx proc::data+4,u
+                ldd Proc::data+2,u
+                ldx Proc::data+4,u
                 leax $100,x                       ; Odd flavor move to next byte
                 ldb #$FF                          ; Setup for even flavor
 !odd:           incb                              ; To next flavor
@@ -834,20 +834,20 @@ HALO:           sty XTEMP                         ; Save bottom right in memory
                 blo !loop                         ; We still in range...do another column
 
                 ldu CRPROC
-                ldx proc::data,u                   ; Restore original cursor
+                ldx Proc::data,u                   ; Restore original cursor
 !HALO2:         lda #$4B                          ; Half A line down
                 sta XTEMP
                 jsr HFILL                         ; Do A horizontal row
-                stx proc::data+4,u
+                stx Proc::data+4,u
                 SLEEP (1)
                 lda #$8C
                 sta XTEMP
-                ldb proc::data+5,u
+                ldb Proc::data+5,u
                 lda #$4B
                 tfr d,x
                 jsr HFILL
                 SLEEP (1)
-                ldx proc::data+4,u
+                ldx Proc::data+4,u
                 leax 1,x                          ; Move to next row
                 exg x,d
                 lda #$0E
@@ -855,7 +855,7 @@ HALO:           sty XTEMP                         ; Save bottom right in memory
                 exg x,d
                 blo !HALO2                        ; Not this pass
                 ldu CRPROC
-                jmp [proc::data+6,u]               ; Return
+                jmp [Proc::data+6,u]               ; Return
 
 
 ;;; Vfill

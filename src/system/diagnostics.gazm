@@ -217,7 +217,7 @@ DIAG66:         jsr SCRCLR
                 jsr WRD7V                         ;  Print one of the two messages.
                 ldu CRPROC
                 jsr AVWAIT
-                clr proc::data  +2,u               ;  Indicate front door test calling
+                clr Proc::data  +2,u               ;  Indicate front door test calling
                 jsr SNDSRT                        ;  Start the sound test
 DIAG6:          jsr SNDCYC                        ;  Cycle one sound
                 jsr AVCHK                         ;  Check advance switch.
@@ -545,17 +545,17 @@ VERTX:
 
 CRTEST:         puls d                            ;  Get return
                 ldu CRPROC
-                std proc::data  +6,u               ;  Save
+                std Proc::data  +6,u               ;  Save
                 jsr SCRCLR                        ;  Clear out baby
                 lda #CMTSTM                       ;  Print the message
                 jsr WRD7V
                 lda #$80
-                sta proc::data  ,u
+                sta Proc::data  ,u
 CRTST1:
                 NAP ( 1,CRTST2 )
 CRTST2:         jsr AVCHK                         ;  Press??
                 bcs CMTBYE                        ;  Nope
-                dec proc::data  ,u                 ;  Done with delay??
+                dec Proc::data  ,u                 ;  Done with delay??
                 bne CRTST1
                 lda COLRMT                        ;  Get first color.
                 bsr SETPCR                        ;  Store it down
@@ -563,23 +563,23 @@ CRTST2:         jsr AVCHK                         ;  Press??
 CRTT__:         ldx #COLRMT                       ;  Table to store
 CRTST3:         lda ,x+                           ;  Get A color
                 ldu CRPROC
-                stx proc::data  +2,u
+                stx Proc::data  +2,u
                 bsr SETPCR                        ;  Store it through
                 lda #$80
-                sta proc::data  ,u
+                sta Proc::data  ,u
 CRTST4:
                 NAP(1, CRTST5)
 
 CRTST5:         jsr AVCHK                         ;  Advance??
                 bcs CMTBYE                        ;  Yep
-                dec proc::data  ,u
+                dec Proc::data  ,u
                 bne CRTST4
-                ldx proc::data+2,u                 ;  Restore pointer
+                ldx Proc::data+2,u                 ;  Restore pointer
                 cmpx #COLRMT+8
                 blo CRTST3
                 bra CRTT__                        ;  Continue through
 CMTBYE:         ldu CRPROC
-                jmp [proc::data+6,u]
+                jmp [Proc::data+6,u]
 
 RAMBAR:         ldx #$0
                 ldy #COLRMD                       ;  Numbers to put in bars
@@ -615,9 +615,9 @@ SWMH:           equ 44                            ;  Height of first message
 
 SWTEST:         puls d                            ;  Get return addr
                 ldu CRPROC
-                std proc::data+6,u
+                std Proc::data+6,u
                 lda #10
-                sta proc::data+4,u                 ;  Delay counter for exit
+                sta Proc::data+4,u                 ;  Delay counter for exit
                 jsr SCRCLR                        ;  Clear it please
                 lda #SWTESM                       ;  Switch test message.
                 jsr WRD7V
@@ -636,13 +636,13 @@ SWTES1:         lda #$34
                 jsr AVCHK                         ;  Advance pressed?
                 bcc SWT999                        ;  Nope.
                 ldu CRPROC
-                dec proc::data+4,u
+                dec Proc::data+4,u
                 beq SWTBYE
 SWT999:
                 NAP (1,SWTES2)
 
 SWTBYE:         ldu CRPROC
-                jmp [proc::data+6,u]               ;  "Return"
+                jmp [Proc::data+6,u]               ;  "Return"
 
 SWSCN0:         ldx ,u++                          ;  Get address of port
                 beq SWSCN5                        ;  Done
@@ -778,7 +778,7 @@ FDROM8:         lda PIA0
 
 AVWAIT:         puls d
                 ldu CRPROC
-                std proc::data+6,u
+                std Proc::data+6,u
 AVWAI_:         lda PIA0                          ;  See if advance pressed
                 bita #$2                          ;  Well??
                 bne AVWAT2
@@ -791,7 +791,7 @@ AVWAT4:         lda PIA0
                 beq AVWAT3
 AVWAT5:
                 NAP (2,AVWAT4)
-AVWAT3:         jmp [proc::data+6,u]
+AVWAT3:         jmp [Proc::data+6,u]
 
 AVCHK:          lda PIA0
                 bita #$2
@@ -846,11 +846,11 @@ BOOK2:          puls a                            ;  Restore A
 
 SNDSRT:         jsr SCRCLR                        ;  Clear the screen
 SNDSR1:         ldd #$FE01                        ;  Set up for sound line 1
-                std proc::data,u
+                std Proc::data,u
                 rts
 
 SNDCYC:         puls d
-                std proc::data+6,u
+                std Proc::data+6,u
                 lda #$3F
                 sta SOUND
                 NAP (1,SNDC55)
@@ -860,33 +860,33 @@ SNDC55:         lda #$C
 SNDCY6:         lda #$3F
                 sta SOUND
                 NAP (1,SNDCY1)
-SNDCY1:         ldd proc::data,u
+SNDCY1:         ldd Proc::data,u
                 anda #$3F
                 sta SOUND
                 lda #SNDTEX
                 jsr WRD7V
                 lda #$40
-                sta proc::data+4,u
+                sta Proc::data+4,u
 SNDCY4:
                 NAP (1,SNDCY5)
 SNDCY5:         jsr AVCHK                         ;  Advance???
                 bcs SNDCY3                        ;  Then go
-                dec proc::data+4,u
+                dec Proc::data+4,u
                 bne SNDCY4
-SNDCY3:         lda proc::data+2,u                 ;  See who set this up??
+SNDCY3:         lda Proc::data+2,u                 ;  See who set this up??
                 bne SNDC90                        ;  Autocy did....always advance
                 lda PIA0                          ;  Check manual/auto
                 rora
                 bcc SNDC91                        ;  Manual...don't move on.
-SNDC90:         ldd proc::data,u
+SNDC90:         ldd Proc::data,u
                 orcc #$01                         ;  Sec
                 rola                              ;  Move to next line
                 incb
                 cmpb #6                           ;  Up to line 6??
                 blo SNDCY2
                 bsr SNDSR1
-SNDCY2:         std proc::data,u
-SNDC91:         jmp [proc::data+6,u]
+SNDCY2:         std Proc::data,u
+SNDC91:         jmp [Proc::data+6,u]
 
 ;;; Cmos RAM test
 CMTEST:         ldx #CMOS

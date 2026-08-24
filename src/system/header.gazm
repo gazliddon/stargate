@@ -500,7 +500,7 @@ LTYPE:          EQU 4                             ;;; Process type: laser
 SBTYPE:         EQU 5                             ;;; Process type: smart bomb
 
 ;;; Process structure
-                struct proc {
+                struct Proc {
                     link : word
                     addr : word
                     time : byte
@@ -518,12 +518,12 @@ SBTYPE:         EQU 5                             ;;; Process type: smart bomb
 
 ;;; **Process table**
 ;;; Holds information on the games active processes.
-PTAB:           RMB proc::size*85
+PTAB:           RMB Proc::size*85
 
 ;;; End of process table `ptab`
 TABEND:
 
-SPSIZE:         EQU proc::size+8
+SPSIZE:         EQU Proc::size+8
 ;;; **Super process table**
 ;;; 5 Processes with an extra 8 bytes added to them
 SPTAB:          RMB SPSIZE*5
@@ -538,7 +538,7 @@ THTAB:          RMB 64
 THTEND:                                           ;;; End of thrust table
 
 ;;;Star data structure
-                struct smap {
+                struct Smap {
                     sx : byte
                     sy : byte
                     scol : byte
@@ -546,17 +546,17 @@ THTEND:                                           ;;; End of thrust table
                 }
 
 SNUM:           EQU 16
-SLGTH:          EQU smap::size
+SLGTH:          EQU Smap::size
 ;;; **Stars Table**
-;;; Table of `smap` structures restructes
+;;; Table of `Smap` structures restructes
 ;;; One for each star in the game's background
 SMAP:           RMB SNUM*SLGTH                    ; Reserve space
 SMEND:
 
 ;Offset constants
-SX:             EQU smap::sx
-SY:             EQU smap::sy
-SCOL:           EQU smap::scol
+SX:             EQU Smap::sx
+SY:             EQU Smap::sy
+SCOL:           EQU Smap::scol
 
 ;;; Monochrome table
 MONOTB:         RMB 128
@@ -614,7 +614,7 @@ MESSY:          RMB 2
 
 ;Player data table
 ;
-                struct player_data {
+                struct PlayerData {
                     PSCOR : byte[4]
                     PRPLA : byte[4]
                     PLAS : byte
@@ -647,15 +647,15 @@ PLDATA:
 
 PLDEND:                                           ; End of player data
 
-PLDLEN:         EQU player_data::size
-PSCOR:          EQU player_data::PSCOR
-PRPLA:          EQU player_data::PRPLA
-PLAS:           EQU player_data::PLAS
-PWAV:           EQU player_data::PWAV
-PSBC:           EQU player_data::PSBC
-PINV:           EQU player_data::PINV
-PTARG:          EQU player_data::PTARG
-PENEMY:         EQU player_data::PENEMY
+PLDLEN:         EQU PlayerData::size
+PSCOR:          EQU PlayerData::PSCOR
+PRPLA:          EQU PlayerData::PRPLA
+PLAS:           EQU PlayerData::PLAS
+PWAV:           EQU PlayerData::PWAV
+PSBC:           EQU PlayerData::PSBC
+PINV:           EQU PlayerData::PINV
+PTARG:          EQU PlayerData::PTARG
+PENEMY:         EQU PlayerData::PENEMY
 ;
 
 ASTCNT:         RMB 1                             ;;; Astronaut count
@@ -727,7 +727,7 @@ TLIST:          RMB 20
 TLEND:
 
 ;;;Volcano lava data structure
-                struct lava {
+                struct Lava {
                     xvel : word
                     yvel : word
                     x16 : word
@@ -738,7 +738,7 @@ TLEND:
                 }
 
 ;;; Start of lava table
-lava_tab:       RMB lava::size *3                  ; 3 Of them
+lava_tab:       RMB Lava::size *3                  ; 3 Of them
 ;;; End of lava table
 lava_tab_end:
 
