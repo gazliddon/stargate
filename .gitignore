@@ -4,3 +4,6 @@ roms
 .DS_Store
 lsp.log
 
+# Build outputs (metadata bundle lands in the build cwd)
+*.map
+*.sym
