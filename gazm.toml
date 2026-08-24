@@ -64,7 +64,7 @@ ATRORG = {start = 0xda00}
 
 # Minimum gazm assembler version this fixture is validated against.
 # scripts/prepare-release.sh keeps this in lockstep with gazm/Cargo.toml.
-requires-gazm = "0.9.17"
+requires-gazm = "0.10.0"
 
 [lsp]
 log-file="lsp.log"
