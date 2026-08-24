@@ -42,7 +42,7 @@ OLD:            equ Ptable2::OLD
 YPOS:           equ Ptable2::YPOS
 FROB:           equ Ptable2::FROB
 
-PSIZZ:          equ Ptable2::size
+PSIZZ:          equ sizeof(Ptable2)
                 RMB PSIZZ*399                     ; Room for 351 entries
 
 PTABE:          EQU *

@@ -74,7 +74,8 @@ To verify all checksums directly:
 - **Struct fields are lowercase** and keep the original Williams variable
   names (`d1`..`d7`, `cod`, `x8`) so the source stays diffable against
   the original. New fields: lowercase, descriptive.
-- **`size` is reserved** as the implicit struct member (total size in
-  bytes) — never declare a field named `size`.
+- **Struct size is `sizeof(Struct)`** — e.g. `sizeof(Proc)` for the total size
+  in bytes. There is no auto-created `Name::size` member; never declare a
+  field named `size`.
 - **Local offset aliases** use the `!` local-label form:
   `!p_obj: equ Proc::data` — keep those per-module and lowercase.

@@ -1064,9 +1064,9 @@ PINIT:          pshs x,d
                 CLRD()
                 ldx #PTAB
                 stx FREE
-PINIT1:         leax Proc::size,x
-                stx -Proc::size,x
-                cmpx #TABEND-Proc::size
+PINIT1:         leax sizeof(Proc),x
+                stx -sizeof(Proc),x
+                cmpx #TABEND-sizeof(Proc)
                 bne PINIT1
                 std ,x
                 std ACTIVE                        ;  Super processes
@@ -1332,10 +1332,10 @@ VOLC:           lda #$87
                 sta VFLG
                 ldx #lava_tab
                 repeat 4, li {
-                    std [Lava::x8 + Lava::size*li, x]
+                    std [Lava::x8 + sizeof(Lava)*li, x]
                 }
                 repeat 4, li {
-                    sta Lava::time + Lava::size*li, x
+                    sta Lava::time + sizeof(Lava)*li, x
                 }
                 sta VETIM
 !volcx:         rts
@@ -1357,7 +1357,7 @@ VOLC:           lda #$87
                 ldd #0
                 ldx #lava_tab
                 repeat 4, li {
-                    std [Lava::x8 + Lava::size*li, x]   ; Off oldies
+                    std [Lava::x8 + sizeof(Lava)*li, x]   ; Off oldies
                 }
 
 
@@ -1387,7 +1387,7 @@ VOLCLP:         lda Lava::time,x
                 std [Lava::x8,x]
 
 
-VOLCLX:         leax Lava::size,x
+VOLCLX:         leax sizeof(Lava),x
                 cmpx #lava_tab_end
                 bne VOLCLP                        ;  Check for A new eruption
                 dec VETIM
@@ -1416,7 +1416,7 @@ VOLCLX:         leax Lava::size,x
                 stb Lava::time,x
                 lda #$9C                          ; Volcano Y
                 sta Lava::y16,x
-!VOLC3:         leax Lava::size,x
+!VOLC3:         leax sizeof(Lava),x
                 cmpx #lava_tab_end
                 beq !VOLC4
                 dec ITEMP

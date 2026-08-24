@@ -52,7 +52,7 @@ PCSAV:          RMB 8                             ;;; Save old pcram values
                 }
 
 PTABLE:
-                RMB Ptable::size * 300
+                RMB sizeof(Ptable) * 300
 
                 section trek5, start = WRPORG
 WARPV:          jmp ROCK0                         ; Warp
@@ -105,7 +105,7 @@ ROKSUB:         clrb
                 coma
                 comb
                 addd #1
-                std Ptable::size,x                 ; Store the negative side for the next one
+                std sizeof(Ptable),x                 ; Store the negative side for the next one
                 std ,x++
                 bsr !RNDDIS
                 std ,x++
@@ -248,12 +248,12 @@ ROCK0:          ldu CRPROC
                 lda Ptable::FROB,x
                 ldb Ptable::FROB,x
                 std [Ptable::OLD,x]                ; Store frob
-                leax Ptable::size,x                ; Move to next
+                leax sizeof(Ptable),x                ; Move to next
                 bra !rokup2
 
 !byept2:
                 ldu TABPTR                        ; Get the pointer
-                leau -Ptable::size,u               ; Move down one entry
+                leau -sizeof(Ptable),u               ; Move down one entry
                 stu TABPTR
                 ldd Ptable::YACC,u
                 std Ptable::YACC,x
