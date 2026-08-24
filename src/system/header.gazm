@@ -522,12 +522,14 @@ PTAB:           RMB Proc::size*85
 
 ;;; End of process table `ptab`
 TABEND:
+assert TABEND - PTAB == Proc::size * 85, "process table: 85 entries"
 
 SPSIZE:         EQU Proc::size+8
 ;;; **Super process table**
 ;;; 5 Processes with an extra 8 bytes added to them
 SPTAB:          RMB SPSIZE*5
 SPTEND:
+assert SPTEND - SPTAB == SPSIZE * 5, "super process table: 5 entries"
 
 ;;;Laser fissle table
 FISTAB:         RMB 32
@@ -741,6 +743,7 @@ TLEND:
 lava_tab:       RMB Lava::size *3                  ; 3 Of them
 ;;; End of lava table
 lava_tab_end:
+assert lava_tab_end - lava_tab == Lava::size * 3, "3 lava structs"
 
 EGRAM:          RMB 2                             ;;; Endgame processing return address save
 EGRAM2:         RMB 2                             ;;; It likes to go 2 deep.

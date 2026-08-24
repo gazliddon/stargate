@@ -1325,20 +1325,18 @@ VOLC:           lda #$87
 !volcx1:        lda VFLG                          ; Erase last guys?
                 beq !volcx                        ; No
 ; Erase previous lava bits
-; Todo! Is this a bug? Seems to be clearing beyond the end of the table @ lava_tab
-; Lava_tab reserves space for 3 lava structs but this clears 4
+; The table reserves 3 Lava structs but this clears 4 — original behaviour,
+; kept as-is (assert lava_tab_end - lava_tab == 3 checks the table size).
                 clra
                 clrb
                 sta VFLG
                 ldx #lava_tab
-                std [Lava::x8,x]
-                std [Lava::x8+Lava::size,x]
-                std [Lava::x8+2*Lava::size,x]
-                std [Lava::x8+3*Lava::size,x]
-                sta Lava::time,x
-                sta Lava::time+Lava::size,x
-                sta Lava::time+2*Lava::size,x
-                sta Lava::time+3*Lava::size,x
+                repeat 4, li {
+                    std [Lava::x8 + Lava::size*li, x]
+                }
+                repeat 4, li {
+                    sta Lava::time + Lava::size*li, x
+                }
                 sta VETIM
 !volcx:         rts
 
@@ -1358,10 +1356,9 @@ VOLC:           lda #$87
                 std ITEMP                         ; X offset
                 ldd #0
                 ldx #lava_tab
-                std [Lava::x8,x]                   ; Off oldies
-                std [Lava::x8+Lava::size,x]
-                std [Lava::x8+2*Lava::size,x]
-                std [Lava::x8+3*Lava::size,x]
+                repeat 4, li {
+                    std [Lava::x8 + Lava::size*li, x]   ; Off oldies
+                }
 
 
 VOLCLP:         lda Lava::time,x
