@@ -65,3 +65,16 @@ To verify all checksums directly:
 - `snd_src/vsndrm2.src`: Converted 6800 soundboard code.
 - `orig/`: Original unmodified source files and reference ROMs.
 - `gazm.toml`: Multi-target build configuration for both `stargate` (6809) and `sound` (6800).
+
+## Naming conventions
+
+- **Structs are PascalCase** and read as types: `Proc`, `Smap`, `Lava`,
+  `Ptable`, `Pia`, `PlayerData`. Fields are referenced scoped:
+  `Proc::time`, `[Proc::addr,u]`, `Proc::size * 85`.
+- **Struct fields are lowercase** and keep the original Williams variable
+  names (`d1`..`d7`, `cod`, `x8`) so the source stays diffable against
+  the original. New fields: lowercase, descriptive.
+- **`size` is reserved** as the implicit struct member (total size in
+  bytes) — never declare a field named `size`.
+- **Local offset aliases** use the `!` local-label form:
+  `!p_obj: equ Proc::data` — keep those per-module and lowercase.
