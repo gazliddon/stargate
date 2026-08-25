@@ -1,9 +1,38 @@
+;; =============================================================================
+;; Byte Match Fixups — match the original mask PROMs byte-for-byte
+;; =============================================================================
+;;
+;; WHY THIS FILE EXISTS
+;; --------------------
+;; The restored source does not reproduce every byte the original Williams
+;; mask PROMs contain. At three addresses the source emits nothing (the
+;; binary's default fill is $00), but the original PROMs carry real bytes —
+;; leftovers of code/data the conversion didn't recover. The ROM checksum
+;; gate (roms.sha1) demands the assembled ROMs be byte-identical to the
+;; originals, so those gaps must be forced to the PROM values.
+;;
+;; HOW IT WORKS
+;; ------------
+;; Each patch is a section positioned at the target address whose FCB
+;; writes the PROM byte(s). This file is included LAST in stargate.gazm,
+;; so its writes land after all normal assembly — at these addresses the
+;; natural output is $00, so the fixup fills a gap rather than overriding
+;; code. There is no overlap with real emitted code (verified: without
+;; this file the three ROMs differ only here, by exactly these bytes).
+;;
+;; VERIFIED
+;; --------
+;; With this file:  13/13 ROM checksums OK (byte-identical to originals).
+;; Without it:      roms 04, 06, 10 fail the checksum gate at these
+;;                  addresses (natural $00 vs PROM values below).
+;;
+;; =============================================================================
 
                 section fixup_5f70, start = $5F70
-                FCB $B7                           ; Match the proms goofy
+                FCB $B7                           ; rom 06 @ $5F70: prom $B7 (natural $00)
 
                 section fixup_3237, start = $3237
-                FCB $02                           ; Match the proms!!!!!
+                FCB $02                           ; rom 04 @ $3237: prom $02 (natural $00)
 
                 section fixup_d950, start = $D950
-                FCB $8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E
+                FCB $8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E,$8E  ; rom 10 @ $D950: nine prom $8E (natural $00)
