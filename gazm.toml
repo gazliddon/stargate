@@ -13,7 +13,7 @@ verbose="Silent"
 mem-size = 94208
 project-file = "src/stargate.gazm"
 cpu="Cpu6809"
-metadata = true
+metadata = "stargate.meta"
 
 bin-references = [
     { file = "orig/roms/01", addr = 0x0000 },
@@ -49,7 +49,7 @@ cpu = "Cpu6800"
 verbose = "Silent"
 mem-size = 65536
 project-file = "snd_src/main.src"
-metadata = true
+metadata = "sound.meta"
 bin-references = [{ file = "stargate/sg.snd", addr = 0x0800 }]
 
 [targets.checksums]
